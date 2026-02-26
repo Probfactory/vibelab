@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore — VibeLab</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17Z'/></svg>">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="feed-page">
+  <div class="container">
+    <!-- Feed Header with Tabs -->
+    <div class="feed-header">
+      <div>
+        <div class="section-title" style="margin-bottom: 4px;">Explore</div>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Discover creative experiments from the community</p>
+      </div>
+      <div class="feed-tabs" id="feed-tabs">
+        <button class="feed-tab active" onclick="switchFeedTab('foryou', this)">For You</button>
+        <button class="feed-tab" onclick="switchFeedTab('following', this)">Following</button>
+        <button class="feed-tab" onclick="switchFeedTab('fresh', this)">Fresh Experiments</button>
+        <button class="feed-tab" onclick="switchFeedTab('raw', this)">Raw Builds</button>
+      </div>
+    </div>
+
+    <!-- Search + Filters Toolbar -->
+    <div class="feed-toolbar">
+      <div class="search-bar" style="flex: 1;">
+        <span class="search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input type="text" id="search-input" placeholder="Search projects, creators, tags..." oninput="handleSearch(this.value)">
+      </div>
+      <div class="filters" id="category-filters">
+        <button class="filter-btn active" onclick="filterFeedProjects('all', this)">All</button>
+        <button class="filter-btn" onclick="filterFeedProjects('web', this)">Web</button>
+        <button class="filter-btn" onclick="filterFeedProjects('art', this)">Gen Art</button>
+        <button class="filter-btn" onclick="filterFeedProjects('game', this)">Games</button>
+        <button class="filter-btn" onclick="filterFeedProjects('tool', this)">Tools</button>
+        <button class="filter-btn" onclick="filterFeedProjects('ai', this)">AI</button>
+      </div>
+      <div class="feed-sort">
+        <select id="sort-select" onchange="handleSort(this.value)">
+          <option value="trending">Most Vibes</option>
+          <option value="newest">Newest</option>
+          <option value="discussed">Most Discussed</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Status Filters -->
+    <div class="feed-status-filters" id="status-filters">
+      <button class="status-filter-btn active" onclick="filterByStatus('all', this)">All Status</button>
+      <button class="status-filter-btn" onclick="filterByStatus('WIP', this)">WIP</button>
+      <button class="status-filter-btn" onclick="filterByStatus('Experiment', this)">Experiment</button>
+      <button class="status-filter-btn" onclick="filterByStatus('Shipped', this)">Shipped</button>
+    </div>
+
+    <!-- Tag Follow Section (shown for logged-in users) -->
+    <div class="tag-follow-bar" id="tag-follow-bar" style="display: none;">
+      <span class="tag-follow-label">Follow tags:</span>
+      <div class="tag-follow-chips" id="tag-follow-chips"></div>
+    </div>
+
+    <!-- Project Grid -->
+    <div class="project-grid" id="feed-grid">
+      <div class="loading-spinner"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Infinite Scroll Trigger -->
+    <div class="load-more-trigger" id="load-more-trigger"></div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="empty-state" style="display: none;">
+      <div class="empty-icon">&#128269;</div>
+      <h3>No projects found</h3>
+      <p>Try adjusting your search or filters to find what you're looking for.</p>
+    </div>
+
+    <!-- Discover Creators Section -->
+    <div class="discover-creators" id="discover-creators">
+      <div class="section-header-row" style="margin-top: 60px;">
+        <div>
+          <div class="section-label">People</div>
+          <div class="section-title" style="font-size: 1.4rem;">Discover Creators</div>
+        </div>
+      </div>
+      <div class="creators-scroll" id="creators-list"></div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+<div id="modals-container"></div>
+
+<!-- Core UI (no Firebase dependency) -->
+<script src="js/shared.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+<!-- App JS (depends on Firebase) -->
+<script src="js/firebase-config.js"></script>
+<script src="js/auth.js"></script>
+
+<script>
+// Initialize page
+initPage('feed');
+
+// Feed state
+let feedProjects = [];
+let currentTab = 'foryou';
+let currentFilter = 'all';
+let currentStatusFilter = 'all';
+let currentSearch = '';
+let currentSort = 'trending';
+let lastDoc = null;
+let isLoading = false;
+let hasMore = true;
+const PAGE_SIZE = 12;
+let followingIds = [];
+let followedTags = [];
+
+// Available tags for following
+const availableTags = [
+  { id: 'web', label: 'Web', color: '#3b82f6' },
+  { id: 'art', label: 'Gen Art', color: '#ec4899' },
+  { id: 'game', label: 'Games', color: '#10b981' },
+  { id: 'tool', label: 'Tools', color: '#f59e0b' },
+  { id: 'ai', label: 'AI', color: '#7c3aed' }
+];
+
+// Load feed projects
+async function loadFeedProjects(append = false) {
+  if (isLoading) return;
+  isLoading = true;
+
+  const grid = document.getElementById('feed-grid');
+  const emptyState = document.getElementById('empty-state');
+
+  if (!append) {
+    grid.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+    lastDoc = null;
+    hasMore = true;
+    feedProjects = [];
+  }
+
+  try {
+    let query = db.collection('projects');
+
+    // Apply category filter
+    if (currentFilter !== 'all') {
+      query = query.where('category', '==', currentFilter);
+    }
+
+    // Apply tab-based filtering
+    if (currentTab === 'following' && currentUser && followingIds.length > 0) {
+      const batchIds = followingIds.slice(0, 10);
+      query = query.where('authorUid', 'in', batchIds);
+    }
+
+    if (currentTab === 'raw') {
+      query = query.where('status', '==', 'WIP');
+    }
+
+    if (currentTab === 'fresh') {
+      query = query.where('status', 'in', ['Experiment', 'WIP']);
+    }
+
+    // Apply status filter (separate from tab)
+    if (currentStatusFilter !== 'all' && currentTab !== 'raw' && currentTab !== 'fresh') {
+      query = query.where('status', '==', currentStatusFilter);
+    }
+
+    // Sort
+    if (currentTab === 'foryou') {
+      // For You: trending by default
+      query = query.orderBy('vibes', 'desc');
+    } else if (currentSort === 'trending') {
+      query = query.orderBy('vibes', 'desc');
+    } else if (currentSort === 'discussed') {
+      query = query.orderBy('comments', 'desc');
+    } else {
+      query = query.orderBy('createdAt', 'desc');
+    }
+
+    // Pagination
+    if (lastDoc) {
+      query = query.startAfter(lastDoc);
+    }
+
+    query = query.limit(PAGE_SIZE);
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty && !append) {
+      feedProjects = [...sampleProjects];
+      applyLocalFilters();
+      renderFeedGrid();
+      isLoading = false;
+      return;
+    }
+
+    const newProjects = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
+    }));
+
+    if (snapshot.docs.length > 0) {
+      lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    }
+
+    if (snapshot.docs.length < PAGE_SIZE) {
+      hasMore = false;
+    }
+
+    if (append) {
+      feedProjects = [...feedProjects, ...newProjects];
+    } else {
+      feedProjects = [...newProjects, ...sampleProjects];
+    }
+
+    applyLocalFilters();
+    renderFeedGrid();
+  } catch (error) {
+    console.error('Load feed error:', error);
+    if (!append) {
+      try {
+        const fallback = await db.collection('projects').orderBy('createdAt', 'desc').limit(PAGE_SIZE).get();
+        if (!fallback.empty) {
+          feedProjects = fallback.docs.map(doc => ({
+            id: doc.id, ...doc.data(),
+            createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
+          }));
+        } else {
+          feedProjects = [...sampleProjects];
+        }
+      } catch (e2) {
+        feedProjects = [...sampleProjects];
+      }
+      applyLocalFilters();
+      renderFeedGrid();
+    }
+  }
+
+  isLoading = false;
+}
+
+function applyLocalFilters() {
+  // Apply search filter client-side
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    feedProjects = feedProjects.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.desc && p.desc.toLowerCase().includes(q)) ||
+      (p.author && p.author.toLowerCase().includes(q)) ||
+      (p.authorName && p.authorName.toLowerCase().includes(q)) ||
+      (p.tag && p.tag.toLowerCase().includes(q)) ||
+      (p.tags && p.tags.some(t => t.toLowerCase().includes(q)))
+    );
+  }
+
+  // Apply tab-based status filter for sample projects
+  if (currentTab === 'raw') {
+    feedProjects = feedProjects.filter(p => p.status === 'WIP');
+  } else if (currentTab === 'fresh') {
+    feedProjects = feedProjects.filter(p => p.status === 'Experiment' || p.status === 'WIP');
+  }
+
+  // Apply status filter client-side for sample projects
+  if (currentStatusFilter !== 'all' && currentTab !== 'raw' && currentTab !== 'fresh') {
+    feedProjects = feedProjects.filter(p => p.status === currentStatusFilter);
+  }
+
+  // "For You" personalization: boost projects matching followed tags
+  if (currentTab === 'foryou' && followedTags.length > 0) {
+    const boosted = [];
+    const rest = [];
+    feedProjects.forEach(p => {
+      if (followedTags.includes(p.category)) {
+        boosted.push(p);
+      } else {
+        rest.push(p);
+      }
+    });
+    feedProjects = [...boosted, ...rest];
+  }
+}
+
+function renderFeedGrid() {
+  const grid = document.getElementById('feed-grid');
+  const emptyState = document.getElementById('empty-state');
+
+  if (feedProjects.length === 0) {
+    grid.innerHTML = '';
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    grid.innerHTML = feedProjects.map(p => renderProjectCard(p)).join('');
+  }
+}
+
+// Tab switching
+function switchFeedTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.feed-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (tab === 'following' && !currentUser) {
+    requireAuth('see your following feed');
+    return;
+  }
+
+  if (tab === 'foryou') {
+    currentSort = 'trending';
+    document.getElementById('sort-select').value = 'trending';
+  } else if (tab === 'fresh') {
+    currentSort = 'newest';
+    document.getElementById('sort-select').value = 'newest';
+  }
+
+  // Hide status filters when tab overrides status (Raw Builds, Fresh Experiments)
+  const statusFilters = document.getElementById('status-filters');
+  if (statusFilters) {
+    if (tab === 'raw' || tab === 'fresh') {
+      statusFilters.style.opacity = '0.4';
+      statusFilters.style.pointerEvents = 'none';
+    } else {
+      statusFilters.style.opacity = '1';
+      statusFilters.style.pointerEvents = 'auto';
+    }
+  }
+
+  loadFeedProjects();
+}
+
+// Category filter
+function filterFeedProjects(cat, btn) {
+  currentFilter = cat;
+  btn.closest('.filters').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadFeedProjects();
+}
+
+// Status filter
+function filterByStatus(status, btn) {
+  currentStatusFilter = status;
+  document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadFeedProjects();
+}
+
+// Search
+let searchTimeout;
+function handleSearch(value) {
+  currentSearch = value;
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    loadFeedProjects();
+  }, 300);
+}
+
+// Sort
+function handleSort(value) {
+  currentSort = value;
+  loadFeedProjects();
+}
+
+// Tag following
+async function toggleTagFollow(tagId) {
+  if (!requireAuth('follow tags')) return;
+
+  try {
+    const tagFollowRef = db.collection('tag_follows').doc(`${currentUser.uid}_${tagId}`);
+    const doc = await tagFollowRef.get();
+
+    if (doc.exists) {
+      await tagFollowRef.delete();
+      followedTags = followedTags.filter(t => t !== tagId);
+    } else {
+      await tagFollowRef.set({
+        userId: currentUser.uid,
+        tag: tagId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      followedTags.push(tagId);
+    }
+    renderTagFollowChips();
+  } catch (e) {
+    console.error('Toggle tag follow error:', e);
+  }
+}
+
+function renderTagFollowChips() {
+  const container = document.getElementById('tag-follow-chips');
+  if (!container) return;
+  container.innerHTML = availableTags.map(tag => {
+    const isFollowed = followedTags.includes(tag.id);
+    return `<button class="tag-follow-chip ${isFollowed ? 'followed' : ''}" onclick="toggleTagFollow('${tag.id}')" style="--tag-color: ${tag.color};">
+      ${isFollowed ? '&#10003; ' : '+ '}${tag.label}
+    </button>`;
+  }).join('');
+}
+
+async function loadFollowedTags() {
+  if (!currentUser || !db) return;
+  try {
+    const snap = await db.collection('tag_follows').where('userId', '==', currentUser.uid).get();
+    followedTags = snap.docs.map(d => d.data().tag);
+  } catch (e) {
+    console.error('Load followed tags error:', e);
+  }
+}
+
+// Discover Creators
+async function loadDiscoverCreators() {
+  const list = document.getElementById('creators-list');
+  if (!list || !db) return;
+
+  try {
+    const snap = await db.collection('users').orderBy('createdAt', 'desc').limit(10).get();
+    if (snap.empty) {
+      // Show sample creators
+      const sampleCreators = [
+        { name: 'mellow_dev', bio: 'Building lo-fi web experiences', color: '#3b82f6' },
+        { name: 'pixel_witch', bio: 'Generative art & creative coding', color: '#ec4899' },
+        { name: 'cloud9js', bio: 'Game dev & peaceful builds', color: '#10b981' },
+        { name: 'term_queen', bio: 'CLI tools & developer productivity', color: '#f59e0b' },
+        { name: 'synthdev', bio: 'AI experiments & prompt engineering', color: '#7c3aed' }
+      ];
+      list.innerHTML = sampleCreators.map(c => `
+        <div class="creator-discover-card">
+          <div class="creator-avatar" style="background: ${c.color}; width: 48px; height: 48px; font-size: 1rem;">${c.name[0].toUpperCase()}</div>
+          <h4>${escapeHtml(c.name)}</h4>
+          <p>${escapeHtml(c.bio)}</p>
+          <button class="follow-btn not-following btn-sm" onclick="requireAuth('follow creators')" style="width: 100%; padding: 6px 12px; font-size: 0.78rem;">Follow</button>
+        </div>
+      `).join('');
+      return;
+    }
+
+    let html = '';
+    for (const doc of snap.docs) {
+      const u = doc.data();
+      const isOwn = currentUser && currentUser.uid === doc.id;
+      if (isOwn) continue;
+      const isFollowing = followingIds.includes(doc.id);
+      const initial = (u.displayName || 'U')[0].toUpperCase();
+      html += `
+        <div class="creator-discover-card">
+          <a href="profile.html?id=${doc.id}" style="text-decoration:none;color:inherit;text-align:center;">
+            <div class="creator-avatar" style="background: var(--purple); width: 48px; height: 48px; font-size: 1rem; margin: 0 auto 8px;">
+              ${u.photoURL ? '<img src="' + u.photoURL + '">' : initial}
+            </div>
+            <h4>${escapeHtml(u.displayName || 'Creator')}</h4>
+            <p>${escapeHtml(u.bio || 'Creative developer')}</p>
+          </a>
+          <button class="follow-btn ${isFollowing ? 'following' : 'not-following'} btn-sm"
+            onclick="handleDiscoverFollow('${doc.id}', this)"
+            style="width: 100%; padding: 6px 12px; font-size: 0.78rem; margin-top: 8px;">
+            ${isFollowing ? 'Following' : 'Follow'}
+          </button>
+        </div>`;
+    }
+    list.innerHTML = html || '<p style="color: var(--text-muted); font-size: 0.9rem;">No creators to discover yet. Be the first!</p>';
+  } catch (e) {
+    console.error('Load creators error:', e);
+  }
+}
+
+async function handleDiscoverFollow(userId, btn) {
+  if (!requireAuth('follow creators')) return;
+  await toggleFollow(userId, btn);
+  // Update followingIds
+  if (followingIds.includes(userId)) {
+    followingIds = followingIds.filter(id => id !== userId);
+  } else {
+    followingIds.push(userId);
+  }
+}
+
+// Infinite scroll
+const observer = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && hasMore && !isLoading) {
+    loadFeedProjects(true);
+  }
+}, { threshold: 0.1 });
+
+const trigger = document.getElementById('load-more-trigger');
+if (trigger) observer.observe(trigger);
+
+// Load following list when auth is ready
+window.addEventListener('authStateReady', async (e) => {
+  if (e.detail.user) {
+    try {
+      const snap = await db.collection('follows').where('followerId', '==', e.detail.user.uid).get();
+      followingIds = snap.docs.map(d => d.data().followingId);
+    } catch (err) { console.error('Load following error:', err); }
+
+    // Load followed tags
+    await loadFollowedTags();
+
+    // Show tag follow bar for logged-in users
+    const tagBar = document.getElementById('tag-follow-bar');
+    if (tagBar) tagBar.style.display = 'flex';
+    renderTagFollowChips();
+  }
+  loadFeedProjects();
+  loadDiscoverCreators();
+});
+
+// Initial load (in case auth fires before listener)
+setTimeout(() => {
+  if (feedProjects.length === 0) loadFeedProjects();
+  loadDiscoverCreators();
+}, 1000);
+</script>
+</body>
+</html>

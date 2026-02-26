@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project — VibeLab</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17Z'/></svg>">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="project-detail">
+  <div class="container">
+    <!-- Loading State -->
+    <div id="project-loading" class="loading-spinner" style="padding: 80px 0;"><div class="spinner"></div></div>
+
+    <!-- Project Content (hidden until loaded) -->
+    <div id="project-content" style="display: none;">
+      <div class="project-detail-layout">
+        <!-- Main Content -->
+        <div>
+          <!-- Preview -->
+          <div class="project-preview" id="project-preview"></div>
+
+          <!-- Meta Tags -->
+          <div class="project-meta" id="project-meta" style="margin-top: 24px;"></div>
+
+          <!-- Title -->
+          <h1 class="project-title" id="project-title"></h1>
+
+          <!-- Description -->
+          <div class="project-description" id="project-desc"></div>
+
+          <!-- Action Buttons -->
+          <div class="project-actions" id="project-actions"></div>
+
+          <!-- Links -->
+          <div class="project-links" id="project-links"></div>
+
+          <!-- Tools & Stack -->
+          <div class="project-stack" id="project-stack"></div>
+
+          <!-- Tags -->
+          <div class="project-tags" id="project-tags"></div>
+
+          <!-- Guest CTA (shown only to logged-out users) -->
+          <div class="guest-cta-box" id="guest-cta" style="display: none;">
+            <div class="guest-cta-content">
+              <h3>Sign up to vibe with this creator</h3>
+              <p>Join VibeLab to like, comment, save projects, and connect with creative developers.</p>
+              <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
+            </div>
+          </div>
+
+          <!-- Comments Section -->
+          <div class="comments-section">
+            <h3 id="comments-title">Comments</h3>
+
+            <!-- Comment Input -->
+            <div class="comment-input-area" id="comment-input-area">
+              <div class="comment-avatar" id="comment-user-avatar" style="background: var(--purple);">?</div>
+              <div class="comment-input-wrapper">
+                <textarea id="comment-text" placeholder="Share your thoughts..." rows="1" onfocus="showCommentActions()" oninput="autoResizeTextarea(this)"></textarea>
+                <div class="comment-input-actions" id="comment-actions">
+                  <button class="comment-post-btn" onclick="postComment()" id="post-comment-btn" disabled>Post</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comments List -->
+            <div id="comments-list">
+              <div class="loading-spinner"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Creator Sidebar -->
+        <div class="creator-sidebar">
+          <div class="creator-card" id="creator-card">
+            <div class="loading-spinner"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+<div id="modals-container"></div>
+
+<!-- Core UI (no Firebase dependency) -->
+<script src="js/shared.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+<!-- App JS (depends on Firebase) -->
+<script src="js/firebase-config.js"></script>
+<script src="js/auth.js"></script>
+
+<script>
+initPage('project');
+
+let projectData = null;
+let projectId = getUrlParam('id');
+let replyingTo = null;
+
+// Load project
+async function loadProject() {
+  if (!projectId) {
+    document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Project not found</h3><p>The project you\'re looking for doesn\'t exist.</p><br><a href="feed.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+    return;
+  }
+
+  // Check sample projects first
+  const sample = sampleProjects.find(p => p.id === projectId);
+  if (sample) {
+    projectData = sample;
+    renderProject();
+    renderSampleCreator();
+    renderSampleComments();
+    return;
+  }
+
+  // Load from Firestore
+  try {
+    const doc = await db.collection('projects').doc(projectId).get();
+    if (!doc.exists) {
+      document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Project not found</h3><p>This project may have been removed.</p><br><a href="feed.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+      return;
+    }
+    projectData = { id: doc.id, ...doc.data() };
+    if (projectData.createdAt && projectData.createdAt.toDate) {
+      projectData.createdAt = projectData.createdAt.toDate();
+    }
+    renderProject();
+    loadCreator();
+    loadComments();
+  } catch (e) {
+    console.error('Load project error:', e);
+    document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Error loading project</h3><p>' + e.message + '</p></div>';
+  }
+}
+
+function renderProject() {
+  document.title = projectData.name + ' — VibeLab';
+  document.getElementById('project-loading').style.display = 'none';
+  document.getElementById('project-content').style.display = 'block';
+
+  // Preview
+  const preview = document.getElementById('project-preview');
+  if (projectData.imageURL) {
+    const img = document.createElement('img');
+    img.src = projectData.imageURL;
+    img.alt = projectData.name || '';
+    preview.appendChild(img);
+  } else {
+    preview.style.background = projectData.gradient || 'var(--bg-alt)';
+    preview.style.minHeight = '360px';
+  }
+
+  // Meta
+  const meta = document.getElementById('project-meta');
+  meta.innerHTML = `
+    <span class="card-tag ${tagClasses[projectData.category]}">${projectData.tag || tagMap[projectData.category]}</span>
+    ${projectData.status ? '<span class="project-tag-pill">' + projectData.status + '</span>' : ''}
+    <span style="color: var(--text-muted); font-size: 0.85rem;">${timeAgo(projectData.createdAt)}</span>
+  `;
+
+  // Title & description
+  document.getElementById('project-title').textContent = projectData.name;
+  document.getElementById('project-desc').textContent = projectData.desc;
+
+  // Action buttons
+  const actions = document.getElementById('project-actions');
+  actions.innerHTML = `
+    <button class="project-action-btn" id="vibe-btn" onclick="handleVibe()">
+      &#10024; Vibe <span class="count">${projectData.vibes || 0}</span>
+    </button>
+    <button class="project-action-btn" onclick="openSaveModal('${projectData.id}')">
+      &#128278; Save
+    </button>
+    <button class="project-action-btn" onclick="shareProject()">
+      &#128279; Share
+    </button>
+  `;
+
+  // Check if user has vibed
+  if (currentUser && projectData.id && !projectData.id.startsWith('sample')) {
+    checkIfVibed(projectData.id).then(vibed => {
+      if (vibed) document.getElementById('vibe-btn')?.classList.add('active');
+    });
+  }
+
+  // Links (safely create elements to avoid XSS)
+  const links = document.getElementById('project-links');
+  links.innerHTML = '';
+  const linkData = [
+    { url: projectData.link, icon: '&#127760;', label: 'Live Demo' },
+    { url: projectData.githubUrl, icon: '&#128187;', label: 'GitHub' },
+    { url: projectData.figmaUrl, icon: '&#127912;', label: 'Figma' }
+  ];
+  linkData.forEach(l => {
+    if (l.url && (l.url.startsWith('http://') || l.url.startsWith('https://'))) {
+      const a = document.createElement('a');
+      a.href = l.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.className = 'project-link';
+      a.innerHTML = l.icon + ' ' + l.label;
+      links.appendChild(a);
+    }
+  });
+
+  // Tools & Stack (derived from tags)
+  const stack = document.getElementById('project-stack');
+  const allTags = projectData.tags || [];
+  if (allTags.length > 0) {
+    stack.innerHTML = '<h4 class="stack-title">Tools & Stack</h4><div class="stack-chips">' +
+      allTags.map(t => '<span class="stack-chip">' + escapeHtml(t) + '</span>').join('') + '</div>';
+  }
+
+  // Tags (category/status)
+  const tags = document.getElementById('project-tags');
+  tags.innerHTML = '';
+
+  // Guest CTA - defer to authStateReady to avoid flash
+  // Will be shown by authStateReady if user is not logged in
+}
+
+async function loadCreator() {
+  const card = document.getElementById('creator-card');
+  if (!projectData.authorUid) {
+    card.innerHTML = '<p style="color: var(--text-muted);">Creator info unavailable</p>';
+    return;
+  }
+
+  try {
+    const userDoc = await db.collection('users').doc(projectData.authorUid).get();
+    const profile = userDoc.exists ? userDoc.data() : null;
+    const counts = await getFollowCounts(projectData.authorUid);
+    const isFollowing = await checkIfFollowing(projectData.authorUid);
+    const isOwn = currentUser && currentUser.uid === projectData.authorUid;
+
+    const displayName = profile?.displayName || projectData.authorName || projectData.author || 'Creator';
+    const initial = displayName[0].toUpperCase();
+    const bio = profile?.bio || '';
+
+    card.innerHTML = `
+      <a href="profile.html?id=${projectData.authorUid}" style="text-decoration: none; color: inherit;">
+        <div class="creator-card-header">
+          <div class="creator-avatar" style="background: ${projectData.color || 'var(--purple)'};">
+            ${profile?.photoURL ? '<img src="' + profile.photoURL + '">' : initial}
+          </div>
+          <div class="creator-info">
+            <h3>${escapeHtml(displayName)}</h3>
+            ${profile?.company ? '<p>' + escapeHtml(profile.company) + '</p>' : ''}
+          </div>
+        </div>
+      </a>
+      ${bio ? '<p class="creator-bio">' + escapeHtml(bio) + '</p>' : ''}
+      <div class="creator-stats-row">
+        <div class="creator-stat"><div class="num">${counts.followers}</div><div class="label">Followers</div></div>
+        <div class="creator-stat"><div class="num">${counts.following}</div><div class="label">Following</div></div>
+      </div>
+      ${!isOwn ? '<button class="follow-btn ' + (isFollowing ? 'following' : 'not-following') + '" id="follow-btn" onclick="handleFollow()">' + (isFollowing ? 'Following' : 'Follow') + '</button>' : ''}
+    `;
+  } catch (e) {
+    console.error('Load creator error:', e);
+    card.innerHTML = '<p style="color: var(--text-muted);">Could not load creator info</p>';
+  }
+}
+
+function renderSampleCreator() {
+  const card = document.getElementById('creator-card');
+  const name = projectData.author || 'Creator';
+  card.innerHTML = `
+    <div class="creator-card-header">
+      <div class="creator-avatar" style="background: ${projectData.color || 'var(--purple)'};">${name[0].toUpperCase()}</div>
+      <div class="creator-info">
+        <h3>${escapeHtml(name)}</h3>
+        <p>Creative developer</p>
+      </div>
+    </div>
+    <p class="creator-bio">Building creative experiments and sharing the vibes.</p>
+    <div class="creator-stats-row">
+      <div class="creator-stat"><div class="num">${Math.floor(Math.random() * 200) + 50}</div><div class="label">Followers</div></div>
+      <div class="creator-stat"><div class="num">${Math.floor(Math.random() * 100) + 20}</div><div class="label">Following</div></div>
+    </div>
+    <button class="follow-btn not-following" onclick="requireAuth('follow creators')">Follow</button>
+  `;
+}
+
+function renderSampleComments() {
+  const list = document.getElementById('comments-list');
+  const sampleComments = [
+    { author: 'codeViber', body: 'This is incredible! The attention to detail is amazing.', time: '2d ago', color: '#3b82f6' },
+    { author: 'artisan_dev', body: 'Love the concept. Have you thought about adding sound effects?', time: '3d ago', color: '#ec4899', replies: [
+      { author: projectData.author, body: 'Thanks! Sound is definitely on the roadmap.', time: '2d ago', color: projectData.color }
+    ]},
+    { author: 'vibeSeeker', body: 'Just tried it out. The experience is so smooth. Great work!', time: '5d ago', color: '#10b981' }
+  ];
+
+  list.innerHTML = sampleComments.map(c => `
+    <div class="comment-thread">
+      <div class="comment">
+        <div class="comment-avatar" style="background: ${c.color};">${c.author[0].toUpperCase()}</div>
+        <div class="comment-content">
+          <div class="comment-header">
+            <span class="comment-author">${c.author}</span>
+            <span class="comment-time">${c.time}</span>
+          </div>
+          <div class="comment-body">${c.body}</div>
+          <div class="comment-actions">
+            <div class="comment-reactions">
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Fire">&#128293;</button>
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Love">&#10084;&#65039;</button>
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Sparkles">&#10024;</button>
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Rocket">&#128640;</button>
+            </div>
+            <button class="comment-action" onclick="requireAuth('reply to comments')">Reply</button>
+          </div>
+        </div>
+      </div>
+      ${c.replies ? '<div class="comment-replies">' + c.replies.map(r => `
+        <div class="comment">
+          <div class="comment-avatar" style="background: ${r.color};">${r.author[0].toUpperCase()}</div>
+          <div class="comment-content">
+            <div class="comment-header">
+              <span class="comment-author">${r.author}</span>
+              <span class="comment-time">${r.time}</span>
+            </div>
+            <div class="comment-body">${r.body}</div>
+          </div>
+        </div>
+      `).join('') + '</div>' : ''}
+    </div>
+  `).join('');
+
+  document.getElementById('comments-title').textContent = `Comments (${sampleComments.length})`;
+}
+
+// Load comments from Firestore
+async function loadComments() {
+  const list = document.getElementById('comments-list');
+  try {
+    const snapshot = await db.collection('projects').doc(projectId).collection('comments')
+      .orderBy('createdAt', 'desc').limit(50).get();
+
+    if (snapshot.empty) {
+      list.innerHTML = '<div class="empty-state" style="padding: 30px;"><p style="color: var(--text-muted);">No comments yet. Be the first to share your thoughts!</p></div>';
+      document.getElementById('comments-title').textContent = 'Comments (0)';
+      return;
+    }
+
+    const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const topLevel = comments.filter(c => !c.parentId);
+    const replies = comments.filter(c => c.parentId);
+
+    let html = '';
+    for (const c of topLevel) {
+      const cReplies = replies.filter(r => r.parentId === c.id);
+      html += renderComment(c, cReplies);
+    }
+
+    list.innerHTML = html;
+    document.getElementById('comments-title').textContent = `Comments (${comments.length})`;
+  } catch (e) {
+    console.error('Load comments error:', e);
+    list.innerHTML = '<div class="empty-state" style="padding: 30px;"><p>Could not load comments.</p></div>';
+  }
+}
+
+// Reaction emojis
+const reactionEmojis = [
+  { emoji: '&#128293;', name: 'fire', label: 'Fire' },
+  { emoji: '&#10084;&#65039;', name: 'heart', label: 'Love' },
+  { emoji: '&#10024;', name: 'sparkles', label: 'Sparkles' },
+  { emoji: '&#128640;', name: 'rocket', label: 'Rocket' }
+];
+
+function renderReactions(commentId, reactions) {
+  const counts = {};
+  reactionEmojis.forEach(r => { counts[r.name] = 0; });
+  if (reactions) {
+    Object.values(reactions).forEach(r => {
+      if (counts[r] !== undefined) counts[r]++;
+    });
+  }
+  const userReaction = reactions && currentUser ? reactions[currentUser.uid] : null;
+
+  return '<div class="comment-reactions">' +
+    reactionEmojis.map(r => {
+      const count = counts[r.name];
+      const isActive = userReaction === r.name;
+      return `<button class="reaction-btn ${isActive ? 'active' : ''}" onclick="handleReaction('${commentId}', '${r.name}')" title="${r.label}">${r.emoji}${count > 0 ? ' <span class="reaction-count">' + count + '</span>' : ''}</button>`;
+    }).join('') + '</div>';
+}
+
+async function handleReaction(commentId, reactionName) {
+  if (!requireAuth('react to comments')) return;
+  try {
+    const commentRef = db.collection('projects').doc(projectId).collection('comments').doc(commentId);
+    const doc = await commentRef.get();
+    if (!doc.exists) return;
+    const data = doc.data();
+    const reactions = data.reactions || {};
+    if (reactions[currentUser.uid] === reactionName) {
+      delete reactions[currentUser.uid];
+    } else {
+      reactions[currentUser.uid] = reactionName;
+    }
+    await commentRef.update({ reactions });
+    loadComments();
+  } catch (e) {
+    console.error('Reaction error:', e);
+  }
+}
+
+function renderComment(c, replies = []) {
+  const initial = (c.authorName || 'U')[0].toUpperCase();
+  const time = c.createdAt ? timeAgo(c.createdAt.toDate ? c.createdAt.toDate() : c.createdAt) : '';
+
+  return `
+    <div class="comment-thread">
+      <div class="comment">
+        ${c.authorPhoto ? '<img class="comment-avatar" src="' + c.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (c.authorColor || 'var(--purple)') + ';">' + initial + '</div>'}
+        <div class="comment-content">
+          <div class="comment-header">
+            <a href="profile.html?id=${c.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(c.authorName || 'Anonymous')}</a>
+            <span class="comment-time">${time}</span>
+          </div>
+          <div class="comment-body">${escapeHtml(c.body)}</div>
+          <div class="comment-actions">
+            ${renderReactions(c.id, c.reactions)}
+            <button class="comment-action" onclick="handleReply('${c.id}', '${escapeHtml(c.authorName || '')}')">Reply</button>
+          </div>
+        </div>
+      </div>
+      ${replies.length > 0 ? '<div class="comment-replies">' + replies.map(r => {
+        const rInitial = (r.authorName || 'U')[0].toUpperCase();
+        const rTime = r.createdAt ? timeAgo(r.createdAt.toDate ? r.createdAt.toDate() : r.createdAt) : '';
+        return `
+          <div class="comment">
+            ${r.authorPhoto ? '<img class="comment-avatar" src="' + r.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (r.authorColor || 'var(--purple)') + ';">' + rInitial + '</div>'}
+            <div class="comment-content">
+              <div class="comment-header">
+                <a href="profile.html?id=${r.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(r.authorName || 'Anonymous')}</a>
+                <span class="comment-time">${rTime}</span>
+              </div>
+              <div class="comment-body">${escapeHtml(r.body)}</div>
+              <div class="comment-actions">
+                ${renderReactions(r.id, r.reactions)}
+              </div>
+            </div>
+          </div>`;
+      }).join('') + '</div>' : ''}
+      <div class="reply-input-area" id="reply-area-${c.id}" style="display: none;">
+        <div class="comment-avatar" style="background: var(--purple); width:28px; height:28px; font-size:0.65rem;">?</div>
+        <div class="comment-input-wrapper" style="flex:1;">
+          <textarea id="reply-text-${c.id}" placeholder="Write a reply..." rows="1" oninput="autoResizeTextarea(this)"></textarea>
+          <div class="comment-input-actions show">
+            <button class="comment-post-btn" onclick="postReply('${c.id}')" style="font-size:0.78rem; padding:6px 14px;">Reply</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// Comment actions
+function showCommentActions() {
+  document.getElementById('comment-actions').classList.add('show');
+}
+
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+  // Enable/disable post button
+  const btn = el.closest('.comment-input-wrapper')?.querySelector('.comment-post-btn');
+  if (btn) btn.disabled = !el.value.trim();
+}
+
+async function postComment() {
+  if (!requireAuth('comment on projects')) return;
+  const textEl = document.getElementById('comment-text');
+  const body = textEl.value.trim();
+  if (!body) return;
+
+  try {
+    await db.collection('projects').doc(projectId).collection('comments').add({
+      body,
+      authorUid: currentUser.uid,
+      authorName: currentUserProfile?.displayName || currentUser.displayName || 'Anonymous',
+      authorPhoto: currentUserProfile?.photoURL || '',
+      authorColor: colorMap[projectData?.category] || '#7c3aed',
+      parentId: null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('projects').doc(projectId).update({
+      comments: firebase.firestore.FieldValue.increment(1)
+    });
+
+    textEl.value = '';
+    textEl.style.height = 'auto';
+    loadComments();
+    showToast('Comment posted!');
+  } catch (e) {
+    console.error('Post comment error:', e);
+    showToast('Error posting comment');
+  }
+}
+
+function handleReply(commentId, authorName) {
+  if (!requireAuth('reply to comments')) return;
+  // Toggle reply area
+  const area = document.getElementById('reply-area-' + commentId);
+  if (area) {
+    area.style.display = area.style.display === 'none' ? 'flex' : 'none';
+    const textarea = document.getElementById('reply-text-' + commentId);
+    if (textarea) { textarea.focus(); textarea.placeholder = 'Reply to ' + authorName + '...'; }
+  }
+}
+
+async function postReply(parentId) {
+  if (!requireAuth('reply to comments')) return;
+  const textEl = document.getElementById('reply-text-' + parentId);
+  const body = textEl?.value.trim();
+  if (!body) return;
+
+  try {
+    await db.collection('projects').doc(projectId).collection('comments').add({
+      body,
+      authorUid: currentUser.uid,
+      authorName: currentUserProfile?.displayName || currentUser.displayName || 'Anonymous',
+      authorPhoto: currentUserProfile?.photoURL || '',
+      authorColor: colorMap[projectData?.category] || '#7c3aed',
+      parentId,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('projects').doc(projectId).update({
+      comments: firebase.firestore.FieldValue.increment(1)
+    });
+
+    textEl.value = '';
+    loadComments();
+    showToast('Reply posted!');
+  } catch (e) {
+    console.error('Post reply error:', e);
+  }
+}
+
+// Vibe (like)
+async function handleVibe() {
+  if (!requireAuth('vibe with this project')) return;
+  if (projectId.startsWith('sample')) {
+    showToast('This is a sample project');
+    return;
+  }
+  const btn = document.getElementById('vibe-btn');
+  await toggleVibe(projectId, btn);
+}
+
+// Follow
+async function handleFollow() {
+  if (!requireAuth('follow creators')) return;
+  const btn = document.getElementById('follow-btn');
+  await toggleFollow(projectData.authorUid, btn);
+}
+
+// Share
+function shareProject() {
+  const url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('Link copied to clipboard!'));
+  } else {
+    showToast('Share: ' + url);
+  }
+}
+
+// Update comment input avatar when auth ready
+window.addEventListener('authStateReady', (e) => {
+  const guestCta = document.getElementById('guest-cta');
+  if (e.detail.user && e.detail.profile) {
+    const avatar = document.getElementById('comment-user-avatar');
+    if (avatar) {
+      if (e.detail.profile.photoURL) {
+        avatar.innerHTML = '<img src="' + e.detail.profile.photoURL + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+      } else {
+        avatar.textContent = (e.detail.profile.displayName || e.detail.user.email || 'U')[0].toUpperCase();
+      }
+    }
+    if (guestCta) guestCta.style.display = 'none';
+  } else {
+    // Show guest CTA for logged-out users
+    if (guestCta) guestCta.style.display = 'block';
+  }
+});
+
+// Initial load
+loadProject();
+</script>
+</body>
+</html>
