@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore — VibeLab</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17Z'/></svg>">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="feed-page">
+  <div class="container">
+    <!-- Feed Header with Tabs -->
+    <div class="feed-header">
+      <div>
+        <div class="section-title" style="margin-bottom: 4px;">Explore</div>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Discover creative experiments from the community</p>
+      </div>
+      <div class="feed-tabs" id="feed-tabs">
+        <button class="feed-tab active" onclick="switchFeedTab('trending', this)">Trending</button>
+        <button class="feed-tab" onclick="switchFeedTab('new', this)">New</button>
+        <button class="feed-tab" onclick="switchFeedTab('following', this)">Following</button>
+        <button class="feed-tab" onclick="switchFeedTab('raw', this)">Raw Builds</button>
+      </div>
+    </div>
+
+    <!-- Search + Filters Toolbar -->
+    <div class="feed-toolbar">
+      <div class="search-bar" style="flex: 1;">
+        <span class="search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input type="text" id="search-input" placeholder="Search projects, creators, tags..." oninput="handleSearch(this.value)">
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterFeedProjects('all', this)">All</button>
+        <button class="filter-btn" onclick="filterFeedProjects('web', this)">Web</button>
+        <button class="filter-btn" onclick="filterFeedProjects('art', this)">Gen Art</button>
+        <button class="filter-btn" onclick="filterFeedProjects('game', this)">Games</button>
+        <button class="filter-btn" onclick="filterFeedProjects('tool', this)">Tools</button>
+        <button class="filter-btn" onclick="filterFeedProjects('ai', this)">AI</button>
+      </div>
+      <div class="feed-sort">
+        <select id="sort-select" onchange="handleSort(this.value)">
+          <option value="newest">Newest</option>
+          <option value="trending">Most Vibes</option>
+          <option value="discussed">Most Discussed</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Project Grid -->
+    <div class="project-grid" id="feed-grid">
+      <div class="loading-spinner"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Infinite Scroll Trigger -->
+    <div class="load-more-trigger" id="load-more-trigger"></div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="empty-state" style="display: none;">
+      <div class="empty-icon">&#128269;</div>
+      <h3>No projects found</h3>
+      <p>Try adjusting your search or filters to find what you're looking for.</p>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+<div id="modals-container"></div>
+
+<!-- Core UI (no Firebase dependency) -->
+<script src="js/shared.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+<!-- App JS (depends on Firebase) -->
+<script src="js/firebase-config.js"></script>
+<script src="js/auth.js"></script>
+
+<script>
+// Initialize page
+initPage('feed');
+
+// Feed state
+let feedProjects = [];
+let currentTab = 'trending';
+let currentFilter = 'all';
+let currentSearch = '';
+let currentSort = 'newest';
+let lastDoc = null;
+let isLoading = false;
+let hasMore = true;
+const PAGE_SIZE = 12;
+let followingIds = [];
+
+// Load feed projects
+async function loadFeedProjects(append = false) {
+  if (isLoading) return;
+  isLoading = true;
+
+  const grid = document.getElementById('feed-grid');
+  const emptyState = document.getElementById('empty-state');
+
+  if (!append) {
+    grid.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+    lastDoc = null;
+    hasMore = true;
+    feedProjects = [];
+  }
+
+  try {
+    let query = db.collection('projects');
+
+    // Apply category filter
+    if (currentFilter !== 'all') {
+      query = query.where('category', '==', currentFilter);
+    }
+
+    // Apply tab-based filtering
+    if (currentTab === 'following' && currentUser && followingIds.length > 0) {
+      // Firestore 'in' queries limited to 10
+      const batchIds = followingIds.slice(0, 10);
+      query = query.where('authorUid', 'in', batchIds);
+    }
+
+    if (currentTab === 'raw') {
+      query = query.where('status', '==', 'WIP');
+    }
+
+    // Sort
+    if (currentSort === 'trending') {
+      query = query.orderBy('vibes', 'desc');
+    } else if (currentSort === 'discussed') {
+      query = query.orderBy('comments', 'desc');
+    } else {
+      query = query.orderBy('createdAt', 'desc');
+    }
+
+    // Pagination
+    if (lastDoc) {
+      query = query.startAfter(lastDoc);
+    }
+
+    query = query.limit(PAGE_SIZE);
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty && !append) {
+      // Show sample data if no Firestore data
+      feedProjects = [...sampleProjects];
+      applyLocalFilters();
+      renderFeedGrid();
+      isLoading = false;
+      return;
+    }
+
+    const newProjects = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
+    }));
+
+    if (snapshot.docs.length > 0) {
+      lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    }
+
+    if (snapshot.docs.length < PAGE_SIZE) {
+      hasMore = false;
+    }
+
+    if (append) {
+      feedProjects = [...feedProjects, ...newProjects];
+    } else {
+      feedProjects = [...newProjects, ...sampleProjects];
+    }
+
+    applyLocalFilters();
+    renderFeedGrid();
+  } catch (error) {
+    console.error('Load feed error:', error);
+    // On compound query failure (missing index), try simple query
+    if (!append) {
+      try {
+        const fallback = await db.collection('projects').orderBy('createdAt', 'desc').limit(PAGE_SIZE).get();
+        if (!fallback.empty) {
+          feedProjects = fallback.docs.map(doc => ({
+            id: doc.id, ...doc.data(),
+            createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
+          }));
+        } else {
+          feedProjects = [...sampleProjects];
+        }
+      } catch (e2) {
+        feedProjects = [...sampleProjects];
+      }
+      applyLocalFilters();
+      renderFeedGrid();
+    }
+  }
+
+  isLoading = false;
+}
+
+function applyLocalFilters() {
+  // Apply search filter client-side
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    feedProjects = feedProjects.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.desc && p.desc.toLowerCase().includes(q)) ||
+      (p.author && p.author.toLowerCase().includes(q)) ||
+      (p.authorName && p.authorName.toLowerCase().includes(q)) ||
+      (p.tag && p.tag.toLowerCase().includes(q)) ||
+      (p.tags && p.tags.some(t => t.toLowerCase().includes(q)))
+    );
+  }
+}
+
+function renderFeedGrid() {
+  const grid = document.getElementById('feed-grid');
+  const emptyState = document.getElementById('empty-state');
+
+  if (feedProjects.length === 0) {
+    grid.innerHTML = '';
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    grid.innerHTML = feedProjects.map(p => renderProjectCard(p)).join('');
+  }
+}
+
+// Tab switching
+function switchFeedTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.feed-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (tab === 'following' && !currentUser) {
+    requireAuth('see your following feed');
+    return;
+  }
+
+  if (tab === 'trending') {
+    currentSort = 'trending';
+    document.getElementById('sort-select').value = 'trending';
+  } else if (tab === 'new') {
+    currentSort = 'newest';
+    document.getElementById('sort-select').value = 'newest';
+  }
+
+  loadFeedProjects();
+}
+
+// Category filter
+function filterFeedProjects(cat, btn) {
+  currentFilter = cat;
+  btn.closest('.filters').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadFeedProjects();
+}
+
+// Search
+let searchTimeout;
+function handleSearch(value) {
+  currentSearch = value;
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    loadFeedProjects();
+  }, 300);
+}
+
+// Sort
+function handleSort(value) {
+  currentSort = value;
+  loadFeedProjects();
+}
+
+// Infinite scroll
+const observer = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && hasMore && !isLoading) {
+    loadFeedProjects(true);
+  }
+}, { threshold: 0.1 });
+
+const trigger = document.getElementById('load-more-trigger');
+if (trigger) observer.observe(trigger);
+
+// Load following list when auth is ready
+window.addEventListener('authStateReady', async (e) => {
+  if (e.detail.user) {
+    try {
+      const snap = await db.collection('follows').where('followerId', '==', e.detail.user.uid).get();
+      followingIds = snap.docs.map(d => d.data().followingId);
+    } catch (err) { console.error('Load following error:', err); }
+  }
+  loadFeedProjects();
+});
+
+// Initial load (in case auth fires before listener)
+setTimeout(() => {
+  if (feedProjects.length === 0) loadFeedProjects();
+}, 1000);
+</script>
+</body>
+</html>

@@ -3,683 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VibeLab — The Community for Vibe Coders</title>
+<title>VibeLab — A Home for Vibe-Coded Experiments</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z'/></svg>">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --bg: #ffffff;
-    --bg-alt: #f7f7f8;
-    --surface: #ffffff;
-    --border: #e5e5ea;
-    --border-light: #f0f0f3;
-    --text: #111111;
-    --text-secondary: #555555;
-    --text-muted: #888888;
-    --accent: #c8ff00;
-    --accent-dark: #a8d900;
-    --accent-soft: rgba(200, 255, 0, 0.12);
-    --purple: #7c3aed;
-    --purple-soft: rgba(124, 58, 237, 0.08);
-    --green: #10b981;
-    --pink: #ec4899;
-    --blue: #3b82f6;
-    --amber: #f59e0b;
-    --radius: 16px;
-    --radius-lg: 24px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
-  }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-  /* ============ NAV ============ */
-  nav {
-    position: sticky; top: 0; z-index: 50;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border-light);
-  }
-  .nav-inner {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 0; max-width: 1200px; margin: 0 auto; padding-left: 24px; padding-right: 24px;
-  }
-  .logo {
-    display: flex; align-items: center; gap: 10px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700; font-size: 1.4rem; color: var(--text);
-    text-decoration: none;
-  }
-  .logo-mark {
-    width: 34px; height: 34px; border-radius: 10px;
-    background: var(--text);
-    display: flex; align-items: center; justify-content: center;
-    padding: 5px;
-  }
-  .logo-mark svg {
-    width: 100%; height: 100%;
-    fill: var(--accent);
-  }
-  .nav-links { display: flex; align-items: center; gap: 8px; }
-  .nav-links a {
-    color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;
-    font-weight: 500; padding: 8px 16px; border-radius: 100px;
-    transition: all 0.2s;
-  }
-  .nav-links a:hover { color: var(--text); background: var(--bg-alt); }
-
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 24px; border-radius: 100px; font-size: 0.9rem;
-    font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
-    text-decoration: none; font-family: 'Inter', sans-serif;
-  }
-  .btn-primary {
-    background: var(--accent); color: var(--text);
-    box-shadow: 0 2px 8px rgba(200,255,0,0.3);
-  }
-  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(200,255,0,0.35); }
-  .btn-dark {
-    background: var(--text); color: #fff;
-  }
-  .btn-dark:hover { background: #333; transform: translateY(-1px); }
-  .btn-outline {
-    background: transparent; color: var(--text); border: 1.5px solid var(--border);
-  }
-  .btn-outline:hover { border-color: var(--text); }
-  .btn-sm { padding: 8px 18px; font-size: 0.82rem; }
-
-  /* ============ AUTH ============ */
-  /* Auth nav buttons */
-  .nav-auth { display: flex; align-items: center; gap: 8px; }
-  .nav-auth-logged-out { display: flex; align-items: center; gap: 8px; }
-  .nav-auth-logged-in { display: none; align-items: center; gap: 8px; }
-
-  /* User avatar in nav */
-  .nav-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: 700; color: #fff;
-    cursor: pointer; position: relative; overflow: hidden;
-    background: var(--purple); transition: all 0.2s;
-  }
-  .nav-avatar:hover { box-shadow: 0 0 0 3px var(--accent-soft); }
-  .nav-avatar img {
-    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
-  }
-
-  /* Dropdown */
-  .nav-dropdown {
-    position: absolute; top: calc(100% + 8px); right: 0;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); box-shadow: var(--shadow-lg);
-    min-width: 200px; padding: 8px; z-index: 60;
-    display: none;
-  }
-  .nav-dropdown.open { display: block; }
-  .nav-dropdown a, .nav-dropdown button {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; padding: 10px 14px; border: none; background: none;
-    font-size: 0.88rem; color: var(--text-secondary); cursor: pointer;
-    border-radius: 10px; transition: all 0.15s; text-decoration: none;
-    font-family: 'Inter', sans-serif; text-align: left;
-  }
-  .nav-dropdown a:hover, .nav-dropdown button:hover {
-    background: var(--bg-alt); color: var(--text);
-  }
-  .nav-dropdown .divider {
-    height: 1px; background: var(--border-light); margin: 6px 0;
-  }
-  .nav-dropdown .logout-btn { color: #ef4444; }
-  .nav-dropdown .logout-btn:hover { background: rgba(239,68,68,0.06); color: #dc2626; }
-
-  /* Auth modal */
-  .auth-tabs {
-    display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid var(--border-light);
-  }
-  .auth-tab {
-    flex: 1; padding: 12px; text-align: center; font-weight: 600;
-    font-size: 0.92rem; cursor: pointer; border: none; background: none;
-    color: var(--text-muted); transition: all 0.2s; position: relative;
-    font-family: 'Inter', sans-serif;
-  }
-  .auth-tab.active {
-    color: var(--text);
-  }
-  .auth-tab.active::after {
-    content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
-    height: 2px; background: var(--text);
-  }
-  .google-btn {
-    width: 100%; padding: 12px; border-radius: 12px;
-    border: 1.5px solid var(--border); background: var(--surface);
-    color: var(--text); font-size: 0.9rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; display: flex;
-    align-items: center; justify-content: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
-  }
-  .google-btn:hover { border-color: var(--text-secondary); background: var(--bg-alt); }
-  .google-btn svg { width: 20px; height: 20px; }
-  .auth-divider {
-    display: flex; align-items: center; gap: 16px; margin: 20px 0;
-    color: var(--text-muted); font-size: 0.82rem;
-  }
-  .auth-divider::before, .auth-divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--border-light);
-  }
-  .auth-error {
-    background: rgba(239,68,68,0.08); color: #dc2626; padding: 10px 14px;
-    border-radius: 10px; font-size: 0.85rem; margin-bottom: 16px; display: none;
-  }
-  .auth-error.show { display: block; }
-  .auth-switch {
-    text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted);
-  }
-  .auth-switch a {
-    color: var(--text); font-weight: 600; cursor: pointer; text-decoration: none;
-  }
-  .auth-switch a:hover { text-decoration: underline; }
-
-  /* Profile modal */
-  .profile-photo-upload {
-    width: 100px; height: 100px; border-radius: 50%;
-    margin: 0 auto 24px; position: relative; cursor: pointer;
-    background: var(--bg-alt); border: 2px dashed var(--border);
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden; transition: all 0.2s;
-  }
-  .profile-photo-upload:hover { border-color: var(--text-muted); }
-  .profile-photo-upload img {
-    width: 100%; height: 100%; object-fit: cover;
-  }
-  .profile-photo-upload .upload-icon {
-    font-size: 28px; color: var(--text-muted);
-  }
-  .profile-photo-upload input { display: none; }
-  .profile-photo-label {
-    text-align: center; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 24px;
-  }
-
-  /* ============ HERO ============ */
-  .hero {
-    padding: 80px 0 60px;
-    position: relative; overflow: hidden;
-  }
-  .hero-bg {
-    position: absolute; top: -100px; right: -200px;
-    width: 700px; height: 700px;
-    background: radial-gradient(circle, rgba(200,255,0,0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .hero-bg-2 {
-    position: absolute; bottom: -200px; left: -100px;
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .hero-content { position: relative; z-index: 1; max-width: 720px; }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--bg-alt); border: 1px solid var(--border);
-    padding: 6px 16px 6px 8px; border-radius: 100px; font-size: 0.82rem;
-    font-weight: 500; color: var(--text-secondary); margin-bottom: 28px;
-  }
-  .badge-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--green); display: inline-block;
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-  @keyframes pulse-dot { 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
-
-  .hero h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(3rem, 6vw, 4.5rem);
-    font-weight: 700; line-height: 1.08;
-    letter-spacing: -0.03em; margin-bottom: 22px; color: var(--text);
-  }
-  .hero h1 .highlight {
-    background: var(--accent); padding: 0 8px; border-radius: 8px;
-    display: inline; -webkit-box-decoration-break: clone; box-decoration-break: clone;
-  }
-  .hero p {
-    font-size: 1.15rem; color: var(--text-secondary);
-    max-width: 520px; line-height: 1.7; margin-bottom: 36px;
-  }
-  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-
-  /* ============ HERO VISUAL ============ */
-  .hero-layout {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
-  }
-  .hero-visual {
-    position: relative; z-index: 1;
-  }
-  .hero-card-stack {
-    position: relative; height: 420px;
-  }
-  .hero-demo-card {
-    position: absolute; background: var(--surface);
-    border: 1px solid var(--border); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg); overflow: hidden;
-  }
-  .hero-demo-card.card-1 {
-    width: 280px; top: 0; right: 20px; z-index: 3;
-    animation: float-card 6s ease-in-out infinite;
-  }
-  .hero-demo-card.card-2 {
-    width: 260px; top: 60px; right: 160px; z-index: 2;
-    animation: float-card 6s ease-in-out infinite 1s;
-  }
-  .hero-demo-card.card-3 {
-    width: 240px; bottom: 20px; right: 60px; z-index: 1;
-    animation: float-card 6s ease-in-out infinite 2s;
-  }
-  @keyframes float-card {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-  .demo-preview {
-    height: 130px; position: relative;
-  }
-  .demo-body { padding: 16px; }
-  .demo-body h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
-  .demo-body p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
-  .demo-author {
-    display: flex; align-items: center; gap: 6px;
-    padding: 0 16px 14px; font-size: 0.75rem; color: var(--text-muted);
-  }
-  .demo-avatar {
-    width: 20px; height: 20px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.55rem; font-weight: 700; color: #fff;
-  }
-
-  /* ============ TRUSTED BY / LOGOS ============ */
-  .trusted {
-    padding: 50px 0; border-top: 1px solid var(--border-light);
-    border-bottom: 1px solid var(--border-light);
-    text-align: center;
-  }
-  .trusted p {
-    font-size: 0.85rem; color: var(--text-muted); font-weight: 500;
-    margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.08em;
-  }
-  .trusted-logos {
-    display: flex; align-items: center; justify-content: center;
-    gap: 48px; flex-wrap: wrap; opacity: 0.45;
-  }
-  .trusted-logo {
-    font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-    font-size: 1.2rem; color: var(--text);
-  }
-
-  /* ============ HOW IT WORKS ============ */
-  .how-it-works {
-    padding: 100px 0;
-  }
-  .section-label {
-    font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 12px;
-  }
-  .section-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-    font-weight: 700; line-height: 1.15; letter-spacing: -0.02em;
-    margin-bottom: 16px;
-  }
-  .section-desc {
-    font-size: 1.05rem; color: var(--text-secondary);
-    max-width: 540px; line-height: 1.7; margin-bottom: 48px;
-  }
-  .steps-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
-  }
-  .step-card {
-    background: var(--bg-alt); border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg); padding: 36px 28px;
-    transition: all 0.3s; position: relative; overflow: hidden;
-  }
-  .step-card:hover {
-    border-color: #bbb; box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-  }
-  .step-num {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 3rem; font-weight: 800; color: var(--accent);
-    line-height: 1; margin-bottom: 18px;
-    -webkit-text-stroke: 1.5px var(--text);
-    color: transparent;
-  }
-  .step-card:hover .step-num { color: var(--accent); -webkit-text-stroke: 0; }
-  .step-card h3 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;
-  }
-  .step-card p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; }
-
-  /* ============ PROJECTS SHOWCASE ============ */
-  .projects {
-    padding: 80px 0; background: var(--bg-alt);
-    border-top: 1px solid var(--border-light);
-    border-bottom: 1px solid var(--border-light);
-  }
-  .section-header-row {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 40px; flex-wrap: wrap; gap: 16px;
-  }
-  .filters {
-    display: flex; gap: 6px; flex-wrap: wrap;
-  }
-  .filter-btn {
-    padding: 8px 18px; border-radius: 100px; font-size: 0.82rem;
-    font-weight: 500; background: var(--surface); color: var(--text-secondary);
-    border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;
-    font-family: 'Inter', sans-serif;
-  }
-  .filter-btn:hover { color: var(--text); border-color: var(--text-secondary); }
-  .filter-btn.active {
-    background: var(--text); color: #fff; border-color: var(--text);
-  }
-
-  .project-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 20px;
-  }
-  .project-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
-    transition: all 0.3s ease; cursor: pointer;
-  }
-  .project-card:hover {
-    border-color: #bbb; transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-  }
-  .card-preview {
-    height: 180px; position: relative; overflow: hidden;
-  }
-  .card-gradient {
-    position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(to top, var(--surface), transparent);
-  }
-  .card-tag {
-    position: absolute; top: 12px; left: 12px;
-    padding: 4px 12px; border-radius: 100px; font-size: 0.72rem;
-    font-weight: 600; letter-spacing: 0.02em;
-  }
-  .tag-web { background: #dbeafe; color: #1d4ed8; }
-  .tag-art { background: #fce7f3; color: #be185d; }
-  .tag-game { background: #d1fae5; color: #047857; }
-  .tag-tool { background: #fef3c7; color: #b45309; }
-  .tag-ai { background: #ede9fe; color: #6d28d9; }
-
-  .card-body { padding: 20px; }
-  .card-body h3 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.05rem; font-weight: 700; margin-bottom: 6px;
-  }
-  .card-body p {
-    font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;
-    margin-bottom: 16px;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-  }
-  .card-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px 18px;
-  }
-  .card-author { display: flex; align-items: center; gap: 8px; }
-  .avatar {
-    width: 26px; height: 26px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.65rem; font-weight: 700; color: #fff;
-  }
-  .card-author span { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-  .card-stats {
-    display: flex; gap: 12px; font-size: 0.8rem; color: var(--text-muted);
-  }
-  .card-stats span { display: flex; align-items: center; gap: 4px; }
-
-  /* ============ STATS BAR ============ */
-  .stats-bar {
-    padding: 60px 0;
-  }
-  .stats-inner {
-    background: var(--text); color: #fff; border-radius: var(--radius-lg);
-    padding: 48px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
-    text-align: center;
-  }
-  .stat-item {}
-  .stat-num {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 2.8rem; font-weight: 800; line-height: 1;
-    margin-bottom: 6px;
-  }
-  .stat-num .accent-text { color: var(--accent); }
-  .stat-label { font-size: 0.9rem; color: rgba(255,255,255,0.6); font-weight: 500; }
-
-  /* ============ VALUES ============ */
-  .values { padding: 100px 0; }
-  .values-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
-  }
-  .value-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-lg); padding: 36px;
-    transition: all 0.3s;
-  }
-  .value-card:hover { border-color: #bbb; box-shadow: var(--shadow-md); transform: translateY(-2px); }
-  .value-icon {
-    width: 52px; height: 52px; border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px; margin-bottom: 20px;
-  }
-  .value-card h3 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;
-  }
-  .value-card p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.65; }
-
-  /* ============ FAQ ============ */
-  .faq { padding: 80px 0; background: var(--bg-alt); border-top: 1px solid var(--border-light); }
-  .faq-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-    max-width: 900px; margin: 0 auto;
-  }
-  .faq-item {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
-  }
-  .faq-q {
-    padding: 20px 24px; font-weight: 600; font-size: 0.92rem;
-    cursor: pointer; display: flex; justify-content: space-between;
-    align-items: center; transition: background 0.2s;
-    user-select: none;
-  }
-  .faq-q:hover { background: var(--bg-alt); }
-  .faq-arrow { font-size: 1.2rem; color: var(--text-muted); transition: transform 0.3s; }
-  .faq-item.open .faq-arrow { transform: rotate(45deg); }
-  .faq-a {
-    max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease;
-  }
-  .faq-item.open .faq-a { max-height: 200px; }
-  .faq-a-inner {
-    padding: 0 24px 20px; font-size: 0.88rem;
-    color: var(--text-secondary); line-height: 1.6;
-  }
-
-  /* ============ CTA ============ */
-  .cta-section { padding: 80px 0; }
-  .cta-box {
-    background: var(--text); border-radius: var(--radius-lg);
-    padding: 72px 48px; text-align: center; position: relative; overflow: hidden;
-  }
-  .cta-glow {
-    position: absolute; width: 400px; height: 400px; border-radius: 50%;
-    background: var(--accent); filter: blur(150px); opacity: 0.15;
-    top: -100px; right: -50px; pointer-events: none;
-  }
-  .cta-box h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
-    font-weight: 700; color: #fff; margin-bottom: 14px; position: relative; z-index: 1;
-  }
-  .cta-box p {
-    color: rgba(255,255,255,0.6); font-size: 1.05rem; max-width: 480px;
-    margin: 0 auto 32px; line-height: 1.6; position: relative; z-index: 1;
-  }
-  .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
-
-  /* ============ FOOTER ============ */
-  footer {
-    border-top: 1px solid var(--border-light); padding: 60px 0 40px;
-  }
-  .footer-grid {
-    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;
-    margin-bottom: 48px;
-  }
-  .footer-brand .logo { margin-bottom: 14px; }
-  .footer-brand p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; max-width: 280px; }
-  .footer-col h4 {
-    font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--text); margin-bottom: 16px;
-  }
-  .footer-col a {
-    display: block; font-size: 0.88rem; color: var(--text-muted);
-    text-decoration: none; margin-bottom: 10px; transition: color 0.2s;
-  }
-  .footer-col a:hover { color: var(--text); }
-  .footer-bottom {
-    border-top: 1px solid var(--border-light); padding-top: 24px;
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 0.82rem; color: var(--text-muted);
-  }
-  .footer-social { display: flex; gap: 16px; }
-  .footer-social a {
-    color: var(--text-muted); text-decoration: none; font-size: 0.85rem;
-    transition: color 0.2s;
-  }
-  .footer-social a:hover { color: var(--text); }
-
-  /* ============ MODAL ============ */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-lg); padding: 40px; width: 90%; max-width: 500px;
-    position: relative; box-shadow: var(--shadow-lg);
-  }
-  .modal h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;
-  }
-  .modal .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 28px; }
-  .modal-close {
-    position: absolute; top: 16px; right: 16px; background: var(--bg-alt);
-    border: 1px solid var(--border); color: var(--text-muted); width: 32px; height: 32px;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; cursor: pointer; transition: all 0.2s;
-  }
-  .modal-close:hover { background: var(--border); color: var(--text); }
-  .form-group { margin-bottom: 16px; }
-  .form-group label {
-    display: block; font-size: 0.82rem; color: var(--text-secondary);
-    margin-bottom: 6px; font-weight: 600;
-  }
-  .form-group input, .form-group textarea, .form-group select {
-    width: 100%; padding: 11px 14px; background: var(--bg-alt);
-    border: 1px solid var(--border); border-radius: 12px;
-    color: var(--text); font-size: 0.9rem; font-family: 'Inter', sans-serif;
-    outline: none; transition: border-color 0.2s;
-  }
-  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-    border-color: var(--text);
-  }
-  .form-group textarea { resize: vertical; min-height: 100px; }
-  .submit-btn {
-    width: 100%; padding: 12px; background: var(--accent); color: var(--text);
-    border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
-  }
-  .submit-btn:hover { background: var(--accent-dark); }
-  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .success-msg {
-    display: none; text-align: center;
-  }
-  .success-msg.show { display: block; }
-  .success-msg .check { font-size: 3rem; margin-bottom: 12px; }
-  .success-msg h3 { font-size: 1.15rem; margin-bottom: 6px; }
-  .success-msg p { font-size: 0.9rem; color: var(--text-muted); }
-  .hide-mobile { display: block; }
-
-  /* ============ RESPONSIVE ============ */
-  @media (max-width: 768px) {
-    .hero-layout { grid-template-columns: 1fr; gap: 30px; }
-    .steps-grid { grid-template-columns: 1fr; }
-    .stats-inner { grid-template-columns: 1fr; gap: 20px; }
-    .values-grid { grid-template-columns: 1fr; }
-    .faq-grid { grid-template-columns: 1fr; }
-    .footer-grid { grid-template-columns: 1fr; gap: 32px; }
-    .hide-mobile { display: none; }
-    .nav-dropdown { right: -10px; }
-  }
-</style>
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<!-- Nav -->
-<nav>
-  <div class="nav-inner">
-    <a href="#" class="logo">
-      <div class="logo-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z"/></svg></div>
-      VibeLab
-    </a>
-    <div class="nav-links">
-      <a href="#projects" class="hide-mobile">Projects</a>
-      <a href="#how" class="hide-mobile">How It Works</a>
-      <a href="#values" class="hide-mobile">About</a>
-      <div class="nav-auth" id="nav-auth">
-        <div class="nav-auth-logged-out" id="nav-auth-logged-out">
-          <a href="#" class="btn btn-outline btn-sm" onclick="openAuthModal('login'); return false;">Log In</a>
-          <a href="#" class="btn btn-primary btn-sm" onclick="openAuthModal('signup'); return false;">Sign Up</a>
-        </div>
-        <div class="nav-auth-logged-in" id="nav-auth-logged-in">
-          <a href="#" class="btn btn-primary btn-sm" onclick="openModal(); return false;">+ Share Your Vibe</a>
-          <div style="position: relative;">
-            <div class="nav-avatar" id="nav-avatar" onclick="toggleDropdown()">
-              <span id="avatar-text">V</span>
-              <img id="avatar-img" style="display: none;">
-            </div>
-            <div class="nav-dropdown" id="nav-dropdown">
-              <a href="#" onclick="openProfileModal(); return false;">Edit Profile</a>
-              <a href="#projects" onclick="closeDropdown();">My Projects</a>
-              <div class="divider"></div>
-              <button class="logout-btn" onclick="logOut()">Log Out</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+<div id="nav-container"></div>
 
-<!-- Hero -->
+<!-- Hero Section - PRD: Clear hero messaging with CTAs -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-bg-2"></div>
@@ -688,13 +20,13 @@
       <div class="hero-content">
         <div class="hero-badge">
           <span class="badge-dot"></span>
-          Active community building together
+          A home for vibe-coded experiments
         </div>
         <h1>Build <span class="highlight">with your vibe</span></h1>
-        <p>Share the projects that made you feel something. Code with intention, not obligation. Find people who build like you do.</p>
+        <p>Creative coding, experimental builds, design meets tech. Share the projects that made you feel something. Find people who build like you do.</p>
         <div class="hero-actions">
-          <a href="#projects" class="btn btn-primary" style="font-size: 1rem; padding: 14px 32px;">Browse Projects</a>
-          <a href="#" class="btn btn-outline" style="font-size: 1rem; padding: 14px 32px;" onclick="openModal(); return false;">+ Post Your Work</a>
+          <a href="feed.html" class="btn btn-primary" style="font-size: 1rem; padding: 14px 32px;">Explore Vibes</a>
+          <a href="#" class="btn btn-dark" style="font-size: 1rem; padding: 14px 32px;" onclick="openAuthModal('signup'); return false;">Join VibeLab</a>
         </div>
       </div>
       <div class="hero-visual">
@@ -705,12 +37,20 @@
               <h4>Drift FM</h4>
               <p>Lo-fi radio built with feeling</p>
             </div>
+            <div class="demo-author">
+              <div class="demo-avatar" style="background: #3b82f6;">M</div>
+              <span>mellow_dev</span>
+            </div>
           </div>
           <div class="hero-demo-card card-2">
             <div class="demo-preview" style="background: linear-gradient(135deg, #fce7f3, #f9a8d4);"></div>
             <div class="demo-body">
               <h4>Particle Garden</h4>
               <p>Generative art experience</p>
+            </div>
+            <div class="demo-author">
+              <div class="demo-avatar" style="background: #ec4899;">P</div>
+              <span>pixel_witch</span>
             </div>
           </div>
           <div class="hero-demo-card card-3">
@@ -719,6 +59,10 @@
               <h4>Tiny Worlds</h4>
               <p>Build miniature islands</p>
             </div>
+            <div class="demo-author">
+              <div class="demo-avatar" style="background: #10b981;">C</div>
+              <span>cloud9js</span>
+            </div>
           </div>
         </div>
       </div>
@@ -726,7 +70,7 @@
   </div>
 </section>
 
-<!-- Trusted by -->
+<!-- Trusted By -->
 <section class="trusted">
   <div class="container">
     <p>Trusted by builders from</p>
@@ -747,7 +91,6 @@
     <div class="section-label">How It Works</div>
     <div class="section-title">Share your project in seconds</div>
     <div class="section-desc">VibeLab makes it effortless to showcase what you're building and connect with other creative developers.</div>
-
     <div class="steps-grid">
       <div class="step-card">
         <div class="step-num">01</div>
@@ -768,7 +111,7 @@
   </div>
 </section>
 
-<!-- Projects -->
+<!-- Discovery Feed Preview - PRD: Read-only feed for guests -->
 <section class="projects" id="projects">
   <div class="container">
     <div class="section-header-row">
@@ -777,15 +120,18 @@
         <div class="section-title">Fresh Builds from the Community</div>
       </div>
       <div class="filters">
-        <button class="filter-btn active" onclick="filterProjects('all', this)">All</button>
-        <button class="filter-btn" onclick="filterProjects('web', this)">Web</button>
-        <button class="filter-btn" onclick="filterProjects('art', this)">Gen Art</button>
-        <button class="filter-btn" onclick="filterProjects('game', this)">Games</button>
-        <button class="filter-btn" onclick="filterProjects('tool', this)">Tools</button>
-        <button class="filter-btn" onclick="filterProjects('ai', this)">AI</button>
+        <button class="filter-btn active" onclick="filterHomeProjects('all', this)">All</button>
+        <button class="filter-btn" onclick="filterHomeProjects('web', this)">Web</button>
+        <button class="filter-btn" onclick="filterHomeProjects('art', this)">Gen Art</button>
+        <button class="filter-btn" onclick="filterHomeProjects('game', this)">Games</button>
+        <button class="filter-btn" onclick="filterHomeProjects('tool', this)">Tools</button>
+        <button class="filter-btn" onclick="filterHomeProjects('ai', this)">AI</button>
       </div>
     </div>
     <div class="project-grid" id="project-grid"></div>
+    <div style="text-align: center; margin-top: 40px;">
+      <a href="feed.html" class="btn btn-outline" style="font-size: 0.95rem; padding: 12px 32px;">View All Projects &rarr;</a>
+    </div>
   </div>
 </section>
 
@@ -866,7 +212,7 @@
       </div>
       <div class="faq-item" onclick="toggleFaq(this)">
         <div class="faq-q">How do I get started? <span class="faq-arrow">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Click "Share Your Vibe" to post your first project. Browse the community gallery for inspiration. Give vibes to projects you love. That's it — no complicated onboarding.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Click "Explore Vibes" to browse the community. When you're ready to share, sign up and post your first project. Takes less than a minute.</div></div>
       </div>
     </div>
   </div>
@@ -880,678 +226,90 @@
       <h2>Ready to Share What You've Built?</h2>
       <p>Whether it's a weekend experiment or your magnum opus — if you vibed while building it, we want to see it.</p>
       <div class="cta-actions">
-        <a href="#" onclick="openModal(); return false;" class="btn btn-primary" style="font-size: 1rem; padding: 14px 32px;">+ Share Your Project</a>
-        <a href="#projects" class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.25);">Browse Projects</a>
+        <a href="#" onclick="openAuthModal('signup'); return false;" class="btn btn-primary" style="font-size: 1rem; padding: 14px 32px;">Join VibeLab</a>
+        <a href="feed.html" class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.25);">Explore Vibes</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Footer -->
-<footer>
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="#" class="logo">
-          <div class="logo-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z"/></svg></div>
-          VibeLab
-        </a>
-        <p>The community where creative developers share what they build. Code with feeling.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Community</h4>
-        <a href="#projects">Projects</a>
-        <a href="#values">About</a>
-        <a href="#">Discord</a>
-        <a href="#">Twitter / X</a>
-      </div>
-      <div class="footer-col">
-        <h4>Resources</h4>
-        <a href="#">Getting Started</a>
-        <a href="#">Guidelines</a>
-        <a href="#">Blog</a>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>&copy; 2026 VibeLab. Made with good vibes.</span>
-      <div class="footer-social">
-        <a href="#">Twitter</a>
-        <a href="#">GitHub</a>
-        <a href="#">Discord</a>
-      </div>
-    </div>
-  </div>
-</footer>
+<div id="footer-container"></div>
+<div id="modals-container"></div>
 
-<!-- Auth Modal -->
-<div class="modal-overlay" id="auth-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeAuthModal()">&times;</button>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthMode('login')">Log In</button>
-      <button class="auth-tab" onclick="switchAuthMode('signup')">Sign Up</button>
-    </div>
-    <div class="auth-error" id="auth-error"></div>
-    <div id="auth-form">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="auth-email" placeholder="you@example.com">
-      </div>
-      <div class="form-group" id="display-name-group" style="display: none;">
-        <label>Display Name</label>
-        <input type="text" id="auth-display-name" placeholder="Your name">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="auth-password" placeholder="At least 6 characters">
-      </div>
-      <button class="submit-btn" id="auth-submit-btn" onclick="signUpWithEmail()">Sign Up</button>
-      <div class="auth-divider">or</div>
-      <button class="google-btn" onclick="signInWithGoogle()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>
-        Continue with Google
-      </button>
-    </div>
-    <div class="auth-switch">
-      <span id="auth-switch-text">Don't have an account? <a onclick="switchAuthMode('signup')">Sign Up</a></span>
-    </div>
-  </div>
-</div>
+<!-- Core UI (no Firebase dependency) -->
+<script src="js/shared.js"></script>
 
-<!-- Profile Modal -->
-<div class="modal-overlay" id="profile-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeProfileModal()">&times;</button>
-    <h2>Edit Profile</h2>
-    <p class="subtitle">Customize your VibeLab profile</p>
-    <div style="text-align: center;">
-      <div class="profile-photo-upload" id="profile-photo-upload" onclick="document.getElementById('profile-photo-input').click()">
-        <img id="profile-photo-preview" style="display: none;">
-        <span class="upload-icon" id="profile-upload-icon">📸</span>
-      </div>
-      <input type="file" id="profile-photo-input" accept="image/*">
-      <p class="profile-photo-label">Click to upload profile photo</p>
-    </div>
-    <div class="form-group">
-      <label>Display Name</label>
-      <input type="text" id="profile-display-name" placeholder="Your name">
-    </div>
-    <div class="form-group">
-      <label>Bio</label>
-      <textarea id="profile-bio" placeholder="Tell us about yourself..."></textarea>
-    </div>
-    <div class="form-group">
-      <label>Company</label>
-      <input type="text" id="profile-company" placeholder="Where you work (optional)">
-    </div>
-    <div class="form-group">
-      <label>Twitter / X Handle</label>
-      <input type="text" id="profile-twitter" placeholder="@yourhandle">
-    </div>
-    <div class="form-group">
-      <label>GitHub Username</label>
-      <input type="text" id="profile-github" placeholder="yourusername">
-    </div>
-    <div class="form-group">
-      <label>Website URL</label>
-      <input type="url" id="profile-website" placeholder="https://yoursite.com">
-    </div>
-    <button class="submit-btn" onclick="saveProfile()">Save Profile</button>
-  </div>
-</div>
-
-<!-- Submit Modal -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">&times;</button>
-    <div id="modal-form">
-      <h2>Share Your Vibe</h2>
-      <p class="subtitle">Post your project for the community to see</p>
-      <div class="form-group">
-        <label>Project Name</label>
-        <input type="text" id="proj-name" placeholder="e.g. Neon Waves">
-      </div>
-      <div class="form-group">
-        <label>Category</label>
-        <select id="proj-cat">
-          <option value="web">Web</option>
-          <option value="art">Generative Art</option>
-          <option value="game">Game</option>
-          <option value="tool">Tool</option>
-          <option value="ai">AI</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Description</label>
-        <textarea id="proj-desc" placeholder="Tell us what you built and the vibe behind it..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>Project Thumbnail (optional)</label>
-        <input type="file" id="proj-image" accept="image/*">
-      </div>
-      <div class="form-group">
-        <label>Link (optional)</label>
-        <input type="url" id="proj-link" placeholder="https://your-project.com">
-      </div>
-      <button class="submit-btn" onclick="submitProject()">Post to VibeLab</button>
-    </div>
-    <div class="success-msg" id="success-msg">
-      <div class="check">&#10024;</div>
-      <h3>Project Posted!</h3>
-      <p>Your vibe is now live in the community. Thanks for sharing.</p>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase SDK (compat mode, CDN) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
+<!-- App JS (depends on Firebase) -->
+<script src="js/firebase-config.js"></script>
+<script src="js/auth.js"></script>
+
 <script>
-// Firebase configuration (TODO: Fill in your Firebase project details)
-const firebaseConfig = {
-  apiKey: "AIzaSyBBbXFVJwM5TXGX-dyfd_qbyvlsbOYiKCI",
-  authDomain: "vibelab-6bff0.firebaseapp.com",
-  projectId: "vibelab-6bff0",
-  storageBucket: "vibelab-6bff0.firebasestorage.app",
-  messagingSenderId: "201935640419",
-  appId: "1:201935640419:web:1adf8a30a694b1ce612556",
-  measurementId: "G-YT38T5VD65"
-};
+// Initialize page
+initPage('home');
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const storage = firebase.storage();
+// Home page specific: load projects for the preview grid
+let homeProjects = [...sampleProjects];
 
-// Global state
-let currentUser = null;
-let currentUserProfile = null;
-let authMode = 'login';
-
-// Sample projects fallback
-const sampleProjects = [
-  {
-    name: "Drift FM",
-    desc: "A lo-fi radio player that generates ambient soundscapes based on the time of day and weather in your city.",
-    author: "mellow_dev", category: "web", tag: "Web",
-    color: "#3b82f6", vibes: 234, comments: 18,
-    gradient: "linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd)"
-  },
-  {
-    name: "Particle Garden",
-    desc: "Interactive generative art where each click plants a seed that grows into a unique particle system. Every garden is different.",
-    author: "pixel_witch", category: "art", tag: "Gen Art",
-    color: "#ec4899", vibes: 412, comments: 35,
-    gradient: "linear-gradient(135deg, #fce7f3, #fbcfe8, #f9a8d4)"
-  },
-  {
-    name: "Vibe Check",
-    desc: "An AI-powered mood journal that analyzes your entries and creates a visual mood map over time. Built with vibes only.",
-    author: "soft_coder", category: "ai", tag: "AI",
-    color: "#7c3aed", vibes: 189, comments: 22,
-    gradient: "linear-gradient(135deg, #ede9fe, #ddd6fe, #c4b5fd)"
-  },
-  {
-    name: "Tiny Worlds",
-    desc: "A browser game where you build miniature floating islands. No goals, no score — just peaceful creation.",
-    author: "cloud9js", category: "game", tag: "Game",
-    color: "#10b981", vibes: 567, comments: 48,
-    gradient: "linear-gradient(135deg, #d1fae5, #a7f3d0, #6ee7b7)"
-  },
-  {
-    name: "Color Thief CLI",
-    desc: "A terminal tool that extracts beautiful color palettes from any image. Outputs CSS, Tailwind, and Figma tokens.",
-    author: "term_queen", category: "tool", tag: "Tool",
-    color: "#f59e0b", vibes: 321, comments: 27,
-    gradient: "linear-gradient(135deg, #fef3c7, #fde68a, #fcd34d)"
-  },
-  {
-    name: "Wave Type",
-    desc: "A typography experiment where letters ripple and flow like water. Type anything and watch it come alive.",
-    author: "font_surfer", category: "art", tag: "Gen Art",
-    color: "#ec4899", vibes: 276, comments: 19,
-    gradient: "linear-gradient(135deg, #fce7f3, #f9a8d4, #f472b6)"
-  },
-  {
-    name: "Prompt Palette",
-    desc: "An AI prompt builder with a visual interface. Drag and drop prompt components to craft the perfect generation.",
-    author: "synthdev", category: "ai", tag: "AI",
-    color: "#7c3aed", vibes: 198, comments: 31,
-    gradient: "linear-gradient(135deg, #ede9fe, #c4b5fd, #a78bfa)"
-  },
-  {
-    name: "Midnight Radio",
-    desc: "A retro-styled web radio with curated playlists that change based on the phase of the moon. Yes, really.",
-    author: "luna_coder", category: "web", tag: "Web",
-    color: "#3b82f6", vibes: 445, comments: 39,
-    gradient: "linear-gradient(135deg, #dbeafe, #93c5fd, #60a5fa)"
-  },
-  {
-    name: "Stack Roulette",
-    desc: "Spin the wheel and get a random tech stack challenge. Build something in 48 hours with whatever it lands on.",
-    author: "chaos_eng", category: "tool", tag: "Tool",
-    color: "#f59e0b", vibes: 178, comments: 44,
-    gradient: "linear-gradient(135deg, #fef3c7, #fde68a, #fbbf24)"
-  }
-];
-
-const tagClasses = { web: 'tag-web', art: 'tag-art', game: 'tag-game', tool: 'tag-tool', ai: 'tag-ai' };
-let allProjects = [...sampleProjects];
-
-// Auth state observer
-auth.onAuthStateChanged(async (user) => {
-  currentUser = user;
-  if (user) {
-    try {
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        currentUserProfile = doc.data();
-      } else {
-        currentUserProfile = {
-          displayName: user.displayName || '',
-          email: user.email,
-          bio: '',
-          company: '',
-          photoURL: user.photoURL || '',
-          socials: { twitter: '', github: '', website: '' },
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        await db.collection('users').doc(user.uid).set(currentUserProfile);
-        openProfileModal();
-      }
-      updateNavForUser(user);
-      loadProjects();
-    } catch (e) {
-      console.error('Profile loading error:', e);
-      updateNavForUser(user);
-    }
-  } else {
-    currentUserProfile = null;
-    updateNavForGuest();
-    loadProjects();
-  }
-});
-
-// Update nav UI
-function updateNavForUser(user) {
-  document.getElementById('nav-auth-logged-out').style.display = 'none';
-  document.getElementById('nav-auth-logged-in').style.display = 'flex';
-
-  const avatar = document.getElementById('nav-avatar');
-  const avatarText = document.getElementById('avatar-text');
-  const avatarImg = document.getElementById('avatar-img');
-
-  if (currentUserProfile && currentUserProfile.photoURL) {
-    avatarImg.src = currentUserProfile.photoURL;
-    avatarImg.style.display = 'block';
-    avatarText.style.display = 'none';
-  } else {
-    const initials = (currentUserProfile?.displayName || user.email || 'U')[0].toUpperCase();
-    avatarText.textContent = initials;
-    avatarText.style.display = 'flex';
-    avatarImg.style.display = 'none';
-  }
-}
-
-function updateNavForGuest() {
-  document.getElementById('nav-auth-logged-out').style.display = 'flex';
-  document.getElementById('nav-auth-logged-in').style.display = 'none';
-  closeDropdown();
-}
-
-// Auth functions
-function openAuthModal(mode) {
-  switchAuthMode(mode);
-  document.getElementById('auth-modal').classList.add('open');
-  clearAuthError();
-}
-
-function closeAuthModal() {
-  document.getElementById('auth-modal').classList.remove('open');
-  clearAuthError();
-}
-
-function switchAuthMode(mode) {
-  authMode = mode;
-  const isSignup = mode === 'signup';
-
-  document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.auth-tab')[isSignup ? 1 : 0].classList.add('active');
-
-  document.getElementById('display-name-group').style.display = isSignup ? 'block' : 'none';
-  const submitBtn = document.getElementById('auth-submit-btn');
-  submitBtn.textContent = isSignup ? 'Sign Up' : 'Log In';
-  submitBtn.onclick = isSignup ? signUpWithEmail : logInWithEmail;
-
-  document.getElementById('auth-switch-text').innerHTML = isSignup
-    ? 'Already have an account? <a onclick="switchAuthMode(\'login\')">Log In</a>'
-    : 'Don\'t have an account? <a onclick="switchAuthMode(\'signup\')">Sign Up</a>';
-}
-
-function clearAuthError() {
-  document.getElementById('auth-error').classList.remove('show');
-  document.getElementById('auth-error').textContent = '';
-}
-
-function showAuthError(message) {
-  document.getElementById('auth-error').textContent = message;
-  document.getElementById('auth-error').classList.add('show');
-}
-
-function signUpWithEmail() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const displayName = document.getElementById('auth-display-name').value.trim();
-
-  if (!email || !password || !displayName) {
-    showAuthError('Please fill in all fields');
-    return;
-  }
-  if (password.length < 6) {
-    showAuthError('Password must be at least 6 characters');
-    return;
-  }
-
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(result => {
-      return result.user.updateProfile({ displayName }).then(() => result);
-    })
-    .then(() => {
-      closeAuthModal();
-      document.getElementById('auth-email').value = '';
-      document.getElementById('auth-password').value = '';
-      document.getElementById('auth-display-name').value = '';
-    })
-    .catch(error => showAuthError(error.message));
-}
-
-function logInWithEmail() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-
-  if (!email || !password) {
-    showAuthError('Please fill in all fields');
-    return;
-  }
-
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      closeAuthModal();
-      document.getElementById('auth-email').value = '';
-      document.getElementById('auth-password').value = '';
-    })
-    .catch(error => showAuthError(error.message));
-}
-
-function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(error => showAuthError(error.message));
-}
-
-function logOut() {
-  auth.signOut().catch(error => console.error('Logout error:', error));
-  closeDropdown();
-}
-
-// Dropdown
-function toggleDropdown() {
-  document.getElementById('nav-dropdown').classList.toggle('open');
-}
-
-function closeDropdown() {
-  document.getElementById('nav-dropdown').classList.remove('open');
-}
-
-document.addEventListener('click', function(e) {
-  const dropdown = document.getElementById('nav-dropdown');
-  const avatar = document.getElementById('nav-avatar');
-  if (!dropdown.contains(e.target) && !avatar.contains(e.target)) {
-    closeDropdown();
-  }
-});
-
-// Profile modal
-function openProfileModal() {
-  if (currentUserProfile) {
-    document.getElementById('profile-display-name').value = currentUserProfile.displayName || '';
-    document.getElementById('profile-bio').value = currentUserProfile.bio || '';
-    document.getElementById('profile-company').value = currentUserProfile.company || '';
-    document.getElementById('profile-twitter').value = currentUserProfile.socials?.twitter || '';
-    document.getElementById('profile-github').value = currentUserProfile.socials?.github || '';
-    document.getElementById('profile-website').value = currentUserProfile.socials?.website || '';
-
-    if (currentUserProfile.photoURL) {
-      document.getElementById('profile-photo-preview').src = currentUserProfile.photoURL;
-      document.getElementById('profile-photo-preview').style.display = 'block';
-      document.getElementById('profile-upload-icon').style.display = 'none';
-    }
-  }
-  document.getElementById('profile-modal').classList.add('open');
-}
-
-function closeProfileModal() {
-  document.getElementById('profile-modal').classList.remove('open');
-}
-
-function handleProfilePhotoUpload(e) {
-  const file = e.target.files[0];
-  if (!file || !currentUser) return;
-
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const preview = document.getElementById('profile-photo-preview');
-    preview.src = event.target.result;
-    preview.style.display = 'block';
-    document.getElementById('profile-upload-icon').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-}
-
-async function saveProfile() {
-  if (!currentUser) return;
-
-  const file = document.getElementById('profile-photo-input').files[0];
-  let photoURL = currentUserProfile?.photoURL || '';
-
-  try {
-    if (file) {
-      const storageRef = storage.ref(`profile-photos/${currentUser.uid}`);
-      await storageRef.put(file);
-      photoURL = await storageRef.getDownloadURL();
-    }
-
-    const updatedProfile = {
-      displayName: document.getElementById('profile-display-name').value,
-      bio: document.getElementById('profile-bio').value,
-      company: document.getElementById('profile-company').value,
-      photoURL: photoURL,
-      socials: {
-        twitter: document.getElementById('profile-twitter').value,
-        github: document.getElementById('profile-github').value,
-        website: document.getElementById('profile-website').value
-      }
-    };
-
-    await db.collection('users').doc(currentUser.uid).update(updatedProfile);
-    currentUserProfile = { ...currentUserProfile, ...updatedProfile };
-    updateNavForUser(currentUser);
-    closeProfileModal();
-  } catch (error) {
-    console.error('Profile save error:', error);
-    alert('Error saving profile: ' + error.message);
-  }
-}
-
-document.getElementById('profile-photo-input').addEventListener('change', handleProfilePhotoUpload);
-
-// Project submission
-function openModal() {
-  if (!currentUser) {
-    openAuthModal('login');
-    return;
-  }
-  document.getElementById('modal').classList.add('open');
-  document.getElementById('modal-form').style.display = 'block';
-  document.getElementById('success-msg').classList.remove('show');
-}
-
-function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-}
-
-async function submitProject() {
-  if (!currentUser) {
-    openAuthModal('login');
-    return;
-  }
-
-  const name = document.getElementById('proj-name').value.trim();
-  const cat = document.getElementById('proj-cat').value;
-  const desc = document.getElementById('proj-desc').value.trim();
-  const link = document.getElementById('proj-link').value.trim();
-  const imageFile = document.getElementById('proj-image').files[0];
-
-  if (!name || !desc) {
-    alert('Please fill in project name and description');
-    return;
-  }
-
-  try {
-    let imageURL = '';
-    if (imageFile) {
-      const storageRef = storage.ref(`project-thumbnails/${currentUser.uid}/${Date.now()}`);
-      await storageRef.put(imageFile);
-      imageURL = await storageRef.getDownloadURL();
-    }
-
-    const tagMap = { web: 'Web', art: 'Gen Art', game: 'Game', tool: 'Tool', ai: 'AI' };
-    const colorMap = { web: '#3b82f6', art: '#ec4899', game: '#10b981', tool: '#f59e0b', ai: '#7c3aed' };
-    const gradMap = {
-      web: 'linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd)',
-      art: 'linear-gradient(135deg, #fce7f3, #fbcfe8, #f9a8d4)',
-      game: 'linear-gradient(135deg, #d1fae5, #a7f3d0, #6ee7b7)',
-      tool: 'linear-gradient(135deg, #fef3c7, #fde68a, #fcd34d)',
-      ai: 'linear-gradient(135deg, #ede9fe, #ddd6fe, #c4b5fd)'
-    };
-
-    const project = {
-      name,
-      desc,
-      category: cat,
-      tag: tagMap[cat],
-      link: link || '',
-      imageURL: imageURL,
-      authorUid: currentUser.uid,
-      authorName: currentUserProfile?.displayName || currentUser.email,
-      authorPhoto: currentUserProfile?.photoURL || '',
-      color: colorMap[cat],
-      gradient: gradMap[cat],
-      vibes: 0,
-      comments: 0,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    await db.collection('projects').add(project);
-
-    document.getElementById('proj-name').value = '';
-    document.getElementById('proj-desc').value = '';
-    document.getElementById('proj-link').value = '';
-    document.getElementById('proj-image').value = '';
-    document.getElementById('modal-form').style.display = 'none';
-    document.getElementById('success-msg').classList.add('show');
-    setTimeout(closeModal, 2000);
-
-    loadProjects();
-  } catch (error) {
-    console.error('Project submission error:', error);
-    alert('Error posting project: ' + error.message);
-  }
-}
-
-// Load projects
 async function loadProjects() {
+  if (!db) { renderHomeProjects('all'); return; }
   try {
-    const snapshot = await db.collection('projects').orderBy('createdAt', 'desc').limit(20).get();
+    const snapshot = await db.collection('projects')
+      .where('visibility', '==', 'public')
+      .orderBy('createdAt', 'desc')
+      .limit(9)
+      .get();
     if (!snapshot.empty) {
-      const firestoreProjects = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt ? data.createdAt.toDate() : new Date()
-        };
-      });
-      allProjects = [...firestoreProjects, ...sampleProjects];
-    } else {
-      allProjects = [...sampleProjects];
+      const firestoreProjects = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
+      }));
+      homeProjects = [...firestoreProjects, ...sampleProjects];
     }
   } catch (error) {
-    console.error('Load projects error:', error);
-    allProjects = [...sampleProjects];
+    // Fallback: load without visibility filter
+    try {
+      const snapshot = await db.collection('projects').orderBy('createdAt', 'desc').limit(9).get();
+      if (!snapshot.empty) {
+        const firestoreProjects = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
+        }));
+        homeProjects = [...firestoreProjects, ...sampleProjects];
+      }
+    } catch (e) {
+      console.error('Load projects error:', e);
+    }
   }
-  renderProjects('all');
+  renderHomeProjects('all');
 }
 
-// Render projects
-function renderProjects(filter = 'all') {
+function renderHomeProjects(filter) {
   const grid = document.getElementById('project-grid');
-  const filtered = filter === 'all' ? allProjects : allProjects.filter(p => p.category === filter);
-  grid.innerHTML = filtered.map(p => `
-    <div class="project-card" data-category="${p.category}">
-      <div class="card-preview" style="background: ${p.imageURL ? `url(${p.imageURL}) center/cover` : p.gradient};">
-        <div class="card-gradient"></div>
-        <span class="card-tag ${tagClasses[p.category]}">${p.tag}</span>
-      </div>
-      <div class="card-body">
-        <h3>${p.name}</h3>
-        <p>${p.desc}</p>
-      </div>
-      <div class="card-footer">
-        <div class="card-author">
-          ${p.authorPhoto ? `<img src="${p.authorPhoto}" class="avatar">` : `<div class="avatar" style="background: ${p.color};">${p.authorName[0].toUpperCase()}</div>`}
-          <span>${p.authorName}</span>
-        </div>
-        <div class="card-stats">
-          <span>&#10024; ${p.vibes}</span>
-          <span>&#128172; ${p.comments}</span>
-        </div>
-      </div>
-    </div>
-  `).join('');
+  if (!grid) return;
+  const filtered = filter === 'all' ? homeProjects : homeProjects.filter(p => p.category === filter);
+  const limited = filtered.slice(0, 9);
+  grid.innerHTML = limited.map(p => renderProjectCard(p)).join('');
 }
 
-function filterProjects(cat, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+function filterHomeProjects(cat, btn) {
+  btn.closest('.filters').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderProjects(cat);
+  renderHomeProjects(cat);
 }
 
 function toggleFaq(el) {
   el.classList.toggle('open');
 }
 
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
-document.getElementById('auth-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeAuthModal();
-});
-
-document.getElementById('profile-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeProfileModal();
-});
-
-// Initial render
+// Load on ready
 loadProjects();
 </script>
 </body>
