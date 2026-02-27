@@ -208,7 +208,7 @@ async function loadProjects() {
     const snapshot = await db.collection('projects')
       .where('visibility', '==', 'public')
       .orderBy('createdAt', 'desc')
-      .limit(9)
+      .limit(25)
       .get();
     if (!snapshot.empty) {
       const firestoreProjects = snapshot.docs.map(doc => ({
@@ -221,7 +221,7 @@ async function loadProjects() {
   } catch (error) {
     // Fallback: load without visibility filter
     try {
-      const snapshot = await db.collection('projects').orderBy('createdAt', 'desc').limit(9).get();
+      const snapshot = await db.collection('projects').orderBy('createdAt', 'desc').limit(25).get();
       if (!snapshot.empty) {
         const firestoreProjects = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -259,7 +259,7 @@ function renderHomeProjects() {
       (p.author && p.author.toLowerCase().includes(term))
     );
   }
-  const limited = filtered.slice(0, 9);
+  const limited = filtered.slice(0, 25);
   grid.innerHTML = limited.map(p => renderProjectCard(p)).join('');
 }
 

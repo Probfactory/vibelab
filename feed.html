@@ -91,8 +91,8 @@
       </div>
     </div>
 
-    <!-- Tag Follow Section (shown for logged-in users) -->
-    <div class="tag-follow-bar" id="tag-follow-bar" style="display: none;">
+    <!-- Tag Follow Section -->
+    <div class="tag-follow-bar" id="tag-follow-bar">
       <span class="tag-follow-label">Follow tags:</span>
       <div class="tag-follow-chips" id="tag-follow-chips"></div>
     </div>
@@ -170,11 +170,22 @@ onDropdownChange('status-dropdown', (value) => filterByStatus(value));
 // Available tags for following
 const availableTags = [
   { id: 'web', label: 'Web', color: '#3b82f6' },
-  { id: 'art', label: 'Gen Art', color: '#ec4899' },
+  { id: 'ai', label: 'AI', color: '#7c3aed' },
+  { id: 'mobile', label: 'Mobile', color: '#06b6d4' },
   { id: 'game', label: 'Games', color: '#10b981' },
+  { id: 'art', label: 'Gen Art', color: '#ec4899' },
+  { id: 'saas', label: 'SaaS', color: '#6366f1' },
   { id: 'tool', label: 'Tools', color: '#f59e0b' },
-  { id: 'ai', label: 'AI', color: '#7c3aed' }
+  { id: 'design', label: 'Design', color: '#f43f5e' },
+  { id: '3d', label: '3D', color: '#14b8a6' },
+  { id: 'cli', label: 'CLI', color: '#84cc16' },
+  { id: 'dataviz', label: 'Data Viz', color: '#0ea5e9' },
+  { id: 'audio', label: 'Audio', color: '#a855f7' },
+  { id: 'ecommerce', label: 'E-Commerce', color: '#f97316' }
 ];
+
+// Render tags immediately (don't wait for auth)
+renderTagFollowChips();
 
 // Load feed projects
 async function loadFeedProjects(append = false) {
@@ -544,12 +555,8 @@ window.addEventListener('authStateReady', async (e) => {
       followingIds = snap.docs.map(d => d.data().followingId);
     } catch (err) { console.error('Load following error:', err); }
 
-    // Load followed tags
+    // Load followed tags and re-render chips with followed state
     await loadFollowedTags();
-
-    // Show tag follow bar for logged-in users
-    const tagBar = document.getElementById('tag-follow-bar');
-    if (tagBar) tagBar.style.display = 'flex';
     renderTagFollowChips();
 
     loadFeedProjects();
