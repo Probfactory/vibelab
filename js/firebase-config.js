@@ -74,6 +74,10 @@ function timeAgo(date) {
   return months + 'mo ago';
 }
 
+// SVG icons for cards
+const vibeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="14" height="14" fill="currentColor"><path fill-rule="evenodd" d="M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z"/></svg>`;
+const commentIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+
 // Utility: render a project card HTML
 function renderProjectCard(p) {
   const authorName = p.authorName || p.author || 'Anonymous';
@@ -84,23 +88,15 @@ function renderProjectCard(p) {
   const cardColor = p.color || colorMap[cat] || '#3b82f6';
   return `
     <a href="project.html?id=${p.id}#id=${p.id}" class="project-card" data-category="${cat}">
-      <div class="card-preview" style="background: ${p.imageURL ? `url(${p.imageURL}) center/cover` : gradient};">
-        <div class="card-gradient"></div>
-        <span class="card-tag ${tagClasses[cat] || 'tag-web'}">${tagLabel}</span>
-        ${p.builtWith ? `<span class="card-built-with">${escapeHtml(p.builtWith)}</span>` : ''}
-      </div>
-      <div class="card-body">
-        <h3>${escapeHtml(p.name)}</h3>
-        <p>${escapeHtml(p.desc)}</p>
-      </div>
-      <div class="card-footer">
-        <div class="card-author">
-          ${p.authorPhoto ? `<img src="${p.authorPhoto}" class="avatar" style="width:26px;height:26px;border-radius:50%;object-fit:cover;">` : `<div class="avatar" style="background: ${cardColor};">${authorInitial}</div>`}
-          <span>${escapeHtml(authorName)}</span>
+      <div class="card-thumb" style="background: ${p.imageURL ? `url(${p.imageURL}) center/cover` : gradient};"></div>
+      <div class="card-info">
+        <div class="card-info-text">
+          <h3>${escapeHtml(p.name)}</h3>
+          <span class="card-creator">${p.authorPhoto ? `<img src="${p.authorPhoto}" class="card-creator-pic">` : `<span class="card-creator-initial" style="background:${cardColor};">${authorInitial}</span>`} ${escapeHtml(authorName)}</span>
         </div>
         <div class="card-stats">
-          <span>&#10024; ${p.vibes || 0}</span>
-          <span>&#128172; ${p.comments || 0}</span>
+          <span class="card-stat">${vibeIconSVG} ${p.vibes || 0}</span>
+          <span class="card-stat">${commentIconSVG} ${p.comments || 0}</span>
         </div>
       </div>
     </a>
