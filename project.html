@@ -18,70 +18,77 @@
 
     <!-- Project Content (hidden until loaded) -->
     <div id="project-content" style="display: none;">
-      <div class="project-detail-layout">
-        <!-- Main Content -->
-        <div>
-          <!-- Preview -->
-          <div class="project-preview" id="project-preview"></div>
+      <!-- Title Row: Title left, Live Demo right -->
+      <div class="project-title-row">
+        <h1 class="project-title" id="project-title"></h1>
+        <div class="project-title-actions" id="project-title-actions"></div>
+      </div>
 
-          <!-- Meta Tags -->
-          <div class="project-meta" id="project-meta" style="margin-top: 24px;"></div>
+      <!-- Full-width Preview Image -->
+      <div class="project-preview-full" id="project-preview"></div>
 
-          <!-- Title -->
-          <h1 class="project-title" id="project-title"></h1>
+      <!-- Action Bar: Author left, Icons right -->
+      <div class="project-action-bar">
+        <div class="project-author-bar" id="project-author-bar">
+          <div class="loading-spinner" style="padding:0;"><div class="spinner" style="width:20px;height:20px;"></div></div>
+        </div>
+        <div class="project-icon-actions" id="project-icon-actions"></div>
+      </div>
 
-          <!-- Description -->
-          <div class="project-description" id="project-desc"></div>
+      <!-- Meta Tags -->
+      <div class="project-meta" id="project-meta" style="margin-top: 20px;"></div>
 
-          <!-- Action Buttons -->
-          <div class="project-actions" id="project-actions"></div>
+      <!-- Description -->
+      <div class="project-description" id="project-desc"></div>
 
-          <!-- Links -->
-          <div class="project-links" id="project-links"></div>
+      <!-- Tools & Stack -->
+      <div class="project-stack" id="project-stack"></div>
 
-          <!-- Tools & Stack -->
-          <div class="project-stack" id="project-stack"></div>
+      <!-- Tags -->
+      <div class="project-tags" id="project-tags"></div>
 
-          <!-- Tags -->
-          <div class="project-tags" id="project-tags"></div>
+      <!-- Guest CTA (shown only to logged-out users) -->
+      <div class="guest-cta-box" id="guest-cta" style="display: none;">
+        <div class="guest-cta-content">
+          <h3>Sign up to vibe with this creator</h3>
+          <p>Join VibeLab to like, comment, save projects, and connect with creative developers.</p>
+          <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
+        </div>
+      </div>
 
-          <!-- Guest CTA (shown only to logged-out users) -->
-          <div class="guest-cta-box" id="guest-cta" style="display: none;">
-            <div class="guest-cta-content">
-              <h3>Sign up to vibe with this creator</h3>
-              <p>Join VibeLab to like, comment, save projects, and connect with creative developers.</p>
-              <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
-            </div>
-          </div>
+      <!-- Comments Section -->
+      <div class="comments-section">
+        <h3 id="comments-title">Comments</h3>
 
-          <!-- Comments Section -->
-          <div class="comments-section">
-            <h3 id="comments-title">Comments</h3>
-
-            <!-- Comment Input -->
-            <div class="comment-input-area" id="comment-input-area">
-              <div class="comment-avatar" id="comment-user-avatar" style="background: var(--purple);">?</div>
-              <div class="comment-input-wrapper">
-                <textarea id="comment-text" placeholder="Share your thoughts..." rows="1" onfocus="showCommentActions()" oninput="autoResizeTextarea(this)"></textarea>
-                <div class="comment-input-actions" id="comment-actions">
-                  <button class="comment-post-btn" onclick="postComment()" id="post-comment-btn" disabled>Post</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Comments List -->
-            <div id="comments-list">
-              <div class="loading-spinner"><div class="spinner"></div></div>
+        <!-- Comment Input -->
+        <div class="comment-input-area" id="comment-input-area">
+          <div class="comment-avatar" id="comment-user-avatar" style="background: var(--purple);">?</div>
+          <div class="comment-input-wrapper">
+            <textarea id="comment-text" placeholder="Share your thoughts..." rows="1" onfocus="showCommentActions()" oninput="autoResizeTextarea(this)"></textarea>
+            <div class="comment-input-actions" id="comment-actions">
+              <button class="comment-post-btn" onclick="postComment()" id="post-comment-btn" disabled>Post</button>
             </div>
           </div>
         </div>
 
-        <!-- Creator Sidebar -->
-        <div class="creator-sidebar">
-          <div class="creator-card" id="creator-card">
-            <div class="loading-spinner"><div class="spinner"></div></div>
-          </div>
+        <!-- Comments List -->
+        <div id="comments-list">
+          <div class="loading-spinner"><div class="spinner"></div></div>
         </div>
+      </div>
+
+      <!-- Creator Footer -->
+      <div class="creator-footer" id="creator-footer"></div>
+    </div>
+
+    <!-- Live Demo Modal -->
+    <div class="demo-modal-overlay" id="demo-modal">
+      <div class="demo-modal">
+        <div class="demo-modal-header">
+          <span class="demo-modal-url" id="demo-modal-url"></span>
+          <button class="demo-modal-close" onclick="closeDemoModal()" title="Close">&times;</button>
+        </div>
+        <iframe class="demo-modal-iframe" id="demo-modal-iframe" src="" frameborder="0" allowfullscreen></iframe>
       </div>
     </div>
   </div>
@@ -109,6 +116,10 @@ initPage('project');
 let projectData = null;
 let projectId = getUrlParam('id');
 let replyingTo = null;
+
+// SVG icons (matching feed card style)
+const saveIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const shareIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
 
 // Load project
 async function loadProject() {
@@ -152,7 +163,25 @@ function renderProject() {
   document.getElementById('project-loading').style.display = 'none';
   document.getElementById('project-content').style.display = 'block';
 
-  // Preview
+  // Title (above image)
+  document.getElementById('project-title').textContent = projectData.name;
+
+  // Top-right buttons (Live Demo + GitHub) above image
+  const titleActions = document.getElementById('project-title-actions');
+  let titleBtns = '';
+  const hasDemo = projectData.link && (projectData.link.startsWith('http://') || projectData.link.startsWith('https://'));
+  if (hasDemo) {
+    titleBtns += `<button class="demo-btn-inline" onclick="openDemoModal('${projectData.link.replace(/'/g, "\\'")}')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Live Demo</button>`;
+  }
+  if (projectData.githubUrl && (projectData.githubUrl.startsWith('http://') || projectData.githubUrl.startsWith('https://'))) {
+    titleBtns += `<a href="${projectData.githubUrl}" target="_blank" rel="noopener noreferrer" class="project-secondary-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg> GitHub</a>`;
+  }
+  if (projectData.figmaUrl && (projectData.figmaUrl.startsWith('http://') || projectData.figmaUrl.startsWith('https://'))) {
+    titleBtns += `<a href="${projectData.figmaUrl}" target="_blank" rel="noopener noreferrer" class="project-secondary-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zM8.148 24c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.014 4.539-4.588 4.539zm-.001-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019c1.665 0 3.118-1.312 3.118-2.978v-3.06H8.147zM8.148 15.02H3.559c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.981H8.148zm-.001-7.51H3.559c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h4.588V7.51zM8.148 0H3.559c-2.476 0-4.49 2.014-4.49 4.49s2.014 4.49 4.49 4.49h4.588V0H8.148zM3.559 7.51c-1.665 0-3.019-1.355-3.019-3.019S1.894 1.472 3.559 1.472h3.118V7.51H3.559zM15.852 15.02h-3.117v-6.04h3.117c1.665 0 3.019 1.355 3.019 3.019s-1.355 3.021-3.019 3.021zm0-4.57c-.821 0-1.548.727-1.548 1.548 0 .821.727 1.548 1.548 1.548.822 0 1.548-.727 1.548-1.548 0-.821-.727-1.548-1.548-1.548z"/></svg> Figma</a>`;
+  }
+  titleActions.innerHTML = titleBtns;
+
+  // Preview (full-width)
   const preview = document.getElementById('project-preview');
   if (projectData.imageURL) {
     const img = document.createElement('img');
@@ -164,30 +193,28 @@ function renderProject() {
     preview.style.minHeight = '360px';
   }
 
-  // Meta
-  const meta = document.getElementById('project-meta');
-  meta.innerHTML = `
-    <span class="card-tag ${tagClasses[projectData.category]}">${projectData.tag || tagMap[projectData.category]}</span>
-    ${projectData.status ? '<span class="project-tag-pill">' + projectData.status + '</span>' : ''}
-    <span style="color: var(--text-muted); font-size: 0.85rem;">${timeAgo(projectData.createdAt)}</span>
-  `;
-
-  // Title & description
-  document.getElementById('project-title').textContent = projectData.name;
-  document.getElementById('project-desc').textContent = projectData.desc;
-
-  // Action buttons
-  const actions = document.getElementById('project-actions');
-  actions.innerHTML = `
-    <button class="project-action-btn" id="vibe-btn" onclick="handleVibe()">
-      &#10024; Vibe <span class="count">${projectData.vibes || 0}</span>
+  // Icon action buttons (Time, Vibe, Comments, More menu) — right side of action bar
+  const commentIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+  const moreIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
+  const iconActions = document.getElementById('project-icon-actions');
+  const timeStr = projectData.createdAt ? timeAgo(projectData.createdAt) : '';
+  iconActions.innerHTML = `
+    ${timeStr ? '<span class="action-bar-time">' + timeStr + '</span>' : ''}
+    <button class="project-icon-btn" id="vibe-btn" onclick="handleVibe()">
+      ${vibeIconSVG} <span class="count">${projectData.vibes || 0}</span>
     </button>
-    <button class="project-action-btn" onclick="openSaveModal('${projectData.id}')">
-      &#128278; Save
+    <button class="project-icon-btn" onclick="document.getElementById('comments-title').scrollIntoView({behavior:'smooth'})">
+      ${commentIconSVG} <span class="count">${projectData.comments || 0}</span>
     </button>
-    <button class="project-action-btn" onclick="shareProject()">
-      &#128279; Share
-    </button>
+    <div class="more-menu-wrap">
+      <button class="project-icon-btn" onclick="toggleMoreMenu(event)">
+        ${moreIconSVG}
+      </button>
+      <div class="more-menu" id="more-menu">
+        <button class="more-menu-item" onclick="openSaveModal('${projectData.id}'); closeMoreMenu();">${saveIconSVG} Save</button>
+        <button class="more-menu-item" onclick="shareProject(); closeMoreMenu();">${shareIconSVG} Share</button>
+      </div>
+    </div>
   `;
 
   // Check if user has vibed
@@ -197,32 +224,26 @@ function renderProject() {
     });
   }
 
-  // Links (safely create elements to avoid XSS)
-  const links = document.getElementById('project-links');
-  links.innerHTML = '';
-  const linkData = [
-    { url: projectData.link, icon: '&#127760;', label: 'Live Demo' },
-    { url: projectData.githubUrl, icon: '&#128187;', label: 'GitHub' },
-    { url: projectData.figmaUrl, icon: '&#127912;', label: 'Figma' }
-  ];
-  linkData.forEach(l => {
-    if (l.url && (l.url.startsWith('http://') || l.url.startsWith('https://'))) {
-      const a = document.createElement('a');
-      a.href = l.url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.className = 'project-link';
-      a.innerHTML = l.icon + ' ' + l.label;
-      links.appendChild(a);
-    }
-  });
+  // Meta (category only)
+  const meta = document.getElementById('project-meta');
+  meta.innerHTML = `
+    <span class="card-tag ${tagClasses[projectData.category]}">${projectData.tag || tagMap[projectData.category]}</span>
+  `;
 
-  // Tools & Stack (derived from tags)
+  // Description
+  document.getElementById('project-desc').textContent = projectData.desc;
+
+  // Tools & Stack (derived from tags + status)
   const stack = document.getElementById('project-stack');
   const allTags = projectData.tags || [];
-  if (allTags.length > 0) {
-    stack.innerHTML = '<h4 class="stack-title">Tools & Stack</h4><div class="stack-chips">' +
-      allTags.map(t => '<span class="stack-chip">' + escapeHtml(t) + '</span>').join('') + '</div>';
+  const hasStatus = !!projectData.status;
+  if (allTags.length > 0 || hasStatus) {
+    let chipsHtml = '';
+    if (hasStatus) {
+      chipsHtml += '<span class="stack-chip stack-chip-status">' + escapeHtml(projectData.status) + '</span>';
+    }
+    chipsHtml += allTags.map(t => '<span class="stack-chip">' + escapeHtml(t) + '</span>').join('');
+    stack.innerHTML = '<h4 class="stack-title">Tools & Stack</h4><div class="stack-chips">' + chipsHtml + '</div>';
   }
 
   // Tags (category/status)
@@ -230,69 +251,75 @@ function renderProject() {
   tags.innerHTML = '';
 
   // Guest CTA - defer to authStateReady to avoid flash
-  // Will be shown by authStateReady if user is not logged in
 }
 
 async function loadCreator() {
-  const card = document.getElementById('creator-card');
+  const authorBar = document.getElementById('project-author-bar');
+  const footer = document.getElementById('creator-footer');
+
   if (!projectData.authorUid) {
-    card.innerHTML = '<p style="color: var(--text-muted);">Creator info unavailable</p>';
+    authorBar.innerHTML = '<span style="color: var(--text-muted);">Unknown creator</span>';
+    footer.innerHTML = '';
     return;
   }
 
   try {
     const userDoc = await db.collection('users').doc(projectData.authorUid).get();
     const profile = userDoc.exists ? userDoc.data() : null;
-    const counts = await getFollowCounts(projectData.authorUid);
     const isFollowing = await checkIfFollowing(projectData.authorUid);
     const isOwn = currentUser && currentUser.uid === projectData.authorUid;
 
     const displayName = profile?.displayName || projectData.authorName || projectData.author || 'Creator';
     const initial = displayName[0].toUpperCase();
-    const bio = profile?.bio || '';
+    const profileUrl = 'profile.html?id=' + projectData.authorUid + '#id=' + projectData.authorUid;
+    const avatarBg = projectData.color || 'var(--purple)';
+    const avatarContent = profile?.photoURL ? '<img src="' + profile.photoURL + '">' : initial;
 
-    card.innerHTML = `
-      <a href="profile.html?id=${projectData.authorUid}#id=${projectData.authorUid}" style="text-decoration: none; color: inherit;">
-        <div class="creator-card-header">
-          <div class="creator-avatar" style="background: ${projectData.color || 'var(--purple)'};">
-            ${profile?.photoURL ? '<img src="' + profile.photoURL + '">' : initial}
-          </div>
-          <div class="creator-info">
-            <h3>${escapeHtml(displayName)}</h3>
-            ${profile?.company ? '<p>' + escapeHtml(profile.company) + '</p>' : ''}
-          </div>
-        </div>
+    // Author bar (below image, left side)
+    authorBar.innerHTML = `
+      <a href="${profileUrl}" style="text-decoration:none;">
+        <div class="author-avatar" style="background: ${avatarBg};">${avatarContent}</div>
       </a>
-      ${bio ? '<p class="creator-bio">' + escapeHtml(bio) + '</p>' : ''}
-      <div class="creator-stats-row">
-        <div class="creator-stat"><div class="num">${counts.followers}</div><div class="label">Followers</div></div>
-        <div class="creator-stat"><div class="num">${counts.following}</div><div class="label">Following</div></div>
+      <a href="${profileUrl}" class="author-name">${escapeHtml(displayName)}</a>
+      ${!isOwn ? '<button class="follow-btn-sm ' + (isFollowing ? 'following' : 'not-following') + '" id="follow-btn" onclick="handleFollow()">' + (isFollowing ? 'Following' : 'Follow') + '</button>' : ''}
+    `;
+
+    // Creator footer (below comments)
+    footer.innerHTML = `
+      <a href="${profileUrl}" style="text-decoration:none;">
+        <div class="footer-avatar" style="background: ${avatarBg};">${avatarContent}</div>
+      </a>
+      <div class="footer-info">
+        <a href="${profileUrl}">${escapeHtml(displayName)}</a>
+        <p>Thanks for checking out this project!</p>
       </div>
-      ${!isOwn ? '<button class="follow-btn ' + (isFollowing ? 'following' : 'not-following') + '" id="follow-btn" onclick="handleFollow()">' + (isFollowing ? 'Following' : 'Follow') + '</button>' : ''}
     `;
   } catch (e) {
     console.error('Load creator error:', e);
-    card.innerHTML = '<p style="color: var(--text-muted);">Could not load creator info</p>';
+    authorBar.innerHTML = '<span style="color: var(--text-muted);">Creator info unavailable</span>';
+    footer.innerHTML = '';
   }
 }
 
 function renderSampleCreator() {
-  const card = document.getElementById('creator-card');
+  const authorBar = document.getElementById('project-author-bar');
+  const footer = document.getElementById('creator-footer');
   const name = projectData.author || 'Creator';
-  card.innerHTML = `
-    <div class="creator-card-header">
-      <div class="creator-avatar" style="background: ${projectData.color || 'var(--purple)'};">${name[0].toUpperCase()}</div>
-      <div class="creator-info">
-        <h3>${escapeHtml(name)}</h3>
-        <p>Creative developer</p>
-      </div>
+  const initial = name[0].toUpperCase();
+  const avatarBg = projectData.color || 'var(--purple)';
+
+  authorBar.innerHTML = `
+    <div class="author-avatar" style="background: ${avatarBg};">${initial}</div>
+    <span class="author-name">${escapeHtml(name)}</span>
+    <button class="follow-btn-sm not-following" onclick="requireAuth('follow creators')">Follow</button>
+  `;
+
+  footer.innerHTML = `
+    <div class="footer-avatar" style="background: ${avatarBg};">${initial}</div>
+    <div class="footer-info">
+      <a href="#">${escapeHtml(name)}</a>
+      <p>Thanks for checking out this project!</p>
     </div>
-    <p class="creator-bio">Building creative experiments and sharing the vibes.</p>
-    <div class="creator-stats-row">
-      <div class="creator-stat"><div class="num">${Math.floor(Math.random() * 200) + 50}</div><div class="label">Followers</div></div>
-      <div class="creator-stat"><div class="num">${Math.floor(Math.random() * 100) + 20}</div><div class="label">Following</div></div>
-    </div>
-    <button class="follow-btn not-following" onclick="requireAuth('follow creators')">Follow</button>
   `;
 }
 
@@ -603,6 +630,48 @@ window.addEventListener('authStateReady', (e) => {
     if (guestCta) guestCta.style.display = 'block';
   }
 });
+
+// Live Demo modal
+function openDemoModal(url) {
+  const overlay = document.getElementById('demo-modal');
+  const iframe = document.getElementById('demo-modal-iframe');
+  const urlDisplay = document.getElementById('demo-modal-url');
+  if (!overlay || !iframe) return;
+  iframe.src = url;
+  if (urlDisplay) urlDisplay.textContent = url;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDemoModal() {
+  const overlay = document.getElementById('demo-modal');
+  const iframe = document.getElementById('demo-modal-iframe');
+  if (overlay) overlay.classList.remove('open');
+  if (iframe) iframe.src = '';
+  document.body.style.overflow = '';
+}
+
+// Close demo modal on backdrop click
+document.addEventListener('click', (e) => {
+  if (e.target === document.getElementById('demo-modal')) closeDemoModal();
+});
+
+// Close demo modal on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDemoModal();
+});
+
+// More menu (three dots)
+function toggleMoreMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('more-menu');
+  if (menu) menu.classList.toggle('open');
+}
+function closeMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  if (menu) menu.classList.remove('open');
+}
+document.addEventListener('click', () => closeMoreMenu());
 
 // Initial load
 loadProject();
