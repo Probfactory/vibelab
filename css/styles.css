@@ -263,7 +263,8 @@ nav {
   position: relative; z-index: 1;
 }
 .hero-card-stack {
-  position: relative; height: 400px; width: 100%;
+  position: relative; height: 400px;
+  max-width: 520px; margin-left: auto;
 }
 .hero-demo-card {
   position: absolute; background: var(--surface);
