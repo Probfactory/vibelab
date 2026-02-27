@@ -83,7 +83,7 @@ function renderProjectCard(p) {
   const gradient = p.gradient || gradMap[cat] || 'linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd)';
   const cardColor = p.color || colorMap[cat] || '#3b82f6';
   return `
-    <a href="project.html?id=${p.id}" class="project-card" data-category="${cat}">
+    <a href="project.html?id=${p.id}#id=${p.id}" class="project-card" data-category="${cat}">
       <div class="card-preview" style="background: ${p.imageURL ? `url(${p.imageURL}) center/cover` : gradient};">
         <div class="card-gradient"></div>
         <span class="card-tag ${tagClasses[cat] || 'tag-web'}">${tagLabel}</span>
@@ -115,8 +115,14 @@ function escapeHtml(str) {
   return div.innerHTML.replace(/'/g, '&#39;');
 }
 
-// Utility: get URL parameter
+// Utility: get URL parameter (with hash fallback for cached 301 redirects)
 function getUrlParam(name) {
   const params = new URLSearchParams(window.location.search);
-  return params.get(name);
+  let value = params.get(name);
+  if (!value && window.location.hash) {
+    // Fallback: parse hash as query params (survives 301 redirects that strip query params)
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    value = hashParams.get(name);
+  }
+  return value;
 }

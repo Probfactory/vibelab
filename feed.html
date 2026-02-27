@@ -479,7 +479,7 @@ async function loadDiscoverCreators() {
       const initial = (u.displayName || 'U')[0].toUpperCase();
       html += `
         <div class="creator-discover-card">
-          <a href="profile.html?id=${doc.id}" style="text-decoration:none;color:inherit;text-align:center;">
+          <a href="profile.html?id=${doc.id}#id=${doc.id}" style="text-decoration:none;color:inherit;text-align:center;">
             <div class="creator-avatar" style="background: var(--purple); width: 48px; height: 48px; font-size: 1rem; margin: 0 auto 8px;">
               ${u.photoURL ? '<img src="' + u.photoURL + '">' : initial}
             </div>

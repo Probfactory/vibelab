@@ -70,7 +70,7 @@ function renderVibeCard(p) {
 
   return `
     <div class="vibe-card" data-id="${p.id}">
-      <a href="project.html?id=${p.id}" class="vibe-card-link">
+      <a href="project.html?id=${p.id}#id=${p.id}" class="vibe-card-link">
         <div class="card-preview" style="background: ${p.imageURL ? 'url(' + p.imageURL + ') center/cover' : gradient};">
           <div class="card-gradient"></div>
           <span class="card-tag ${tagClasses[cat] || 'tag-web'}">${tagLabel}</span>

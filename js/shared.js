@@ -24,7 +24,7 @@ function getNavHTML(activePage) {
               <img id="avatar-img" style="display: none;">
             </div>
             <div class="nav-dropdown" id="nav-dropdown">
-              <a href="#" onclick="if(currentUser) window.location.href='profile.html?id='+currentUser.uid; return false;">My Profile</a>
+              <a href="#" onclick="if(currentUser) window.location.href='profile.html?id='+currentUser.uid+'#id='+currentUser.uid; return false;">My Profile</a>
               <a href="my-vibes.html">My Vibes</a>
               <div class="divider"></div>
               <button class="logout-btn" onclick="logOut()">Log Out</button>
