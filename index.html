@@ -298,10 +298,6 @@ function switchHomeTab(tab, btn) {
   }
 }
 
-function toggleFaq(el) {
-  el.classList.toggle('open');
-}
-
 // Toggle guest/logged-in elements
 window.addEventListener('authStateReady', (e) => {
   const guestEls = document.querySelectorAll('.guest-only');

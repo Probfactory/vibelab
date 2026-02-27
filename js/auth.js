@@ -221,12 +221,13 @@ async function saveProfile() {
 }
 
 // Initialize profile photo input listener (retry until element exists after initPage injects modals)
+let _profilePhotoRetries = 0;
 function initProfilePhotoListener() {
   const photoInput = document.getElementById('profile-photo-input');
   if (photoInput) {
     photoInput.addEventListener('change', handleProfilePhotoUpload);
-  } else {
-    // Retry after a short delay - initPage may not have run yet
+  } else if (_profilePhotoRetries < 50) {
+    _profilePhotoRetries++;
     setTimeout(initProfilePhotoListener, 100);
   }
 }

@@ -283,7 +283,7 @@ async function deleteAccount() {
   const confirmed = confirm('Are you sure you want to delete your account? This will permanently delete your profile and all your projects. This cannot be undone.');
   if (!confirmed) return;
 
-  const doubleConfirm = confirm('This is permanent. Type OK to confirm you want to delete everything.');
+  const doubleConfirm = confirm('This is permanent and cannot be undone. Are you sure?');
   if (!doubleConfirm) return;
 
   try {
@@ -328,6 +328,7 @@ async function loadProfileProjects() {
       console.warn('Index not ready, using fallback query:', indexErr.message);
       snapshot = await db.collection('projects')
         .where('authorUid', '==', profileUserId)
+        .limit(30)
         .get();
     }
 
@@ -342,7 +343,7 @@ async function loadProfileProjects() {
         createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
       }));
       // Sort client-side as fallback
-      projects.sort((a, b) => b.createdAt - a.createdAt);
+      projects.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       grid.innerHTML = projects.map(p => renderProjectCard(p)).join('');
     }
   } catch (e) {

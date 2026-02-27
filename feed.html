@@ -153,6 +153,7 @@
 initPage('feed');
 
 // Feed state
+let allFeedProjects = [];
 let feedProjects = [];
 let currentTab = 'foryou';
 let currentFilter = 'all';
@@ -205,7 +206,7 @@ async function loadFeedProjects(append = false) {
     grid.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
     lastDoc = null;
     hasMore = true;
-    feedProjects = [];
+    allFeedProjects = [];
   }
 
   try {
@@ -257,7 +258,7 @@ async function loadFeedProjects(append = false) {
     const snapshot = await query.get();
 
     if (snapshot.empty && !append) {
-      feedProjects = [...sampleProjects];
+      allFeedProjects = [...sampleProjects];
       applyLocalFilters();
       renderFeedGrid();
       isLoading = false;
@@ -279,9 +280,9 @@ async function loadFeedProjects(append = false) {
     }
 
     if (append) {
-      feedProjects = [...feedProjects, ...newProjects];
+      allFeedProjects = [...allFeedProjects, ...newProjects];
     } else {
-      feedProjects = [...newProjects, ...sampleProjects];
+      allFeedProjects = newProjects.length > 0 ? [...newProjects] : [...sampleProjects];
     }
 
     applyLocalFilters();
@@ -292,15 +293,15 @@ async function loadFeedProjects(append = false) {
       try {
         const fallback = await db.collection('projects').orderBy('createdAt', 'desc').limit(PAGE_SIZE).get();
         if (!fallback.empty) {
-          feedProjects = fallback.docs.map(doc => ({
+          allFeedProjects = fallback.docs.map(doc => ({
             id: doc.id, ...doc.data(),
             createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
           }));
         } else {
-          feedProjects = [...sampleProjects];
+          allFeedProjects = [...sampleProjects];
         }
       } catch (e2) {
-        feedProjects = [...sampleProjects];
+        allFeedProjects = [...sampleProjects];
       }
       applyLocalFilters();
       renderFeedGrid();
@@ -311,6 +312,9 @@ async function loadFeedProjects(append = false) {
 }
 
 function applyLocalFilters() {
+  // Start from the full dataset each time
+  feedProjects = [...allFeedProjects];
+
   // Apply search filter client-side
   if (currentSearch) {
     const q = currentSearch.toLowerCase();
@@ -578,7 +582,7 @@ async function loadDiscoverCreators() {
       const initial = (u.displayName || 'U')[0].toUpperCase();
       html += `
         <div class="creator-discover-card">
-          <a href="profile.html?id=${doc.id}#id=${doc.id}" style="text-decoration:none;color:inherit;text-align:center;">
+          <a href="profile.html?id=${doc.id}" style="text-decoration:none;color:inherit;text-align:center;">
             <div class="creator-avatar" style="background: var(--purple); width: 48px; height: 48px; font-size: 1rem; margin: 0 auto 8px;">
               ${u.photoURL ? '<img src="' + u.photoURL + '">' : initial}
             </div>
