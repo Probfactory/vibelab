@@ -9,8 +9,8 @@ function getNavHTML(activePage) {
       VibeLab
     </a>
     <div class="nav-links">
-      <a href="feed.html" class="hide-mobile ${activePage === 'feed' ? 'active' : ''}">Explore</a>
-      <a href="#" class="hide-mobile ${activePage === 'community' ? 'active' : ''}">Community</a>
+      <a href="#" class="hide-mobile ${activePage === 'feed' ? 'active' : ''}" onclick="if(typeof currentUser !== 'undefined' && currentUser) { window.location.href='feed.html'; } else { openAuthModal('login'); } return false;">Explore</a>
+      <a href="community.html" class="hide-mobile ${activePage === 'community' ? 'active' : ''}">Community</a>
       <a href="#" class="hide-mobile ${activePage === 'events' ? 'active' : ''}">Events</a>
       <div class="nav-auth" id="nav-auth">
         <div class="nav-auth-logged-out" id="nav-auth-logged-out">

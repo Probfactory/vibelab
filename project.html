@@ -576,6 +576,7 @@ async function handleFollow() {
 
 // Share
 function shareProject() {
+  if (!requireAuth('share projects')) return;
   const url = window.location.href;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url).then(() => showToast('Link copied to clipboard!'));

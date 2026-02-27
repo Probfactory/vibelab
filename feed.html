@@ -11,7 +11,19 @@
 
 <div id="nav-container"></div>
 
-<section class="feed-page">
+<!-- Login gate for guests -->
+<section class="feed-page" id="feed-login-gate" style="display: none;">
+  <div class="container">
+    <div class="empty-state" style="padding: 80px 0; text-align: center;">
+      <div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128274;</div>
+      <h3>Sign in to explore projects</h3>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">Join VibeLab to discover creative experiments from the community.</p>
+      <button class="btn btn-primary" onclick="openAuthModal('login')">Log In</button>
+    </div>
+  </div>
+</section>
+
+<section class="feed-page" id="feed-content">
   <div class="container">
     <!-- Feed Header with Tabs -->
     <div class="feed-header">
@@ -523,6 +535,10 @@ if (trigger) observer.observe(trigger);
 // Load following list when auth is ready
 window.addEventListener('authStateReady', async (e) => {
   if (e.detail.user) {
+    // Logged in — show feed, hide gate
+    document.getElementById('feed-content').style.display = 'block';
+    document.getElementById('feed-login-gate').style.display = 'none';
+
     try {
       const snap = await db.collection('follows').where('followerId', '==', e.detail.user.uid).get();
       followingIds = snap.docs.map(d => d.data().followingId);
@@ -535,16 +551,15 @@ window.addEventListener('authStateReady', async (e) => {
     const tagBar = document.getElementById('tag-follow-bar');
     if (tagBar) tagBar.style.display = 'flex';
     renderTagFollowChips();
-  }
-  loadFeedProjects();
-  loadDiscoverCreators();
-});
 
-// Initial load (in case auth fires before listener)
-setTimeout(() => {
-  if (feedProjects.length === 0) loadFeedProjects();
-  loadDiscoverCreators();
-}, 1000);
+    loadFeedProjects();
+    loadDiscoverCreators();
+  } else {
+    // Not logged in — show login gate, hide feed
+    document.getElementById('feed-content').style.display = 'none';
+    document.getElementById('feed-login-gate').style.display = 'block';
+  }
+});
 </script>
 </body>
 </html>

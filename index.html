@@ -90,8 +90,8 @@
   <div class="container">
     <div class="feed-header">
       <div>
-        <div class="section-label">Community Projects</div>
-        <div class="section-title">Fresh Builds from the Community</div>
+        <div class="section-label">Featured Vibes</div>
+        <div class="section-title">New Vibes from builders</div>
       </div>
       <div class="feed-tabs" id="home-tabs">
         <button class="feed-tab active" onclick="switchHomeTab('foryou', this)">For You</button>
@@ -152,109 +152,11 @@
     </div>
     <div class="project-grid" id="project-grid"></div>
     <div style="text-align: center; margin-top: 40px;">
-      <a href="feed.html" class="btn btn-outline" style="font-size: 0.95rem; padding: 12px 32px;">View All Projects &rarr;</a>
+      <a href="#" class="btn btn-outline" style="font-size: 0.95rem; padding: 12px 32px;" onclick="if(currentUser) { window.location.href='feed.html'; } else { openAuthModal('login'); } return false;">View All Projects &rarr;</a>
     </div>
   </div>
 </section>
 
-<!-- Stats -->
-<section class="stats-bar">
-  <div class="container">
-    <div class="stats-inner">
-      <div class="stat-item">
-        <div class="stat-num"><span class="accent-text">142</span>+</div>
-        <div class="stat-label">Projects shared by the community</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num"><span class="accent-text">1.2K</span>+</div>
-        <div class="stat-label">Vibe coders and counting</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num"><span class="accent-text">8.4K</span>+</div>
-        <div class="stat-label">Vibes given to projects</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Values -->
-<section class="values" id="values">
-  <div class="container">
-    <div style="text-align: center; margin-bottom: 48px;">
-      <div class="section-label" style="text-align: center;">The VibeLab Way</div>
-      <div class="section-title" style="text-align: center;">What this community is all about</div>
-    </div>
-    <div class="values-grid">
-      <div class="value-card">
-        <div class="value-icon" style="background: var(--accent-soft);">&#127912;</div>
-        <h3>Build What Feels Right</h3>
-        <p>No sprints, no specs. Code because you're inspired. If it feels good to make, it belongs here.</p>
-      </div>
-      <div class="value-card">
-        <div class="value-icon" style="background: rgba(236,72,153,0.08);">&#129309;</div>
-        <h3>Celebrate, Don't Compete</h3>
-        <p>We hype each other up. Every project gets love — from weekend sketches to polished apps.</p>
-      </div>
-      <div class="value-card">
-        <div class="value-icon" style="background: rgba(16,185,129,0.08);">&#127793;</div>
-        <h3>Share the Process</h3>
-        <p>The messy drafts, the "aha" moments, the weird tangents. The journey is the vibe.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FAQ -->
-<section class="faq">
-  <div class="container">
-    <div style="text-align: center; margin-bottom: 48px;">
-      <div class="section-label" style="text-align: center;">Common Questions</div>
-      <div class="section-title" style="text-align: center;">Everything you need to know</div>
-    </div>
-    <div class="faq-grid">
-      <div class="faq-item" onclick="toggleFaq(this)">
-        <div class="faq-q">What is vibe coding? <span class="faq-arrow">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Vibe coding is building software driven by intuition and creativity rather than rigid requirements. You code because it feels right, experiment freely, and let the process be as rewarding as the result.</div></div>
-      </div>
-      <div class="faq-item" onclick="toggleFaq(this)">
-        <div class="faq-q">Who can join VibeLab? <span class="faq-arrow">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Anyone who builds with feeling. Whether you're a beginner experimenting with your first project or a seasoned developer making side projects for fun — if you vibe while you code, you're one of us.</div></div>
-      </div>
-      <div class="faq-item" onclick="toggleFaq(this)">
-        <div class="faq-q">What kind of projects can I post? <span class="faq-arrow">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Anything creative. Web apps, generative art, browser games, CLI tools, AI experiments, interactive visualizations — if you built it and had fun doing it, share it.</div></div>
-      </div>
-      <div class="faq-item" onclick="toggleFaq(this)">
-        <div class="faq-q">Does my project need to be finished? <span class="faq-arrow">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Not at all. Half-finished experiments, early prototypes, and weird tangents are all welcome. We celebrate the process, not just the final product.</div></div>
-      </div>
-      <div class="faq-item" onclick="toggleFaq(this)">
-        <div class="faq-q">Is VibeLab free? <span class="faq-arrow">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Yes, completely free. VibeLab is a community project built for creators, by creators. No paywalls, no premium tiers.</div></div>
-      </div>
-      <div class="faq-item" onclick="toggleFaq(this)">
-        <div class="faq-q">How do I get started? <span class="faq-arrow">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Click "Explore Vibes" to browse the community. When you're ready to share, sign up and post your first project. Takes less than a minute.</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-    <div class="cta-box">
-      <div class="cta-glow"></div>
-      <h2 id="cta-heading">Ready to Share What You've Built?</h2>
-      <p>Whether it's a weekend experiment or your magnum opus — if you vibed while building it, we want to see it.</p>
-      <div class="cta-actions">
-        <a href="#" class="btn btn-primary guest-only" style="font-size: 1rem; padding: 14px 32px;" onclick="openAuthModal('login'); return false;">Join VibeLab</a>
-        <a href="#" class="btn btn-primary logged-in-only" style="font-size: 1rem; padding: 14px 32px; display: none;" onclick="openSubmitModal(); return false;">Share Your Vibe</a>
-        <a href="feed.html" class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.25);">Explore Vibes</a>
-      </div>
-    </div>
-  </div>
-</section>
 
 <div id="footer-container"></div>
 <div id="modals-container"></div>

@@ -263,10 +263,10 @@ function showToast(message, actionText, actionCallback) {
   }, 4000);
 }
 
-// Guest gate: show toast if user tries restricted action
+// Guest gate: show login modal if user tries restricted action
 function requireAuth(actionName) {
   if (!currentUser) {
-    showToast(`Sign up to ${actionName}`, 'Join VibeLab', () => openAuthModal('signup'));
+    openAuthModal('login');
     return false;
   }
   return true;

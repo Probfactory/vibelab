@@ -450,14 +450,25 @@ async function handleProfileFollow() {
   await toggleFollow(profileUserId, btn);
 }
 
-// Wait for auth then load
-window.addEventListener('authStateReady', () => {
-  loadProfile();
+// Wait for auth then load (only for logged-in users)
+window.addEventListener('authStateReady', (e) => {
+  if (e.detail.user) {
+    loadProfile();
+  } else {
+    // Not logged in — show login prompt
+    document.getElementById('profile-loading').innerHTML = `
+      <div class="empty-state" style="padding: 80px 0; text-align: center;">
+        <div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128274;</div>
+        <h3>Sign in to view profiles</h3>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Join VibeLab to discover creators and their projects.</p>
+        <button class="btn btn-primary" onclick="openAuthModal('login')">Log In</button>
+      </div>`;
+  }
 });
 
-// Fallback load
+// Fallback load (only if auth hasn't fired yet)
 setTimeout(() => {
-  if (!profileData) loadProfile();
+  if (!profileData && currentUser) loadProfile();
 }, 1500);
 </script>
 </body>
