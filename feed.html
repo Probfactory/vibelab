@@ -35,29 +35,48 @@
         </span>
         <input type="text" id="search-input" placeholder="Search projects, creators, tags..." oninput="handleSearch(this.value)">
       </div>
-      <div class="filters" id="category-filters">
-        <button class="filter-btn active" onclick="filterFeedProjects('all', this)">All</button>
-        <button class="filter-btn" onclick="filterFeedProjects('web', this)">Web</button>
-        <button class="filter-btn" onclick="filterFeedProjects('art', this)">Gen Art</button>
-        <button class="filter-btn" onclick="filterFeedProjects('game', this)">Games</button>
-        <button class="filter-btn" onclick="filterFeedProjects('tool', this)">Tools</button>
-        <button class="filter-btn" onclick="filterFeedProjects('ai', this)">AI</button>
+      <div class="custom-dropdown" id="category-dropdown">
+        <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('category-dropdown')">
+          <span class="custom-dropdown-label">All Categories</span>
+          <svg class="custom-dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="custom-dropdown-menu">
+          <div class="custom-dropdown-option selected" data-value="all" onclick="selectDropdownOption('category-dropdown', 'all', 'All Categories')">All Categories</div>
+          <div class="custom-dropdown-option" data-value="web" onclick="selectDropdownOption('category-dropdown', 'web', 'Web')">Web</div>
+          <div class="custom-dropdown-option" data-value="mobile" onclick="selectDropdownOption('category-dropdown', 'mobile', 'Mobile')">Mobile</div>
+          <div class="custom-dropdown-option" data-value="game" onclick="selectDropdownOption('category-dropdown', 'game', 'Games')">Games</div>
+          <div class="custom-dropdown-option" data-value="tool" onclick="selectDropdownOption('category-dropdown', 'tool', 'Tools')">Tools</div>
+          <div class="custom-dropdown-option" data-value="image" onclick="selectDropdownOption('category-dropdown', 'image', 'Image')">Image</div>
+        </div>
       </div>
-      <div class="feed-sort">
-        <select id="sort-select" onchange="handleSort(this.value)">
-          <option value="trending">Most Vibes</option>
-          <option value="newest">Newest</option>
-          <option value="discussed">Most Discussed</option>
-        </select>
+      <div class="custom-dropdown" id="app-dropdown">
+        <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('app-dropdown')">
+          <span class="custom-dropdown-label">Built with: All</span>
+          <svg class="custom-dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="custom-dropdown-menu">
+          <div class="custom-dropdown-option selected" data-value="all" onclick="selectDropdownOption('app-dropdown', 'all', 'Built with: All')">Built with: All</div>
+          <div class="custom-dropdown-option" data-value="claude" onclick="selectDropdownOption('app-dropdown', 'claude', 'Claude')">Claude</div>
+          <div class="custom-dropdown-option" data-value="bolt" onclick="selectDropdownOption('app-dropdown', 'bolt', 'Bolt')">Bolt</div>
+          <div class="custom-dropdown-option" data-value="cursor" onclick="selectDropdownOption('app-dropdown', 'cursor', 'Cursor')">Cursor</div>
+          <div class="custom-dropdown-option" data-value="lovable" onclick="selectDropdownOption('app-dropdown', 'lovable', 'Lovable')">Lovable</div>
+          <div class="custom-dropdown-option" data-value="antigravity" onclick="selectDropdownOption('app-dropdown', 'antigravity', 'Antigravity')">Antigravity</div>
+          <div class="custom-dropdown-option" data-value="v0" onclick="selectDropdownOption('app-dropdown', 'v0', 'v0')">v0</div>
+          <div class="custom-dropdown-option" data-value="replit" onclick="selectDropdownOption('app-dropdown', 'replit', 'Replit')">Replit</div>
+        </div>
       </div>
-    </div>
-
-    <!-- Status Filters -->
-    <div class="feed-status-filters" id="status-filters">
-      <button class="status-filter-btn active" onclick="filterByStatus('all', this)">All Status</button>
-      <button class="status-filter-btn" onclick="filterByStatus('WIP', this)">WIP</button>
-      <button class="status-filter-btn" onclick="filterByStatus('Experiment', this)">Experiment</button>
-      <button class="status-filter-btn" onclick="filterByStatus('Shipped', this)">Shipped</button>
+      <div class="custom-dropdown" id="status-dropdown">
+        <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('status-dropdown')">
+          <span class="custom-dropdown-label">All Status</span>
+          <svg class="custom-dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="custom-dropdown-menu">
+          <div class="custom-dropdown-option selected" data-value="all" onclick="selectDropdownOption('status-dropdown', 'all', 'All Status')">All Status</div>
+          <div class="custom-dropdown-option" data-value="WIP" onclick="selectDropdownOption('status-dropdown', 'WIP', 'WIP')">WIP</div>
+          <div class="custom-dropdown-option" data-value="Experiment" onclick="selectDropdownOption('status-dropdown', 'Experiment', 'Experiment')">Experiment</div>
+          <div class="custom-dropdown-option" data-value="Shipped" onclick="selectDropdownOption('status-dropdown', 'Shipped', 'Shipped')">Shipped</div>
+        </div>
+      </div>
     </div>
 
     <!-- Tag Follow Section (shown for logged-in users) -->
@@ -99,6 +118,8 @@
 
 <!-- Core UI (no Firebase dependency) -->
 <script src="js/shared.js"></script>
+<!-- Reusable Custom Dropdown Component (Explore Filter Configuration) -->
+<script src="js/custom-dropdown.js"></script>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -121,12 +142,18 @@ let currentFilter = 'all';
 let currentStatusFilter = 'all';
 let currentSearch = '';
 let currentSort = 'trending';
+let currentFeedAppFilter = 'all';
 let lastDoc = null;
 let isLoading = false;
 let hasMore = true;
 const PAGE_SIZE = 12;
 let followingIds = [];
 let followedTags = [];
+
+// Wire dropdown callbacks (component loaded from js/custom-dropdown.js)
+onDropdownChange('category-dropdown', (value) => filterFeedByCategory(value));
+onDropdownChange('app-dropdown', (value) => filterFeedByApp(value));
+onDropdownChange('status-dropdown', (value) => filterByStatus(value));
 
 // Available tags for following
 const availableTags = [
@@ -268,6 +295,11 @@ function applyLocalFilters() {
     );
   }
 
+  // Apply "Built with" filter
+  if (currentFeedAppFilter !== 'all') {
+    feedProjects = feedProjects.filter(p => p.builtWith && p.builtWith.toLowerCase() === currentFeedAppFilter.toLowerCase());
+  }
+
   // Apply tab-based status filter for sample projects
   if (currentTab === 'raw') {
     feedProjects = feedProjects.filter(p => p.status === 'WIP');
@@ -310,51 +342,48 @@ function renderFeedGrid() {
 
 // Tab switching
 function switchFeedTab(tab, btn) {
-  currentTab = tab;
-  document.querySelectorAll('.feed-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
   if (tab === 'following' && !currentUser) {
     requireAuth('see your following feed');
     return;
   }
+  currentTab = tab;
+  document.querySelectorAll('.feed-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
 
   if (tab === 'foryou') {
     currentSort = 'trending';
-    document.getElementById('sort-select').value = 'trending';
   } else if (tab === 'fresh') {
     currentSort = 'newest';
-    document.getElementById('sort-select').value = 'newest';
   }
 
-  // Hide status filters when tab overrides status (Raw Builds, Fresh Experiments)
-  const statusFilters = document.getElementById('status-filters');
-  if (statusFilters) {
+  // Disable status filter when tab overrides status (Raw Builds, Fresh Experiments)
+  const statusDD = document.getElementById('status-dropdown');
+  if (statusDD) {
     if (tab === 'raw' || tab === 'fresh') {
-      statusFilters.style.opacity = '0.4';
-      statusFilters.style.pointerEvents = 'none';
+      statusDD.classList.add('disabled');
     } else {
-      statusFilters.style.opacity = '1';
-      statusFilters.style.pointerEvents = 'auto';
+      statusDD.classList.remove('disabled');
     }
   }
 
   loadFeedProjects();
 }
 
-// Category filter
-function filterFeedProjects(cat, btn) {
+// Category filter (dropdown)
+function filterFeedByCategory(cat) {
   currentFilter = cat;
-  btn.closest('.filters').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
   loadFeedProjects();
 }
 
-// Status filter
-function filterByStatus(status, btn) {
+// App filter (Built with dropdown)
+function filterFeedByApp(app) {
+  currentFeedAppFilter = app;
+  loadFeedProjects();
+}
+
+// Status filter (dropdown)
+function filterByStatus(status) {
   currentStatusFilter = status;
-  document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
   loadFeedProjects();
 }
 
@@ -366,12 +395,6 @@ function handleSearch(value) {
   searchTimeout = setTimeout(() => {
     loadFeedProjects();
   }, 300);
-}
-
-// Sort
-function handleSort(value) {
-  currentSort = value;
-  loadFeedProjects();
 }
 
 // Tag following

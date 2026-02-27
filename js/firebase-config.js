@@ -31,15 +31,17 @@ let currentUser = null;
 let currentUserProfile = null;
 
 // Tag/category maps
-const tagClasses = { web: 'tag-web', art: 'tag-art', game: 'tag-game', tool: 'tag-tool', ai: 'tag-ai' };
-const tagMap = { web: 'Web', art: 'Gen Art', game: 'Game', tool: 'Tool', ai: 'AI' };
-const colorMap = { web: '#3b82f6', art: '#ec4899', game: '#10b981', tool: '#f59e0b', ai: '#7c3aed' };
+const tagClasses = { web: 'tag-web', art: 'tag-art', game: 'tag-game', tool: 'tag-tool', ai: 'tag-ai', mobile: 'tag-mobile', image: 'tag-image' };
+const tagMap = { web: 'Web', art: 'Gen Art', game: 'Game', tool: 'Tool', ai: 'AI', mobile: 'Mobile', image: 'Image' };
+const colorMap = { web: '#3b82f6', art: '#ec4899', game: '#10b981', tool: '#f59e0b', ai: '#7c3aed', mobile: '#4f46e5', image: '#db2777' };
 const gradMap = {
   web: 'linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd)',
   art: 'linear-gradient(135deg, #fce7f3, #fbcfe8, #f9a8d4)',
   game: 'linear-gradient(135deg, #d1fae5, #a7f3d0, #6ee7b7)',
   tool: 'linear-gradient(135deg, #fef3c7, #fde68a, #fcd34d)',
-  ai: 'linear-gradient(135deg, #ede9fe, #ddd6fe, #c4b5fd)'
+  ai: 'linear-gradient(135deg, #ede9fe, #ddd6fe, #c4b5fd)',
+  mobile: 'linear-gradient(135deg, #e0e7ff, #c7d2fe, #a5b4fc)',
+  image: 'linear-gradient(135deg, #fce7f3, #fbcfe8, #f9a8d4)'
 };
 
 // Sample projects fallback (include all 9 from original)
@@ -85,6 +87,7 @@ function renderProjectCard(p) {
       <div class="card-preview" style="background: ${p.imageURL ? `url(${p.imageURL}) center/cover` : gradient};">
         <div class="card-gradient"></div>
         <span class="card-tag ${tagClasses[cat] || 'tag-web'}">${tagLabel}</span>
+        ${p.builtWith ? `<span class="card-built-with">${escapeHtml(p.builtWith)}</span>` : ''}
       </div>
       <div class="card-body">
         <h3>${escapeHtml(p.name)}</h3>

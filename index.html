@@ -20,13 +20,13 @@
       <div class="hero-content">
         <div class="hero-badge">
           <span class="badge-dot"></span>
-          A home for vibe-coded experiments
+          The creative coding community
         </div>
-        <h1>Build <span class="highlight">with your vibe</span></h1>
+        <h1>A home for <span class="highlight">vibe-coded experiments</span></h1>
         <p>Creative coding, experimental builds, design meets tech. Share the projects that made you feel something. Find people who build like you do.</p>
         <div class="hero-actions">
           <a href="feed.html" class="btn btn-primary" style="font-size: 1rem; padding: 14px 32px;">Explore Vibes</a>
-          <a href="#" class="btn btn-dark guest-only" style="font-size: 1rem; padding: 14px 32px;" onclick="openAuthModal('signup'); return false;">Join VibeLab</a>
+          <a href="#" class="btn btn-dark guest-only" style="font-size: 1rem; padding: 14px 32px;" onclick="openAuthModal('login'); return false;">Join VibeLab</a>
         </div>
       </div>
       <div class="hero-visual">
@@ -85,47 +85,69 @@
   </div>
 </section>
 
-<!-- How It Works -->
-<section class="how-it-works" id="how">
-  <div class="container">
-    <div class="section-label">How It Works</div>
-    <div class="section-title">Share your project in seconds</div>
-    <div class="section-desc">VibeLab makes it effortless to showcase what you're building and connect with other creative developers.</div>
-    <div class="steps-grid">
-      <div class="step-card">
-        <div class="step-num">01</div>
-        <h3>Build Something</h3>
-        <p>A side project, a weekend hack, generative art, a tool, an AI experiment — if you vibed while building it, it counts.</p>
-      </div>
-      <div class="step-card">
-        <div class="step-num">02</div>
-        <h3>Post to VibeLab</h3>
-        <p>Share your project with a name, description, and category. Add a link so people can try it. Takes less than a minute.</p>
-      </div>
-      <div class="step-card">
-        <div class="step-num">03</div>
-        <h3>Get the Vibes</h3>
-        <p>The community discovers your work, sends vibes, leaves comments, and you find people who build like you do.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- Discovery Feed Preview - PRD: Read-only feed for guests -->
 <section class="projects" id="projects">
   <div class="container">
-    <div class="section-header-row">
+    <div class="feed-header">
       <div>
         <div class="section-label">Community Projects</div>
         <div class="section-title">Fresh Builds from the Community</div>
       </div>
-      <div class="filters">
-        <button class="filter-btn active" onclick="filterHomeProjects('all', this)">All</button>
-        <button class="filter-btn" onclick="filterHomeProjects('web', this)">Web</button>
-        <button class="filter-btn" onclick="filterHomeProjects('art', this)">Gen Art</button>
-        <button class="filter-btn" onclick="filterHomeProjects('game', this)">Games</button>
-        <button class="filter-btn" onclick="filterHomeProjects('tool', this)">Tools</button>
-        <button class="filter-btn" onclick="filterHomeProjects('ai', this)">AI</button>
+      <div class="feed-tabs" id="home-tabs">
+        <button class="feed-tab active" onclick="switchHomeTab('foryou', this)">For You</button>
+        <button class="feed-tab" onclick="switchHomeTab('following', this)">Following</button>
+        <button class="feed-tab" onclick="switchHomeTab('fresh', this)">Fresh Experiments</button>
+        <button class="feed-tab" onclick="switchHomeTab('raw', this)">Raw Builds</button>
+      </div>
+    </div>
+    <div class="feed-toolbar">
+      <div class="search-bar" style="flex: 1;">
+        <span class="search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input type="text" id="home-search-input" placeholder="Search projects, creators, tags..." oninput="handleHomeSearch(this.value)">
+      </div>
+      <div class="custom-dropdown" id="home-category-dropdown">
+        <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('home-category-dropdown')">
+          <span class="custom-dropdown-label">All Categories</span>
+          <svg class="custom-dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="custom-dropdown-menu">
+          <div class="custom-dropdown-option selected" data-value="all" onclick="selectDropdownOption('home-category-dropdown', 'all', 'All Categories')">All Categories</div>
+          <div class="custom-dropdown-option" data-value="web" onclick="selectDropdownOption('home-category-dropdown', 'web', 'Web')">Web</div>
+          <div class="custom-dropdown-option" data-value="mobile" onclick="selectDropdownOption('home-category-dropdown', 'mobile', 'Mobile')">Mobile</div>
+          <div class="custom-dropdown-option" data-value="game" onclick="selectDropdownOption('home-category-dropdown', 'game', 'Games')">Games</div>
+          <div class="custom-dropdown-option" data-value="tool" onclick="selectDropdownOption('home-category-dropdown', 'tool', 'Tools')">Tools</div>
+          <div class="custom-dropdown-option" data-value="image" onclick="selectDropdownOption('home-category-dropdown', 'image', 'Image')">Image</div>
+        </div>
+      </div>
+      <div class="custom-dropdown" id="home-app-dropdown">
+        <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('home-app-dropdown')">
+          <span class="custom-dropdown-label">Built with: All</span>
+          <svg class="custom-dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="custom-dropdown-menu">
+          <div class="custom-dropdown-option selected" data-value="all" onclick="selectDropdownOption('home-app-dropdown', 'all', 'Built with: All')">Built with: All</div>
+          <div class="custom-dropdown-option" data-value="claude" onclick="selectDropdownOption('home-app-dropdown', 'claude', 'Claude')">Claude</div>
+          <div class="custom-dropdown-option" data-value="bolt" onclick="selectDropdownOption('home-app-dropdown', 'bolt', 'Bolt')">Bolt</div>
+          <div class="custom-dropdown-option" data-value="cursor" onclick="selectDropdownOption('home-app-dropdown', 'cursor', 'Cursor')">Cursor</div>
+          <div class="custom-dropdown-option" data-value="lovable" onclick="selectDropdownOption('home-app-dropdown', 'lovable', 'Lovable')">Lovable</div>
+          <div class="custom-dropdown-option" data-value="antigravity" onclick="selectDropdownOption('home-app-dropdown', 'antigravity', 'Antigravity')">Antigravity</div>
+          <div class="custom-dropdown-option" data-value="v0" onclick="selectDropdownOption('home-app-dropdown', 'v0', 'v0')">v0</div>
+          <div class="custom-dropdown-option" data-value="replit" onclick="selectDropdownOption('home-app-dropdown', 'replit', 'Replit')">Replit</div>
+        </div>
+      </div>
+      <div class="custom-dropdown" id="home-status-dropdown">
+        <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('home-status-dropdown')">
+          <span class="custom-dropdown-label">All Status</span>
+          <svg class="custom-dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="custom-dropdown-menu">
+          <div class="custom-dropdown-option selected" data-value="all" onclick="selectDropdownOption('home-status-dropdown', 'all', 'All Status')">All Status</div>
+          <div class="custom-dropdown-option" data-value="WIP" onclick="selectDropdownOption('home-status-dropdown', 'WIP', 'WIP')">WIP</div>
+          <div class="custom-dropdown-option" data-value="Experiment" onclick="selectDropdownOption('home-status-dropdown', 'Experiment', 'Experiment')">Experiment</div>
+          <div class="custom-dropdown-option" data-value="Shipped" onclick="selectDropdownOption('home-status-dropdown', 'Shipped', 'Shipped')">Shipped</div>
+        </div>
       </div>
     </div>
     <div class="project-grid" id="project-grid"></div>
@@ -226,7 +248,7 @@
       <h2 id="cta-heading">Ready to Share What You've Built?</h2>
       <p>Whether it's a weekend experiment or your magnum opus — if you vibed while building it, we want to see it.</p>
       <div class="cta-actions">
-        <a href="#" class="btn btn-primary guest-only" style="font-size: 1rem; padding: 14px 32px;" onclick="openAuthModal('signup'); return false;">Join VibeLab</a>
+        <a href="#" class="btn btn-primary guest-only" style="font-size: 1rem; padding: 14px 32px;" onclick="openAuthModal('login'); return false;">Join VibeLab</a>
         <a href="#" class="btn btn-primary logged-in-only" style="font-size: 1rem; padding: 14px 32px; display: none;" onclick="openSubmitModal(); return false;">Share Your Vibe</a>
         <a href="feed.html" class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.25);">Explore Vibes</a>
       </div>
@@ -239,6 +261,8 @@
 
 <!-- Core UI (no Firebase dependency) -->
 <script src="js/shared.js"></script>
+<!-- Reusable Custom Dropdown Component (Explore Filter Configuration) -->
+<script src="js/custom-dropdown.js"></script>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -256,9 +280,13 @@ initPage('home');
 
 // Home page specific: load projects for the preview grid
 let homeProjects = [...sampleProjects];
+let currentCategoryFilter = 'all';
+let currentAppFilter = 'all';
+let currentStatusFilter = 'all';
+let currentSearchTerm = '';
 
 async function loadProjects() {
-  if (!db) { renderHomeProjects('all'); return; }
+  if (!db) { renderHomeProjects(); return; }
   try {
     const snapshot = await db.collection('projects')
       .where('visibility', '==', 'public')
@@ -289,21 +317,67 @@ async function loadProjects() {
       console.error('Load projects error:', e);
     }
   }
-  renderHomeProjects('all');
+  renderHomeProjects();
 }
 
-function renderHomeProjects(filter) {
+function renderHomeProjects() {
   const grid = document.getElementById('project-grid');
   if (!grid) return;
-  const filtered = filter === 'all' ? homeProjects : homeProjects.filter(p => p.category === filter);
+  let filtered = homeProjects;
+  if (currentCategoryFilter !== 'all') {
+    filtered = filtered.filter(p => p.category === currentCategoryFilter);
+  }
+  if (currentAppFilter !== 'all') {
+    filtered = filtered.filter(p => p.builtWith && p.builtWith.toLowerCase() === currentAppFilter.toLowerCase());
+  }
+  if (currentStatusFilter !== 'all') {
+    filtered = filtered.filter(p => p.status && p.status === currentStatusFilter);
+  }
+  if (currentSearchTerm) {
+    const term = currentSearchTerm.toLowerCase();
+    filtered = filtered.filter(p =>
+      (p.name && p.name.toLowerCase().includes(term)) ||
+      (p.desc && p.desc.toLowerCase().includes(term)) ||
+      (p.authorName && p.authorName.toLowerCase().includes(term)) ||
+      (p.author && p.author.toLowerCase().includes(term))
+    );
+  }
   const limited = filtered.slice(0, 9);
   grid.innerHTML = limited.map(p => renderProjectCard(p)).join('');
 }
 
-function filterHomeProjects(cat, btn) {
-  btn.closest('.filters').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+// Wire dropdown callbacks (component loaded from js/custom-dropdown.js)
+onDropdownChange('home-category-dropdown', (value) => {
+  currentCategoryFilter = value;
+  renderHomeProjects();
+});
+onDropdownChange('home-app-dropdown', (value) => {
+  currentAppFilter = value;
+  renderHomeProjects();
+});
+onDropdownChange('home-status-dropdown', (value) => {
+  currentStatusFilter = value;
+  renderHomeProjects();
+});
+
+function handleHomeSearch(value) {
+  currentSearchTerm = value.trim();
+  renderHomeProjects();
+}
+
+function switchHomeTab(tab, btn) {
+  document.querySelectorAll('#home-tabs .feed-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  renderHomeProjects(cat);
+
+  // Disable status dropdown on fresh/raw tabs (same behavior as feed page)
+  const statusDD = document.getElementById('home-status-dropdown');
+  if (statusDD) {
+    if (tab === 'raw' || tab === 'fresh') {
+      statusDD.classList.add('disabled');
+    } else {
+      statusDD.classList.remove('disabled');
+    }
+  }
 }
 
 function toggleFaq(el) {
