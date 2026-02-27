@@ -12,6 +12,7 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
           email: user.email,
           bio: '',
           company: '',
+          skills: [],
           photoURL: user.photoURL || '',
           socials: { twitter: '', github: '', website: '' },
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -148,8 +149,8 @@ document.addEventListener('click', function(e) {
 // Profile modal functions
 function openProfileModal() {
   if (currentUserProfile) {
-    const fields = ['profile-display-name', 'profile-bio', 'profile-company'];
-    const vals = [currentUserProfile.displayName || '', currentUserProfile.bio || '', currentUserProfile.company || ''];
+    const fields = ['profile-display-name', 'profile-bio', 'profile-company', 'profile-skills'];
+    const vals = [currentUserProfile.displayName || '', currentUserProfile.bio || '', currentUserProfile.company || '', (currentUserProfile.skills || []).join(', ')];
     fields.forEach((id, i) => { const el = document.getElementById(id); if (el) el.value = vals[i]; });
 
     ['twitter', 'github', 'website'].forEach(s => {
@@ -194,10 +195,13 @@ async function saveProfile() {
       await storageRef.put(file);
       photoURL = await storageRef.getDownloadURL();
     }
+    const skillsInput = document.getElementById('profile-skills')?.value.trim() || '';
+    const skills = skillsInput ? skillsInput.split(',').map(s => s.trim()).filter(Boolean) : [];
     const updatedProfile = {
       displayName: document.getElementById('profile-display-name').value,
       bio: document.getElementById('profile-bio').value,
       company: document.getElementById('profile-company').value,
+      skills: skills,
       photoURL: photoURL,
       socials: {
         twitter: document.getElementById('profile-twitter').value,
@@ -259,10 +263,10 @@ function showToast(message, actionText, actionCallback) {
   }, 4000);
 }
 
-// Guest gate: show toast if user tries restricted action
+// Guest gate: show login modal if user tries restricted action
 function requireAuth(actionName) {
   if (!currentUser) {
-    showToast(`Sign up to ${actionName}`, 'Join VibeLab', () => openAuthModal('signup'));
+    openAuthModal('login');
     return false;
   }
   return true;

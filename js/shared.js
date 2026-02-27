@@ -9,13 +9,12 @@ function getNavHTML(activePage) {
       VibeLab
     </a>
     <div class="nav-links">
-      <a href="feed.html" class="hide-mobile ${activePage === 'feed' ? 'active' : ''}">Explore</a>
-      <a href="index.html#how" class="hide-mobile">How It Works</a>
-      <a href="index.html#values" class="hide-mobile">About</a>
+      <a href="#" class="hide-mobile ${activePage === 'feed' ? 'active' : ''}" onclick="if(typeof currentUser !== 'undefined' && currentUser) { window.location.href='feed.html'; } else { openAuthModal('login'); } return false;">Explore</a>
+      <a href="community.html" class="hide-mobile ${activePage === 'community' ? 'active' : ''}">Community</a>
+      <a href="#" class="hide-mobile ${activePage === 'events' ? 'active' : ''}">Events</a>
       <div class="nav-auth" id="nav-auth">
         <div class="nav-auth-logged-out" id="nav-auth-logged-out">
-          <a href="#" class="btn btn-outline btn-sm" onclick="openAuthModal('login'); return false;">Log In</a>
-          <a href="#" class="btn btn-primary btn-sm" onclick="openAuthModal('signup'); return false;">Sign Up</a>
+          <a href="#" class="btn btn-primary btn-sm" onclick="openAuthModal('login'); return false;">Log In</a>
         </div>
         <div class="nav-auth-logged-in" id="nav-auth-logged-in">
           <a href="#" class="btn btn-primary btn-sm" onclick="openSubmitModal(); return false;">+ Share Your Vibe</a>
@@ -25,8 +24,8 @@ function getNavHTML(activePage) {
               <img id="avatar-img" style="display: none;">
             </div>
             <div class="nav-dropdown" id="nav-dropdown">
-              <a href="#" onclick="openProfileModal(); return false;">Edit Profile</a>
-              <a href="#" onclick="if(currentUser) window.location.href='profile.html?id='+currentUser.uid; return false;">My Profile</a>
+              <a href="#" onclick="if(currentUser) window.location.href='profile.html?id='+currentUser.uid+'#id='+currentUser.uid; return false;">My Profile</a>
+              <a href="my-vibes.html">My Vibes</a>
               <div class="divider"></div>
               <button class="logout-btn" onclick="logOut()">Log Out</button>
             </div>
@@ -105,6 +104,10 @@ function getProfileModalHTML() {
       <input type="text" id="profile-company" placeholder="Where you work (optional)">
     </div>
     <div class="form-group">
+      <label>Skills & Interests</label>
+      <input type="text" id="profile-skills" placeholder="e.g. React, Creative Coding, AI, Game Dev (comma separated)">
+    </div>
+    <div class="form-group">
       <label>Twitter / X Handle</label>
       <input type="text" id="profile-twitter" placeholder="@yourhandle">
     </div>
@@ -138,10 +141,23 @@ function getSubmitModalHTML() {
         <label>Category</label>
         <select id="proj-cat">
           <option value="web">Web</option>
-          <option value="art">Generative Art</option>
+          <option value="mobile">Mobile</option>
           <option value="game">Game</option>
           <option value="tool">Tool</option>
-          <option value="ai">AI</option>
+          <option value="image">Image</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Built With</label>
+        <select id="proj-built-with">
+          <option value="">Select app (optional)</option>
+          <option value="Claude">Claude</option>
+          <option value="Bolt">Bolt</option>
+          <option value="Cursor">Cursor</option>
+          <option value="Lovable">Lovable</option>
+          <option value="Antigravity">Antigravity</option>
+          <option value="v0">v0</option>
+          <option value="Replit">Replit</option>
         </select>
       </div>
       <div class="form-group">
@@ -260,9 +276,11 @@ function getFooterHTML() {
 // Submit modal functions
 let selectedStatus = 'WIP';
 let selectedVisibility = 'public';
+let editingProjectId = null; // Set when editing an existing project
 
 function openSubmitModal() {
   if (!requireAuth('share your vibe')) return;
+  editingProjectId = null; // Reset edit mode
   const modal = document.getElementById('submit-modal');
   if (modal) {
     modal.classList.add('open');
@@ -270,6 +288,67 @@ function openSubmitModal() {
     const success = document.getElementById('success-msg');
     if (form) form.style.display = 'block';
     if (success) success.classList.remove('show');
+    // Reset title
+    const heading = form?.querySelector('h2');
+    if (heading) heading.textContent = 'Share Your Vibe';
+    const subtitle = form?.querySelector('.subtitle');
+    if (subtitle) subtitle.textContent = 'Post your project for the community to see';
+    const submitBtn = form?.querySelector('.submit-btn');
+    if (submitBtn) submitBtn.textContent = 'Post to VibeLab';
+  }
+}
+
+async function openEditProjectModal(projectId) {
+  if (!requireAuth('edit projects')) return;
+  editingProjectId = projectId;
+
+  try {
+    const doc = await db.collection('projects').doc(projectId).get();
+    if (!doc.exists) { showToast('Project not found'); return; }
+    const p = doc.data();
+
+    const modal = document.getElementById('submit-modal');
+    if (!modal) return;
+    modal.classList.add('open');
+    const form = document.getElementById('submit-form');
+    const success = document.getElementById('success-msg');
+    if (form) form.style.display = 'block';
+    if (success) success.classList.remove('show');
+
+    // Update heading
+    const heading = form?.querySelector('h2');
+    if (heading) heading.textContent = 'Edit Your Vibe';
+    const subtitle = form?.querySelector('.subtitle');
+    if (subtitle) subtitle.textContent = 'Update your project details';
+    const submitBtn = form?.querySelector('.submit-btn');
+    if (submitBtn) submitBtn.textContent = 'Save Changes';
+
+    // Populate fields
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    setVal('proj-name', p.name);
+    setVal('proj-cat', p.category);
+    setVal('proj-built-with', p.builtWith);
+    setVal('proj-desc', p.desc);
+    setVal('proj-link', p.link);
+    setVal('proj-github', p.githubUrl);
+    setVal('proj-figma', p.figmaUrl);
+    setVal('proj-tags', (p.tags || []).join(', '));
+
+    // Set status
+    selectedStatus = p.status || 'WIP';
+    document.querySelectorAll('.status-tag').forEach(b => {
+      b.classList.toggle('active', b.textContent.trim() === selectedStatus);
+    });
+
+    // Set visibility
+    selectedVisibility = p.visibility || 'public';
+    document.querySelectorAll('.visibility-option').forEach(b => {
+      b.classList.toggle('active', b.textContent.trim().toLowerCase() === selectedVisibility);
+    });
+
+  } catch (e) {
+    console.error('Error loading project for edit:', e);
+    showToast('Error loading project');
   }
 }
 
@@ -295,6 +374,7 @@ async function submitProject() {
 
   const name = document.getElementById('proj-name').value.trim();
   const cat = document.getElementById('proj-cat').value;
+  const builtWith = document.getElementById('proj-built-with')?.value || '';
   const desc = document.getElementById('proj-desc').value.trim();
   const link = document.getElementById('proj-link')?.value.trim() || '';
   const githubUrl = document.getElementById('proj-github')?.value.trim() || '';
@@ -314,29 +394,52 @@ async function submitProject() {
 
     const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
 
-    const project = {
-      name, desc,
-      category: cat,
-      tag: tagMap[cat],
-      status: selectedStatus,
-      visibility: selectedVisibility,
-      link, githubUrl, figmaUrl,
-      tags,
-      imageURL,
-      authorUid: currentUser.uid,
-      authorName: currentUserProfile?.displayName || currentUser.displayName || currentUser.email,
-      authorPhoto: currentUserProfile?.photoURL || '',
-      color: colorMap[cat],
-      gradient: gradMap[cat],
-      vibes: 0,
-      comments: 0,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
+    if (editingProjectId) {
+      // UPDATE existing project
+      const updateData = {
+        name, desc,
+        category: cat,
+        builtWith: builtWith,
+        tag: tagMap[cat],
+        status: selectedStatus,
+        visibility: selectedVisibility,
+        link, githubUrl, figmaUrl,
+        tags,
+        color: colorMap[cat],
+        gradient: gradMap[cat],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (imageURL) updateData.imageURL = imageURL;
 
-    await db.collection('projects').add(project);
+      await db.collection('projects').doc(editingProjectId).update(updateData);
+      editingProjectId = null;
+      showToast('Project updated successfully!');
+    } else {
+      // CREATE new project
+      const project = {
+        name, desc,
+        category: cat,
+        builtWith: builtWith,
+        tag: tagMap[cat],
+        status: selectedStatus,
+        visibility: selectedVisibility,
+        link, githubUrl, figmaUrl,
+        tags,
+        imageURL,
+        authorUid: currentUser.uid,
+        authorName: currentUserProfile?.displayName || currentUser.displayName || currentUser.email,
+        authorPhoto: currentUserProfile?.photoURL || '',
+        color: colorMap[cat],
+        gradient: gradMap[cat],
+        vibes: 0,
+        comments: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await db.collection('projects').add(project);
+    }
 
     // Clear form
-    ['proj-name', 'proj-desc', 'proj-link', 'proj-github', 'proj-figma', 'proj-tags'].forEach(id => {
+    ['proj-name', 'proj-desc', 'proj-link', 'proj-github', 'proj-figma', 'proj-tags', 'proj-built-with'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -352,9 +455,34 @@ async function submitProject() {
     // Reload projects if on a page that shows them
     if (typeof loadFeedProjects === 'function') loadFeedProjects();
     if (typeof loadProjects === 'function') loadProjects();
+    if (typeof loadMyVibes === 'function') loadMyVibes();
   } catch (error) {
     console.error('Project submission error:', error);
     alert('Error posting project: ' + error.message);
+  }
+}
+
+// Delete a project with confirmation
+async function deleteProject(projectId, projectName) {
+  if (!currentUser) return;
+
+  const confirmed = confirm(`Are you sure you want to delete "${projectName || 'this project'}"? This action cannot be undone.`);
+  if (!confirmed) return;
+
+  try {
+    // Delete project document
+    await db.collection('projects').doc(projectId).delete();
+
+    showToast('Project deleted successfully');
+
+    // Reload projects on current page
+    if (typeof loadMyVibes === 'function') loadMyVibes();
+    if (typeof loadFeedProjects === 'function') loadFeedProjects();
+    if (typeof loadProfileProjects === 'function') loadProfileProjects();
+    if (typeof loadProjects === 'function') loadProjects();
+  } catch (e) {
+    console.error('Delete project error:', e);
+    showToast('Error deleting project: ' + e.message);
   }
 }
 

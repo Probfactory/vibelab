@@ -39,8 +39,20 @@
           <!-- Links -->
           <div class="project-links" id="project-links"></div>
 
+          <!-- Tools & Stack -->
+          <div class="project-stack" id="project-stack"></div>
+
           <!-- Tags -->
           <div class="project-tags" id="project-tags"></div>
+
+          <!-- Guest CTA (shown only to logged-out users) -->
+          <div class="guest-cta-box" id="guest-cta" style="display: none;">
+            <div class="guest-cta-content">
+              <h3>Sign up to vibe with this creator</h3>
+              <p>Join VibeLab to like, comment, save projects, and connect with creative developers.</p>
+              <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
+            </div>
+          </div>
 
           <!-- Comments Section -->
           <div class="comments-section">
@@ -143,7 +155,10 @@ function renderProject() {
   // Preview
   const preview = document.getElementById('project-preview');
   if (projectData.imageURL) {
-    preview.innerHTML = '<img src="' + projectData.imageURL + '" alt="' + escapeHtml(projectData.name) + '">';
+    const img = document.createElement('img');
+    img.src = projectData.imageURL;
+    img.alt = projectData.name || '';
+    preview.appendChild(img);
   } else {
     preview.style.background = projectData.gradient || 'var(--bg-alt)';
     preview.style.minHeight = '360px';
@@ -182,20 +197,40 @@ function renderProject() {
     });
   }
 
-  // Links
+  // Links (safely create elements to avoid XSS)
   const links = document.getElementById('project-links');
-  let linksHtml = '';
-  if (projectData.link) linksHtml += '<a href="' + projectData.link + '" target="_blank" class="project-link">&#127760; Live Demo</a>';
-  if (projectData.githubUrl) linksHtml += '<a href="' + projectData.githubUrl + '" target="_blank" class="project-link">&#128187; GitHub</a>';
-  if (projectData.figmaUrl) linksHtml += '<a href="' + projectData.figmaUrl + '" target="_blank" class="project-link">&#127912; Figma</a>';
-  links.innerHTML = linksHtml;
+  links.innerHTML = '';
+  const linkData = [
+    { url: projectData.link, icon: '&#127760;', label: 'Live Demo' },
+    { url: projectData.githubUrl, icon: '&#128187;', label: 'GitHub' },
+    { url: projectData.figmaUrl, icon: '&#127912;', label: 'Figma' }
+  ];
+  linkData.forEach(l => {
+    if (l.url && (l.url.startsWith('http://') || l.url.startsWith('https://'))) {
+      const a = document.createElement('a');
+      a.href = l.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.className = 'project-link';
+      a.innerHTML = l.icon + ' ' + l.label;
+      links.appendChild(a);
+    }
+  });
 
-  // Tags
-  const tags = document.getElementById('project-tags');
+  // Tools & Stack (derived from tags)
+  const stack = document.getElementById('project-stack');
   const allTags = projectData.tags || [];
   if (allTags.length > 0) {
-    tags.innerHTML = allTags.map(t => '<span class="project-tag-pill">' + escapeHtml(t) + '</span>').join('');
+    stack.innerHTML = '<h4 class="stack-title">Tools & Stack</h4><div class="stack-chips">' +
+      allTags.map(t => '<span class="stack-chip">' + escapeHtml(t) + '</span>').join('') + '</div>';
   }
+
+  // Tags (category/status)
+  const tags = document.getElementById('project-tags');
+  tags.innerHTML = '';
+
+  // Guest CTA - defer to authStateReady to avoid flash
+  // Will be shown by authStateReady if user is not logged in
 }
 
 async function loadCreator() {
@@ -217,7 +252,7 @@ async function loadCreator() {
     const bio = profile?.bio || '';
 
     card.innerHTML = `
-      <a href="profile.html?id=${projectData.authorUid}" style="text-decoration: none; color: inherit;">
+      <a href="profile.html?id=${projectData.authorUid}#id=${projectData.authorUid}" style="text-decoration: none; color: inherit;">
         <div class="creator-card-header">
           <div class="creator-avatar" style="background: ${projectData.color || 'var(--purple)'};">
             ${profile?.photoURL ? '<img src="' + profile.photoURL + '">' : initial}
@@ -282,7 +317,12 @@ function renderSampleComments() {
           </div>
           <div class="comment-body">${c.body}</div>
           <div class="comment-actions">
-            <button class="comment-action" onclick="requireAuth('like comments')">&#10024; Like</button>
+            <div class="comment-reactions">
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Fire">&#128293;</button>
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Love">&#10084;&#65039;</button>
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Sparkles">&#10024;</button>
+              <button class="reaction-btn" onclick="requireAuth('react to comments')" title="Rocket">&#128640;</button>
+            </div>
             <button class="comment-action" onclick="requireAuth('reply to comments')">Reply</button>
           </div>
         </div>
@@ -336,6 +376,52 @@ async function loadComments() {
   }
 }
 
+// Reaction emojis
+const reactionEmojis = [
+  { emoji: '&#128293;', name: 'fire', label: 'Fire' },
+  { emoji: '&#10084;&#65039;', name: 'heart', label: 'Love' },
+  { emoji: '&#10024;', name: 'sparkles', label: 'Sparkles' },
+  { emoji: '&#128640;', name: 'rocket', label: 'Rocket' }
+];
+
+function renderReactions(commentId, reactions) {
+  const counts = {};
+  reactionEmojis.forEach(r => { counts[r.name] = 0; });
+  if (reactions) {
+    Object.values(reactions).forEach(r => {
+      if (counts[r] !== undefined) counts[r]++;
+    });
+  }
+  const userReaction = reactions && currentUser ? reactions[currentUser.uid] : null;
+
+  return '<div class="comment-reactions">' +
+    reactionEmojis.map(r => {
+      const count = counts[r.name];
+      const isActive = userReaction === r.name;
+      return `<button class="reaction-btn ${isActive ? 'active' : ''}" onclick="handleReaction('${commentId}', '${r.name}')" title="${r.label}">${r.emoji}${count > 0 ? ' <span class="reaction-count">' + count + '</span>' : ''}</button>`;
+    }).join('') + '</div>';
+}
+
+async function handleReaction(commentId, reactionName) {
+  if (!requireAuth('react to comments')) return;
+  try {
+    const commentRef = db.collection('projects').doc(projectId).collection('comments').doc(commentId);
+    const doc = await commentRef.get();
+    if (!doc.exists) return;
+    const data = doc.data();
+    const reactions = data.reactions || {};
+    if (reactions[currentUser.uid] === reactionName) {
+      delete reactions[currentUser.uid];
+    } else {
+      reactions[currentUser.uid] = reactionName;
+    }
+    await commentRef.update({ reactions });
+    loadComments();
+  } catch (e) {
+    console.error('Reaction error:', e);
+  }
+}
+
 function renderComment(c, replies = []) {
   const initial = (c.authorName || 'U')[0].toUpperCase();
   const time = c.createdAt ? timeAgo(c.createdAt.toDate ? c.createdAt.toDate() : c.createdAt) : '';
@@ -346,11 +432,12 @@ function renderComment(c, replies = []) {
         ${c.authorPhoto ? '<img class="comment-avatar" src="' + c.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (c.authorColor || 'var(--purple)') + ';">' + initial + '</div>'}
         <div class="comment-content">
           <div class="comment-header">
-            <a href="profile.html?id=${c.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(c.authorName || 'Anonymous')}</a>
+            <a href="profile.html?id=${c.authorUid}#id=${c.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(c.authorName || 'Anonymous')}</a>
             <span class="comment-time">${time}</span>
           </div>
           <div class="comment-body">${escapeHtml(c.body)}</div>
           <div class="comment-actions">
+            ${renderReactions(c.id, c.reactions)}
             <button class="comment-action" onclick="handleReply('${c.id}', '${escapeHtml(c.authorName || '')}')">Reply</button>
           </div>
         </div>
@@ -363,10 +450,13 @@ function renderComment(c, replies = []) {
             ${r.authorPhoto ? '<img class="comment-avatar" src="' + r.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (r.authorColor || 'var(--purple)') + ';">' + rInitial + '</div>'}
             <div class="comment-content">
               <div class="comment-header">
-                <a href="profile.html?id=${r.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(r.authorName || 'Anonymous')}</a>
+                <a href="profile.html?id=${r.authorUid}#id=${r.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(r.authorName || 'Anonymous')}</a>
                 <span class="comment-time">${rTime}</span>
               </div>
               <div class="comment-body">${escapeHtml(r.body)}</div>
+              <div class="comment-actions">
+                ${renderReactions(r.id, r.reactions)}
+              </div>
             </div>
           </div>`;
       }).join('') + '</div>' : ''}
@@ -486,6 +576,7 @@ async function handleFollow() {
 
 // Share
 function shareProject() {
+  if (!requireAuth('share projects')) return;
   const url = window.location.href;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url).then(() => showToast('Link copied to clipboard!'));
@@ -496,6 +587,7 @@ function shareProject() {
 
 // Update comment input avatar when auth ready
 window.addEventListener('authStateReady', (e) => {
+  const guestCta = document.getElementById('guest-cta');
   if (e.detail.user && e.detail.profile) {
     const avatar = document.getElementById('comment-user-avatar');
     if (avatar) {
@@ -505,6 +597,10 @@ window.addEventListener('authStateReady', (e) => {
         avatar.textContent = (e.detail.profile.displayName || e.detail.user.email || 'U')[0].toUpperCase();
       }
     }
+    if (guestCta) guestCta.style.display = 'none';
+  } else {
+    // Show guest CTA for logged-out users
+    if (guestCta) guestCta.style.display = 'block';
   }
 });
 
