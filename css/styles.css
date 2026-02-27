@@ -312,13 +312,26 @@ nav {
   font-size: 0.85rem; color: var(--text-muted); font-weight: 500;
   margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.08em;
 }
-.trusted-logos {
-  display: flex; align-items: center; justify-content: center;
-  gap: 48px; flex-wrap: wrap; opacity: 0.45;
+.trusted-logos-marquee {
+  overflow: hidden; width: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+.trusted-logos-track {
+  display: flex; align-items: center; gap: 72px;
+  width: max-content;
+  animation: marquee-scroll 30s linear infinite;
 }
 .trusted-logo {
+  display: inline-flex; align-items: center; gap: 9px;
   font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-  font-size: 1.2rem; color: var(--text);
+  font-size: 1.05rem; color: var(--text); white-space: nowrap; flex-shrink: 0;
+  opacity: 0.8;
+}
+.trusted-logo svg { flex-shrink: 0; width: 25px; height: 25px; }
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 /* ============ HOW IT WORKS ============ */
