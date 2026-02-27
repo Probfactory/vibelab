@@ -45,7 +45,7 @@
         <span class="search-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </span>
-        <input type="text" id="search-input" placeholder="Search projects, creators, tags..." oninput="handleSearch(this.value)">
+        <input type="search" id="search-input" name="project-search" placeholder="Search projects, creators, tags..." autocomplete="off" oninput="handleSearch(this.value)">
       </div>
       <div class="custom-dropdown" id="category-dropdown">
         <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('category-dropdown')">
@@ -95,6 +95,11 @@
     <div class="tag-follow-bar" id="tag-follow-bar">
       <span class="tag-follow-label">Follow tags:</span>
       <div class="tag-follow-chips" id="tag-follow-chips"></div>
+      <div class="tag-search-wrap" id="tag-search-wrap">
+        <input class="tag-search-input" id="tag-search-input" type="text" placeholder="Search tags..." autocomplete="off"
+          onfocus="openTagSearch()" oninput="onTagSearchInput(this.value)">
+        <div class="tag-search-dropdown" id="tag-search-dropdown"></div>
+      </div>
     </div>
 
     <!-- Project Grid -->
@@ -171,11 +176,11 @@ onDropdownChange('status-dropdown', (value) => filterByStatus(value));
 const availableTags = [
   { id: 'web', label: 'Web', color: '#3b82f6' },
   { id: 'ai', label: 'AI', color: '#7c3aed' },
-  { id: 'mobile', label: 'Mobile', color: '#06b6d4' },
   { id: 'game', label: 'Games', color: '#10b981' },
   { id: 'art', label: 'Gen Art', color: '#ec4899' },
-  { id: 'saas', label: 'SaaS', color: '#6366f1' },
   { id: 'tool', label: 'Tools', color: '#f59e0b' },
+  { id: 'mobile', label: 'Mobile', color: '#06b6d4' },
+  { id: 'saas', label: 'SaaS', color: '#6366f1' },
   { id: 'design', label: 'Design', color: '#f43f5e' },
   { id: '3d', label: '3D', color: '#14b8a6' },
   { id: 'cli', label: 'CLI', color: '#84cc16' },
@@ -183,6 +188,7 @@ const availableTags = [
   { id: 'audio', label: 'Audio', color: '#a855f7' },
   { id: 'ecommerce', label: 'E-Commerce', color: '#f97316' }
 ];
+const defaultTagIds = ['web', 'ai', 'game', 'art', 'tool'];
 
 // Render tags immediately (don't wait for auth)
 renderTagFollowChips();
@@ -420,41 +426,111 @@ function handleSearch(value) {
   }, 300);
 }
 
-// Tag following
-async function toggleTagFollow(tagId) {
+// Tag following — optimistic UI update, then sync to Firestore in background
+function toggleTagFollow(tagId) {
   if (!requireAuth('follow tags')) return;
 
-  try {
-    const tagFollowRef = db.collection('tag_follows').doc(`${currentUser.uid}_${tagId}`);
-    const doc = await tagFollowRef.get();
+  const wasFollowed = followedTags.includes(tagId);
 
-    if (doc.exists) {
-      await tagFollowRef.delete();
-      followedTags = followedTags.filter(t => t !== tagId);
-    } else {
-      await tagFollowRef.set({
-        userId: currentUser.uid,
-        tag: tagId,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      followedTags.push(tagId);
-    }
-    renderTagFollowChips();
-  } catch (e) {
-    console.error('Toggle tag follow error:', e);
+  // Update UI immediately
+  if (wasFollowed) {
+    followedTags = followedTags.filter(t => t !== tagId);
+  } else {
+    followedTags.push(tagId);
+  }
+  renderTagFollowChips();
+
+  // Sync to Firestore in background
+  const tagFollowRef = db.collection('tag_follows').doc(`${currentUser.uid}_${tagId}`);
+  if (wasFollowed) {
+    tagFollowRef.delete().catch(e => {
+      console.error('Unfollow tag error:', e);
+      followedTags.push(tagId); // rollback
+      renderTagFollowChips();
+    });
+  } else {
+    tagFollowRef.set({
+      userId: currentUser.uid,
+      tag: tagId,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e => {
+      console.error('Follow tag error:', e);
+      followedTags = followedTags.filter(t => t !== tagId); // rollback
+      renderTagFollowChips();
+    });
   }
 }
 
 function renderTagFollowChips() {
   const container = document.getElementById('tag-follow-chips');
   if (!container) return;
-  container.innerHTML = availableTags.map(tag => {
+
+  // Show: default 5 tags + any followed tags not in default 5
+  const defaultTags = availableTags.filter(t => defaultTagIds.includes(t.id));
+  const followedExtras = availableTags.filter(t => !defaultTagIds.includes(t.id) && followedTags.includes(t.id));
+  const visibleTags = [...defaultTags, ...followedExtras];
+
+  container.innerHTML = visibleTags.map(tag => {
     const isFollowed = followedTags.includes(tag.id);
     return `<button class="tag-follow-chip ${isFollowed ? 'followed' : ''}" onclick="toggleTagFollow('${tag.id}')" style="--tag-color: ${tag.color};">
       ${isFollowed ? '&#10003; ' : '+ '}${tag.label}
     </button>`;
   }).join('');
 }
+
+function openTagSearch() {
+  onTagSearchInput(document.getElementById('tag-search-input').value);
+}
+
+function onTagSearchInput(value) {
+  const dropdown = document.getElementById('tag-search-dropdown');
+  if (!dropdown) return;
+  const q = value.toLowerCase().trim();
+
+  // Show tags not already in the visible chips (not in default 5 AND not already followed)
+  // But also show followed extras so user can unfollow from search
+  const searchable = availableTags.filter(t => !defaultTagIds.includes(t.id));
+  const filtered = q ? searchable.filter(t => t.label.toLowerCase().includes(q)) : searchable;
+
+  if (filtered.length === 0) {
+    dropdown.innerHTML = '<div class="tag-search-empty">No tags found</div>';
+  } else {
+    dropdown.innerHTML = filtered.map(tag => {
+      const isFollowed = followedTags.includes(tag.id);
+      return `<button class="tag-search-result ${isFollowed ? 'followed' : ''}" onclick="event.stopPropagation(); onTagSearchSelect('${tag.id}')">
+        <span class="tag-search-dot" style="background: ${tag.color};"></span>
+        <span class="tag-search-name">${tag.label}</span>
+        <span class="tag-search-status">${isFollowed ? '&#10003;' : '+'}</span>
+      </button>`;
+    }).join('');
+  }
+  dropdown.classList.add('open');
+}
+
+function onTagSearchSelect(tagId) {
+  toggleTagFollow(tagId);
+  // Re-render dropdown to update follow states (keep it open)
+  setTimeout(() => {
+    const input = document.getElementById('tag-search-input');
+    if (input) onTagSearchInput(input.value);
+  }, 10);
+}
+
+function closeTagSearch() {
+  const dropdown = document.getElementById('tag-search-dropdown');
+  if (dropdown) dropdown.classList.remove('open');
+  const input = document.getElementById('tag-search-input');
+  if (input) input.value = '';
+}
+
+// Close tag search on click outside
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('tag-search-wrap');
+  if (wrap && !wrap.contains(e.target)) closeTagSearch();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeTagSearch();
+});
 
 async function loadFollowedTags() {
   if (!currentUser || !db) return;
