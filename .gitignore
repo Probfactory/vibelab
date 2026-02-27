@@ -1,0 +1,9 @@
+# Claude Code local files
+.claude/worktrees/
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+
+# Node
+node_modules/
