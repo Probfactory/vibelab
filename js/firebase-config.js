@@ -146,7 +146,8 @@ const RESERVED_USERNAMES = new Set([
   'css', 'js', 'images', 'assets', 'api', 'admin', 'settings',
   'login', 'signup', 'about', 'help', 'support', 'blog',
   'terms', 'privacy', 'null', 'undefined', 'explore', 'search',
-  'new', 'edit', 'delete', 'auth', 'callback', 'error', '404', 'vibe'
+  'new', 'edit', 'delete', 'auth', 'callback', 'error', '404',
+  'vibe', 'invite', 'invites'
 ]);
 
 // Validate a username: returns { valid: boolean, error: string }
@@ -184,4 +185,124 @@ function getUsernameFromPath() {
   // If it looks like a file path (has dots or slashes), skip
   if (segment.includes('/') || segment.includes('.')) return null;
   return segment;
+}
+
+// --- Invite Code utilities ---
+
+// Generate a random invite code like "VIBE-A3X9"
+function generateInviteCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I/O/0/1 to avoid confusion
+  let code = 'VIBE-';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Validate an invite code against Firestore
+async function validateInviteCode(code) {
+  if (!db || !code) return { valid: false, error: 'Invite code is required' };
+  const upperCode = code.toUpperCase().trim();
+  try {
+    const snapshot = await db.collection('inviteCodes')
+      .where('code', '==', upperCode)
+      .where('status', '==', 'active')
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return { valid: false, error: 'Invalid or expired invite code' };
+    }
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+
+    // Check expiry
+    if (data.expiresAt && data.expiresAt.toDate() < new Date()) {
+      return { valid: false, error: 'This invite code has expired' };
+    }
+
+    return { valid: true, error: '', codeDocId: doc.id, codeData: data };
+  } catch (e) {
+    console.error('Invite code validation error:', e);
+    return { valid: false, error: 'Error validating invite code. Please try again.' };
+  }
+}
+
+// Create a new invite code in Firestore
+async function createInviteCode(createdByUid, createdByName, type, expiresAt) {
+  if (!db) return null;
+  const code = generateInviteCode();
+  const docData = {
+    code: code,
+    createdBy: createdByUid,
+    createdByName: createdByName || '',
+    usedBy: null,
+    usedByName: null,
+    usedAt: null,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    expiresAt: expiresAt || null,
+    status: 'active',
+    type: type || 'user'
+  };
+
+  try {
+    await db.collection('inviteCodes').add(docData);
+    return code;
+  } catch (e) {
+    console.error('Error creating invite code:', e);
+    return null;
+  }
+}
+
+// Redeem an invite code (mark as used)
+async function redeemInviteCode(code, usedByUid, usedByName) {
+  if (!db || !code) return false;
+  const upperCode = code.toUpperCase().trim();
+  try {
+    const snapshot = await db.collection('inviteCodes')
+      .where('code', '==', upperCode)
+      .where('status', '==', 'active')
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return false;
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+
+    await doc.ref.update({
+      usedBy: usedByUid,
+      usedByName: usedByName || '',
+      usedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      status: 'used'
+    });
+
+    // Decrement inviter's remaining invites if it's a user-generated code
+    if (data.type === 'user' && data.createdBy) {
+      await db.collection('users').doc(data.createdBy).update({
+        invitesRemaining: firebase.firestore.FieldValue.increment(-1)
+      });
+    }
+
+    return true;
+  } catch (e) {
+    console.error('Error redeeming invite code:', e);
+    return false;
+  }
+}
+
+// Check if a superadmin exists in the system
+async function checkSuperAdminExists() {
+  if (!db) return false;
+  try {
+    const snapshot = await db.collection('users')
+      .where('role', '==', 'superadmin')
+      .limit(1)
+      .get();
+    return !snapshot.empty;
+  } catch (e) {
+    console.error('Error checking superadmin:', e);
+    return false;
+  }
 }
