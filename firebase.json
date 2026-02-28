@@ -4,10 +4,12 @@
     "ignore": ["firebase.json", ".firebase", ".git", ".claude", "node_modules"],
     "cleanUrls": true,
     "rewrites": [
-      { "source": "/feed", "destination": "/feed.html" },
+      { "source": "/explore", "destination": "/explore.html" },
+      { "source": "/feed", "destination": "/explore.html" },
       { "source": "/community", "destination": "/community.html" },
       { "source": "/profile", "destination": "/profile.html" },
-      { "source": "/project", "destination": "/project.html" },
+      { "source": "/vibe", "destination": "/vibe.html" },
+      { "source": "/project", "destination": "/vibe.html" },
       { "source": "/my-vibes", "destination": "/my-vibes.html" },
       { "source": "/:username", "destination": "/profile.html" }
     ]

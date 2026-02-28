@@ -9,7 +9,7 @@ function getNavHTML(activePage) {
       VibeLab
     </a>
     <div class="nav-links">
-      <a href="#" class="hide-mobile ${activePage === 'feed' ? 'active' : ''}" onclick="if(typeof currentUser !== 'undefined' && currentUser) { window.location.href='feed.html'; } else { openAuthModal('login'); } return false;">Explore</a>
+      <a href="explore.html" class="hide-mobile ${activePage === 'explore' ? 'active' : ''}">Explore</a>
       <a href="community.html" class="hide-mobile ${activePage === 'community' ? 'active' : ''}">Community</a>
       <div class="nav-auth" id="nav-auth">
         <div class="nav-auth-logged-out" id="nav-auth-logged-out">
@@ -259,7 +259,7 @@ function getFooterHTML() {
       </div>
       <div class="footer-col">
         <h4>Community</h4>
-        <a href="feed.html">Explore</a>
+        <a href="explore.html">Explore</a>
         <a href="community.html">About</a>
         <span>Discord</span>
         <span>Twitter / X</span>
