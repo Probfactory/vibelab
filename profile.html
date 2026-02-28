@@ -21,6 +21,13 @@
       <!-- Profile Header -->
       <div class="profile-header" id="profile-header"></div>
 
+      <!-- Guest CTA (shown only to logged-out users) -->
+      <div class="guest-cta-box" id="profile-guest-cta" style="display: none;">
+        <h3>Join VibeLab to connect with creators</h3>
+        <p>Sign up to follow creators, vibe with projects, and share your own builds.</p>
+        <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
+      </div>
+
       <!-- Profile Tabs -->
       <div class="profile-tabs">
         <button class="profile-tab active" onclick="switchProfileTab('vibes', this)">Vibes</button>
@@ -89,7 +96,7 @@ async function resolveProfileUser() {
         return true;
       } else {
         // Username not found
-        document.getElementById('profile-loading').innerHTML = '<div class="empty-state" style="padding: 80px 0; text-align: center;"><div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128566;</div><h3>Profile not found</h3><p style="color: var(--text-muted); margin-bottom: 24px;">The username <strong>' + escapeHtml(username) + '</strong> doesn\'t exist on VibeLab.</p><a href="/feed" class="btn btn-primary btn-sm">Explore Vibes</a></div>';
+        document.getElementById('profile-loading').innerHTML = '<div class="empty-state" style="padding: 80px 0; text-align: center;"><div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128566;</div><h3>Profile not found</h3><p style="color: var(--text-muted); margin-bottom: 24px;">The username <strong>' + escapeHtml(username) + '</strong> doesn\'t exist on VibeLab.</p><a href="/explore" class="btn btn-primary btn-sm">Explore Vibes</a></div>';
         return false;
       }
     } catch (e) {
@@ -111,14 +118,14 @@ async function loadProfile() {
   if (!resolved) return;
 
   if (!profileUserId) {
-    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>No user ID specified.</p><br><a href="/feed" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>No user ID specified.</p><br><a href="/explore" class="btn btn-primary btn-sm">Back to Explore</a></div>';
     return;
   }
 
   try {
     const userDoc = await db.collection('users').doc(profileUserId).get();
     if (!userDoc.exists) {
-      document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>This user doesn\'t exist.</p><br><a href="/feed" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+      document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>This user doesn\'t exist.</p><br><a href="/explore" class="btn btn-primary btn-sm">Back to Explore</a></div>';
       return;
     }
 
@@ -513,26 +520,20 @@ async function handleProfileFollow() {
   await toggleFollow(profileUserId, btn);
 }
 
-// Wait for auth then load (only for logged-in users)
+// Load profile for all visitors (logged-in or guest)
 window.addEventListener('authStateReady', (e) => {
-  if (e.detail.user) {
-    loadProfile();
-  } else {
-    // Not logged in — show login prompt
-    document.getElementById('profile-loading').innerHTML = `
-      <div class="empty-state" style="padding: 80px 0; text-align: center;">
-        <div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128274;</div>
-        <h3>Sign in to view profiles</h3>
-        <p style="color: var(--text-muted); margin-bottom: 24px;">Join VibeLab to discover creators and their projects.</p>
-        <button class="btn btn-primary" onclick="openAuthModal('login')">Log In</button>
-      </div>`;
+  // Show/hide guest CTA
+  const guestCta = document.getElementById('profile-guest-cta');
+  if (guestCta) {
+    guestCta.style.display = e.detail.user ? 'none' : 'block';
   }
+  loadProfile();
 });
 
-// Fallback load (only if auth hasn't fired yet)
+// Fallback load if auth takes too long (works for guests too)
 setTimeout(() => {
-  if (!profileData && currentUser) loadProfile();
-}, 1500);
+  if (!profileData) loadProfile();
+}, 2000);
 </script>
 </body>
 </html>

@@ -103,7 +103,7 @@ function renderProjectCard(p) {
   const gradient = p.gradient || gradMap[cat] || 'linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd)';
   const cardColor = p.color || colorMap[cat] || '#3b82f6';
   return `
-    <a href="project.html?id=${p.id}" class="project-card" data-category="${cat}">
+    <a href="vibe.html?id=${p.id}" class="project-card" data-category="${cat}">
       <div class="card-thumb" style="background: ${p.imageURL ? `url(${p.imageURL}) center/cover` : gradient};"></div>
       <div class="card-info">
         <div class="card-info-text">
@@ -146,7 +146,7 @@ const RESERVED_USERNAMES = new Set([
   'css', 'js', 'images', 'assets', 'api', 'admin', 'settings',
   'login', 'signup', 'about', 'help', 'support', 'blog',
   'terms', 'privacy', 'null', 'undefined', 'explore', 'search',
-  'new', 'edit', 'delete', 'auth', 'callback', 'error', '404'
+  'new', 'edit', 'delete', 'auth', 'callback', 'error', '404', 'vibe'
 ]);
 
 // Validate a username: returns { valid: boolean, error: string }

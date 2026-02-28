@@ -150,7 +150,7 @@
 
 <script>
 // Initialize page
-initPage('feed');
+initPage('explore');
 
 // Feed state
 let allFeedProjects = [];
@@ -613,9 +613,19 @@ async function handleDiscoverFollow(userId, btn) {
   }
 }
 
+// Guest vibe limit
+const GUEST_VIBE_LIMIT = 50;
+
 // Infinite scroll
 const observer = new IntersectionObserver((entries) => {
   if (entries[0].isIntersecting && hasMore && !isLoading) {
+    // Guest limit: stop loading after 50 vibes
+    if (!currentUser && allFeedProjects.length >= GUEST_VIBE_LIMIT) {
+      hasMore = false;
+      const trigger = document.getElementById('load-more-trigger');
+      if (trigger) trigger.innerHTML = '<div class="guest-cta-box" style="margin: 32px 0; text-align: center;"><h3>Sign up to see more vibes</h3><p>Join VibeLab to explore unlimited projects and connect with creators.</p><button class="btn btn-primary" onclick="openAuthModal(\'signup\')">Join VibeLab</button></div>';
+      return;
+    }
     loadFeedProjects(true);
   }
 }, { threshold: 0.1 });
@@ -623,13 +633,13 @@ const observer = new IntersectionObserver((entries) => {
 const trigger = document.getElementById('load-more-trigger');
 if (trigger) observer.observe(trigger);
 
-// Load following list when auth is ready
+// Load feed for all visitors (logged-in or guest)
 window.addEventListener('authStateReady', async (e) => {
-  if (e.detail.user) {
-    // Logged in — show feed, hide gate
-    document.getElementById('feed-content').style.display = 'block';
-    document.getElementById('feed-login-gate').style.display = 'none';
+  // Always show feed content, hide login gate
+  document.getElementById('feed-content').style.display = 'block';
+  document.getElementById('feed-login-gate').style.display = 'none';
 
+  if (e.detail.user) {
     try {
       const snap = await db.collection('follows').where('followerId', '==', e.detail.user.uid).get();
       followingIds = snap.docs.map(d => d.data().followingId);
@@ -638,14 +648,10 @@ window.addEventListener('authStateReady', async (e) => {
     // Load followed tags and re-render chips with followed state
     await loadFollowedTags();
     renderTagFollowChips();
-
-    loadFeedProjects();
-    loadDiscoverCreators();
-  } else {
-    // Not logged in — show login gate, hide feed
-    document.getElementById('feed-content').style.display = 'none';
-    document.getElementById('feed-login-gate').style.display = 'block';
   }
+
+  loadFeedProjects();
+  loadDiscoverCreators();
 });
 </script>
 </body>

@@ -111,7 +111,7 @@
 <script src="js/auth.js"></script>
 
 <script>
-initPage('project');
+initPage('vibe');
 
 let projectData = null;
 let projectId = getUrlParam('id');
@@ -124,7 +124,7 @@ const shareIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24
 // Load project
 async function loadProject() {
   if (!projectId) {
-    document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Project not found</h3><p>The project you\'re looking for doesn\'t exist.</p><br><a href="feed.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+    document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Project not found</h3><p>The project you\'re looking for doesn\'t exist.</p><br><a href="explore.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
     return;
   }
 
@@ -142,7 +142,7 @@ async function loadProject() {
   try {
     const doc = await db.collection('projects').doc(projectId).get();
     if (!doc.exists) {
-      document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Project not found</h3><p>This project may have been removed.</p><br><a href="feed.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+      document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Project not found</h3><p>This project may have been removed.</p><br><a href="explore.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
       return;
     }
     projectData = { id: doc.id, ...doc.data() };
@@ -615,6 +615,7 @@ function shareProject() {
 // Update comment input avatar when auth ready
 window.addEventListener('authStateReady', (e) => {
   const guestCta = document.getElementById('guest-cta');
+  const commentArea = document.getElementById('comment-input-area');
   if (e.detail.user && e.detail.profile) {
     const avatar = document.getElementById('comment-user-avatar');
     if (avatar) {
@@ -628,6 +629,10 @@ window.addEventListener('authStateReady', (e) => {
   } else {
     // Show guest CTA for logged-out users
     if (guestCta) guestCta.style.display = 'block';
+    // Replace comment input with login prompt for guests
+    if (commentArea) {
+      commentArea.innerHTML = '<div style="text-align: center; padding: 16px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 12px;"><a href="#" onclick="openAuthModal(\'login\'); return false;" style="color: var(--accent); font-weight: 500;">Log in</a> to share your thoughts</div>';
+    }
   }
 });
 

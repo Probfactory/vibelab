@@ -8,7 +8,7 @@
 (function() {
   var path = window.location.pathname.replace(/^\//, '');
   if (!path) return;
-  var known = ['feed','community','profile','project','my-vibes','index','css','js','images','assets'];
+  var known = ['explore','feed','community','profile','vibe','project','my-vibes','index','css','js','images','assets'];
   for (var i = 0; i < known.length; i++) { if (path === known[i] || path.startsWith(known[i] + '/') || path.startsWith(known[i] + '.')) return; }
   if (path.includes('/') || path.includes('.')) return;
   // Looks like a vanity username — fetch profile page and replace document
@@ -48,7 +48,7 @@
         <h1>A home for <span class="highlight">vibe-coded experiments</span></h1>
         <p>Creative coding, experimental builds, design meets tech. Share the projects that made you feel something. Find people who build like you do.</p>
         <div class="hero-actions">
-          <a href="feed.html" class="btn btn-primary" style="font-size: 1rem; padding: 14px 32px;">Explore Vibes</a>
+          <a href="explore.html" class="btn btn-primary" style="font-size: 1rem; padding: 14px 32px;">Explore Vibes</a>
           <a href="#" class="btn btn-dark" style="font-size: 1rem; padding: 14px 32px;">Take up Daily Vibe Challenge</a>
         </div>
       </div>
@@ -190,7 +190,7 @@
     </div>
     <div class="project-grid" id="project-grid"></div>
     <div style="text-align: center; margin-top: 40px;">
-      <a href="#" class="btn btn-outline" style="font-size: 0.95rem; padding: 12px 32px;" onclick="if(currentUser) { window.location.href='feed.html'; } else { openAuthModal('login'); } return false;">View All Projects &rarr;</a>
+      <a href="explore.html" class="btn btn-outline" style="font-size: 0.95rem; padding: 12px 32px;">View All Projects &rarr;</a>
     </div>
   </div>
 </section>
