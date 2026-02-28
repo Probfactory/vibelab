@@ -11,7 +11,6 @@ function getNavHTML(activePage) {
     <div class="nav-links">
       <a href="#" class="hide-mobile ${activePage === 'feed' ? 'active' : ''}" onclick="if(typeof currentUser !== 'undefined' && currentUser) { window.location.href='feed.html'; } else { openAuthModal('login'); } return false;">Explore</a>
       <a href="community.html" class="hide-mobile ${activePage === 'community' ? 'active' : ''}">Community</a>
-      <a href="#" class="hide-mobile ${activePage === 'events' ? 'active' : ''}">Events</a>
       <div class="nav-auth" id="nav-auth">
         <div class="nav-auth-logged-out" id="nav-auth-logged-out">
           <a href="#" class="btn btn-primary btn-sm" onclick="openAuthModal('login'); return false;">Log In</a>
@@ -24,7 +23,7 @@ function getNavHTML(activePage) {
               <img id="avatar-img" style="display: none;">
             </div>
             <div class="nav-dropdown" id="nav-dropdown">
-              <a href="#" onclick="if(currentUser) window.location.href='profile.html?id='+currentUser.uid+'#id='+currentUser.uid; return false;">My Profile</a>
+              <a href="#" onclick="if(currentUser) window.location.href='profile.html?id='+currentUser.uid; return false;">My Profile</a>
               <a href="my-vibes.html">My Vibes</a>
               <div class="divider"></div>
               <button class="logout-btn" onclick="logOut()">Log Out</button>
@@ -245,28 +244,28 @@ function getFooterHTML() {
       <div class="footer-col">
         <h4>Community</h4>
         <a href="feed.html">Explore</a>
-        <a href="index.html#values">About</a>
-        <a href="#">Discord</a>
-        <a href="#">Twitter / X</a>
+        <a href="community.html">About</a>
+        <span>Discord</span>
+        <span>Twitter / X</span>
       </div>
       <div class="footer-col">
         <h4>Resources</h4>
-        <a href="#">Getting Started</a>
-        <a href="#">Guidelines</a>
-        <a href="#">Blog</a>
+        <span>Getting Started</span>
+        <span>Guidelines</span>
+        <span>Blog</span>
       </div>
       <div class="footer-col">
         <h4>Legal</h4>
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
+        <span>Privacy</span>
+        <span>Terms</span>
       </div>
     </div>
     <div class="footer-bottom">
       <span>&copy; 2026 VibeLab. Made with good vibes.</span>
       <div class="footer-social">
-        <a href="#">Twitter</a>
-        <a href="#">GitHub</a>
-        <a href="#">Discord</a>
+        <span>Twitter</span>
+        <span>GitHub</span>
+        <span>Discord</span>
       </div>
     </div>
   </div>
