@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — VibeLab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/shared.js"></script>
+</head>
+<body>
+  <div id="nav-container"></div>
+
+  <main class="container" style="padding-top: 56px; padding-bottom: 40px; min-height: 80vh;">
+
+    <!-- Loading State -->
+    <div id="admin-loading" style="text-align: center; padding: 80px 0;">
+      <div class="loading-spinner"><div class="spinner"></div></div>
+      <p style="margin-top: 16px; color: var(--text-muted);">Loading admin dashboard...</p>
+    </div>
+
+    <!-- Access Denied -->
+    <div id="admin-denied" style="display: none; text-align: center; padding: 80px 0;">
+      <div style="font-size: 3rem; margin-bottom: 16px;">🔒</div>
+      <h2>Access Denied</h2>
+      <p style="color: var(--text-muted); margin-top: 8px;">You don't have permission to access the admin dashboard.</p>
+      <a href="index.html" class="btn btn-dark" style="margin-top: 24px;">Back to Home</a>
+    </div>
+
+    <!-- Bootstrap Setup (first-time admin claim) -->
+    <div id="admin-setup" style="display: none; text-align: center; padding: 80px 0; max-width: 480px; margin: 0 auto;">
+      <div style="font-size: 3rem; margin-bottom: 16px;">⚡</div>
+      <h2 style="font-family: 'Space Grotesk', sans-serif;">Set Up VibeLab Admin</h2>
+      <p style="color: var(--text-secondary); margin-top: 12px; line-height: 1.6;">
+        No admin account exists yet. Click below to make your current account the super admin.
+        This is a one-time setup.
+      </p>
+      <div id="setup-user-info" style="margin: 24px 0; padding: 16px; background: var(--bg-alt); border-radius: 12px; border: 1px solid var(--border);"></div>
+      <button class="btn btn-primary" onclick="claimAdmin()" id="claim-admin-btn" style="font-size: 1rem; padding: 14px 32px;">
+        Claim Admin Access
+      </button>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" style="display: none;">
+      <!-- Compact header with inline tabs -->
+      <div class="admin-top-bar">
+        <h1 class="admin-title">Admin</h1>
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="switchAdminTab('overview')">Overview</button>
+          <button class="admin-tab" onclick="switchAdminTab('users')">Users</button>
+        </div>
+      </div>
+
+      <!-- ═══ OVERVIEW TAB ═══ -->
+      <div id="tab-overview" class="admin-tab-content">
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card stat-blue">
+            <div class="admin-stat-icon">👥</div>
+            <div class="admin-stat-number" id="stat-total-users">—</div>
+            <div class="admin-stat-label">Total Users</div>
+          </div>
+          <div class="admin-stat-card stat-yellow">
+            <div class="admin-stat-icon">✨</div>
+            <div class="admin-stat-number" id="stat-total-vibes">—</div>
+            <div class="admin-stat-label">Total Vibes</div>
+          </div>
+          <div class="admin-stat-card stat-green">
+            <div class="admin-stat-icon">📈</div>
+            <div class="admin-stat-number" id="stat-signups-month">—</div>
+            <div class="admin-stat-label">Signups This Month</div>
+          </div>
+          <div class="admin-stat-card stat-purple">
+            <div class="admin-stat-icon">🎟️</div>
+            <div class="admin-stat-number" id="stat-active-codes">—</div>
+            <div class="admin-stat-label">Active Invite Codes</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 1rem;">Users</h3>
+        <div id="active-users-list" class="admin-user-list">
+          <div class="loading-spinner"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- ═══ USERS TAB ═══ -->
+      <div id="tab-users" class="admin-tab-content" style="display: none;">
+        <div class="admin-toolbar">
+          <input type="text" id="user-search" placeholder="Search by name, email, or username..." class="admin-search-input" oninput="filterUsers()">
+          <div class="admin-toolbar-actions">
+            <select id="user-sort" class="admin-select" onchange="sortUsers()">
+              <option value="createdAt">Join Date</option>
+              <option value="lastActive">Last Active</option>
+              <option value="vibes">Vibe Count</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bulk Action Bar -->
+        <div id="bulk-action-bar" class="admin-bulk-bar" style="display: none;">
+          <label class="admin-checkbox-label">
+            <input type="checkbox" id="select-all-users" onchange="toggleSelectAll(this.checked)">
+            <span id="bulk-selected-count">0 selected</span>
+          </label>
+          <div class="admin-bulk-actions">
+            <button class="btn btn-sm btn-outline" onclick="bulkGrantInvites()">🎟️ Grant Invites</button>
+            <button class="btn btn-sm btn-outline" onclick="bulkSetStatus('active')">✅ Activate</button>
+            <button class="btn btn-sm btn-outline admin-btn-danger" onclick="bulkSetStatus('suspended')">🚫 Suspend</button>
+          </div>
+        </div>
+
+        <div id="users-list" class="admin-user-list">
+          <div class="loading-spinner"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Grant Invites Modal -->
+  <div class="modal-overlay" id="grant-invites-modal">
+    <div class="modal" style="max-width: 440px;">
+      <button class="modal-close" onclick="closeGrantModal()">&times;</button>
+      <h2>Grant Invites</h2>
+      <p class="subtitle" id="grant-user-name"></p>
+      <!-- Step 1: Pick count -->
+      <div id="grant-step-form">
+        <div class="form-group" style="margin-top: 16px;">
+          <label>Number of invite codes to generate</label>
+          <input type="number" id="grant-invite-count" min="1" max="50" value="3">
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Codes will be generated and assigned to the user(s). You can copy and share them directly.</p>
+        <button class="submit-btn" onclick="confirmGrantInvites()" id="grant-submit-btn">Generate & Grant</button>
+      </div>
+      <!-- Step 2: Show generated codes -->
+      <div id="grant-step-result" style="display: none;">
+        <div id="grant-generated-codes" style="margin-top: 16px;"></div>
+        <button class="btn btn-outline" style="width: 100%; margin-top: 12px;" onclick="copyAllGrantedCodes()">Copy All Codes</button>
+        <button class="submit-btn" style="margin-top: 8px;" onclick="closeGrantModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-container"></div>
+  <div id="modals-container"></div>
+
+<script>
+  initPage('admin');
+
+  // State
+  let allUsers = [];
+  let grantTargetUid = null;
+  let selectedUserUids = new Set();
+
+  // ── Page Init ──
+  window.addEventListener('authStateReady', async (e) => {
+    const loading = document.getElementById('admin-loading');
+    const denied = document.getElementById('admin-denied');
+    const setup = document.getElementById('admin-setup');
+    const dashboard = document.getElementById('admin-dashboard');
+
+    loading.style.display = 'none';
+
+    if (!e.detail.user) {
+      denied.style.display = 'block';
+      return;
+    }
+
+    // Check if a superadmin exists
+    const adminExists = await checkSuperAdminExists();
+
+    if (!adminExists) {
+      // No admin yet — show bootstrap setup
+      const info = document.getElementById('setup-user-info');
+      info.innerHTML = `<strong>${e.detail.user.displayName || e.detail.user.email}</strong><br><span style="color: var(--text-muted); font-size: 0.9rem;">${e.detail.user.email}</span>`;
+      setup.style.display = 'block';
+      return;
+    }
+
+    // Admin exists — check if current user is admin
+    if (e.detail.profile?.role !== 'superadmin') {
+      denied.style.display = 'block';
+      return;
+    }
+
+    // Show dashboard
+    dashboard.style.display = 'block';
+    loadOverviewStats();
+    loadAllUsers();
+  });
+
+  // ── Bootstrap: Claim Admin ──
+  async function claimAdmin() {
+    if (!currentUser) return;
+    const btn = document.getElementById('claim-admin-btn');
+    btn.textContent = 'Setting up...';
+    btn.disabled = true;
+
+    try {
+      // Update user doc with superadmin role
+      await db.collection('users').doc(currentUser.uid).update({
+        role: 'superadmin',
+        invitesRemaining: 999,
+        status: 'active'
+      });
+
+      // Create admin config doc to mark setup as complete
+      await db.collection('adminConfig').doc('settings').set({
+        setupComplete: true,
+        setupBy: currentUser.uid,
+        setupAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      currentUserProfile = { ...currentUserProfile, role: 'superadmin', invitesRemaining: 999, status: 'active' };
+      updateNav();
+
+      // Switch to dashboard
+      document.getElementById('admin-setup').style.display = 'none';
+      document.getElementById('admin-dashboard').style.display = 'block';
+      showToast('Admin access claimed! Welcome to the dashboard.');
+      loadOverviewStats();
+      loadAllUsers();
+    } catch (error) {
+      console.error('Admin claim error:', error);
+      btn.textContent = 'Claim Admin Access';
+      btn.disabled = false;
+      showToast('Error: ' + error.message);
+    }
+  }
+
+  // ── Tab Switching ──
+  function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tab).style.display = 'block';
+  }
+
+  // ── OVERVIEW TAB ──
+  async function loadOverviewStats() {
+    try {
+      // Total users
+      const usersSnap = await db.collection('users').get();
+      document.getElementById('stat-total-users').textContent = usersSnap.size;
+
+      // Total vibes (projects)
+      const projSnap = await db.collection('projects').get();
+      document.getElementById('stat-total-vibes').textContent = projSnap.size;
+
+      // Signups this month
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthSignups = usersSnap.docs.filter(d => {
+        const created = d.data().createdAt;
+        if (!created) return false;
+        const date = created.toDate ? created.toDate() : new Date(created);
+        return date >= monthStart;
+      }).length;
+      document.getElementById('stat-signups-month').textContent = monthSignups;
+
+      // Active invite codes
+      const codesSnap = await db.collection('inviteCodes').where('status', '==', 'active').get();
+      document.getElementById('stat-active-codes').textContent = codesSnap.size;
+
+      // Most active users (by project count)
+      renderActiveUsers(usersSnap.docs, projSnap.docs);
+    } catch (e) {
+      console.error('Stats load error:', e);
+    }
+  }
+
+  function renderActiveUsers(userDocs, projDocs) {
+    const container = document.getElementById('active-users-list');
+
+    const users = userDocs.map(d => ({ uid: d.id, ...d.data() }));
+
+    if (users.length === 0) {
+      container.innerHTML = '<div class="admin-empty">No users yet</div>';
+      return;
+    }
+
+    const headerRow = `
+      <div class="admin-user-row admin-header-row">
+        <div class="admin-user-avatar-sm" style="visibility:hidden;"></div>
+        <div class="admin-overview-col admin-overview-name"><span class="admin-col-label">Name</span></div>
+        <div class="admin-overview-col admin-overview-email"><span class="admin-col-label">Email</span></div>
+        <div class="admin-overview-col admin-overview-phone"><span class="admin-col-label">Phone</span></div>
+        <div class="admin-user-actions" style="visibility:hidden;"><button class="btn btn-xs btn-outline" style="visibility:hidden;">—</button></div>
+      </div>`;
+
+    const rows = users.map(u => `
+      <div class="admin-user-row">
+        <div class="admin-user-avatar-sm" style="background: ${u.photoURL ? `url(${escapeHtml(u.photoURL)}) center/cover` : 'var(--purple)'};">
+          ${u.photoURL ? '' : (u.displayName || 'U')[0].toUpperCase()}
+        </div>
+        <div class="admin-overview-col admin-overview-name">
+          <strong style="font-size: 0.82rem;">${escapeHtml(u.displayName || 'Unknown')}</strong>
+          <span class="admin-user-meta">@${escapeHtml(u.username || '—')}</span>
+        </div>
+        <div class="admin-overview-col admin-overview-email">
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(u.email || '—')}</span>
+        </div>
+        <div class="admin-overview-col admin-overview-phone">
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(u.phone || '—')}</span>
+        </div>
+        <div class="admin-user-actions">
+          <button class="btn btn-xs btn-outline" onclick="openGrantModal('${u.uid}', '${escapeHtml(u.displayName || '')}')">Invites</button>
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = headerRow + rows;
+  }
+
+  // ── USERS TAB ──
+  async function loadAllUsers() {
+    try {
+      const snap = await db.collection('users').orderBy('createdAt', 'desc').get();
+      // Get project counts
+      const projSnap = await db.collection('projects').get();
+      const projectCounts = {};
+      projSnap.docs.forEach(d => {
+        const uid = d.data().authorUid;
+        if (uid) projectCounts[uid] = (projectCounts[uid] || 0) + 1;
+      });
+
+      allUsers = snap.docs.map(d => ({
+        uid: d.id,
+        ...d.data(),
+        projectCount: projectCounts[d.id] || 0
+      }));
+      renderUsersWithHeader(allUsers);
+    } catch (e) {
+      console.error('Users load error:', e);
+      document.getElementById('users-list').innerHTML = '<div class="admin-empty">Error loading users</div>';
+    }
+  }
+
+  function renderUsers(users) {
+    const container = document.getElementById('users-list');
+    if (users.length === 0) {
+      container.innerHTML = '<div class="admin-empty">No users found</div>';
+      updateBulkBar();
+      return;
+    }
+
+    container.innerHTML = users.map(u => {
+      const joinDate = u.createdAt ? (u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—';
+      const lastActive = u.lastActive ? timeAgo(u.lastActive) : '—';
+      const statusClass = u.status === 'suspended' ? 'admin-badge-suspended' : 'admin-badge-active';
+      const statusLabel = u.status === 'suspended' ? 'Suspended' : 'Active';
+      const isChecked = selectedUserUids.has(u.uid) ? 'checked' : '';
+      const roleBadge = u.role === 'superadmin' ? '<span class="admin-badge admin-badge-admin">Admin</span>' : '';
+
+      return `
+        <div class="admin-user-row ${isChecked ? 'selected' : ''}" data-uid="${u.uid}">
+          <input type="checkbox" class="admin-row-checkbox" ${isChecked} onchange="toggleUserSelect('${u.uid}', this.checked)">
+          <div class="admin-user-avatar-sm" style="background: ${u.photoURL ? `url(${escapeHtml(u.photoURL)}) center/cover` : 'var(--purple)'};">
+            ${u.photoURL ? '' : (u.displayName || 'U')[0].toUpperCase()}
+          </div>
+          <div class="admin-user-info">
+            <strong>${escapeHtml(u.displayName || 'Unknown')} ${roleBadge}</strong>
+            <span class="admin-user-meta">@${escapeHtml(u.username || '—')} · ${escapeHtml(u.email || '')}</span>
+          </div>
+          <div class="admin-user-detail hide-mobile">
+            <span>${joinDate}</span>
+          </div>
+          <div class="admin-user-detail hide-mobile">
+            <span>${lastActive}</span>
+          </div>
+          <div class="admin-user-detail hide-mobile">
+            <span>${u.projectCount}</span>
+          </div>
+          <div class="admin-user-detail hide-mobile">
+            <span>${u.invitesRemaining ?? '—'}</span>
+          </div>
+          <div class="admin-user-detail">
+            <span class="admin-badge ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="admin-user-actions">
+            <button class="btn btn-xs btn-outline" onclick="openGrantModal('${u.uid}', '${escapeHtml(u.displayName || '')}')">Invites</button>
+            <button class="btn btn-xs ${u.status === 'suspended' ? 'btn-primary' : 'btn-outline'}" onclick="toggleUserStatus('${u.uid}', '${u.status || 'active'}')">${u.status === 'suspended' ? 'Activate' : 'Suspend'}</button>
+          </div>
+        </div>`;
+    }).join('');
+    updateBulkBar();
+  }
+
+  // ── Column Header ──
+  function renderUsersWithHeader(users) {
+    renderUsers(users);
+    // Prepend column header row
+    const container = document.getElementById('users-list');
+    if (users.length > 0) {
+      const header = document.createElement('div');
+      header.className = 'admin-user-row admin-header-row';
+      header.innerHTML = `
+        <input type="checkbox" class="admin-row-checkbox" id="header-select-all" onchange="toggleSelectAll(this.checked)">
+        <div class="admin-user-avatar-sm" style="visibility:hidden;"></div>
+        <div class="admin-user-info"><strong style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">User</strong></div>
+        <div class="admin-user-detail hide-mobile"><span class="admin-col-label">Joined</span></div>
+        <div class="admin-user-detail hide-mobile"><span class="admin-col-label">Active</span></div>
+        <div class="admin-user-detail hide-mobile"><span class="admin-col-label">Vibes</span></div>
+        <div class="admin-user-detail hide-mobile"><span class="admin-col-label">Invites</span></div>
+        <div class="admin-user-detail"><span class="admin-col-label">Status</span></div>
+        <div class="admin-user-actions" style="visibility:hidden;"><button class="btn btn-xs btn-outline" style="visibility:hidden;">—</button></div>
+      `;
+      container.insertBefore(header, container.firstChild);
+    }
+  }
+
+  function filterUsers() {
+    const query = document.getElementById('user-search').value.toLowerCase().trim();
+    if (!query) { renderUsersWithHeader(allUsers); return; }
+    const filtered = allUsers.filter(u =>
+      (u.displayName || '').toLowerCase().includes(query) ||
+      (u.email || '').toLowerCase().includes(query) ||
+      (u.username || '').toLowerCase().includes(query)
+    );
+    renderUsersWithHeader(filtered);
+  }
+
+  function sortUsers() {
+    const sortBy = document.getElementById('user-sort').value;
+    const sorted = [...allUsers].sort((a, b) => {
+      if (sortBy === 'vibes') return (b.projectCount || 0) - (a.projectCount || 0);
+      if (sortBy === 'lastActive') {
+        const aDate = a.lastActive ? (a.lastActive.toDate ? a.lastActive.toDate() : new Date(a.lastActive)) : new Date(0);
+        const bDate = b.lastActive ? (b.lastActive.toDate ? b.lastActive.toDate() : new Date(b.lastActive)) : new Date(0);
+        return bDate - aDate;
+      }
+      // Default: createdAt desc
+      const aDate = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt)) : new Date(0);
+      const bDate = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)) : new Date(0);
+      return bDate - aDate;
+    });
+    renderUsersWithHeader(sorted);
+  }
+
+  // ── Selection & Bulk Actions ──
+  function toggleUserSelect(uid, checked) {
+    if (checked) { selectedUserUids.add(uid); } else { selectedUserUids.delete(uid); }
+    const row = document.querySelector(`.admin-user-row[data-uid="${uid}"]`);
+    if (row) row.classList.toggle('selected', checked);
+    updateBulkBar();
+  }
+
+  function toggleSelectAll(checked) {
+    // Get currently rendered (visible) user UIDs
+    const rows = document.querySelectorAll('.admin-user-row[data-uid]');
+    rows.forEach(row => {
+      const uid = row.dataset.uid;
+      const cb = row.querySelector('.admin-row-checkbox');
+      if (checked) { selectedUserUids.add(uid); } else { selectedUserUids.delete(uid); }
+      if (cb) cb.checked = checked;
+      row.classList.toggle('selected', checked);
+    });
+    // Sync header checkbox
+    const headerCb = document.getElementById('header-select-all');
+    if (headerCb) headerCb.checked = checked;
+    const bulkCb = document.getElementById('select-all-users');
+    if (bulkCb) bulkCb.checked = checked;
+    updateBulkBar();
+  }
+
+  function updateBulkBar() {
+    const bar = document.getElementById('bulk-action-bar');
+    const count = selectedUserUids.size;
+    if (count > 0) {
+      bar.style.display = 'flex';
+      document.getElementById('bulk-selected-count').textContent = `${count} selected`;
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+
+  function clearSelection() {
+    selectedUserUids.clear();
+    document.querySelectorAll('.admin-row-checkbox').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.admin-user-row.selected').forEach(r => r.classList.remove('selected'));
+    updateBulkBar();
+  }
+
+  async function bulkGrantInvites() {
+    if (selectedUserUids.size === 0) return;
+    // Use the same modal but in bulk mode
+    grantTargetUid = '__bulk__';
+    document.getElementById('grant-user-name').textContent = `Grant extra invites to ${selectedUserUids.size} selected users`;
+    document.getElementById('grant-invite-count').value = 3;
+    document.getElementById('grant-invites-modal').classList.add('open');
+  }
+
+  async function bulkSetStatus(newStatus) {
+    if (selectedUserUids.size === 0) return;
+    const action = newStatus === 'suspended' ? 'suspend' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} ${selectedUserUids.size} users?`)) return;
+
+    try {
+      const promises = [...selectedUserUids].map(uid =>
+        db.collection('users').doc(uid).update({ status: newStatus })
+      );
+      await Promise.all(promises);
+      showToast(`${selectedUserUids.size} users ${action}d successfully`);
+      clearSelection();
+      loadAllUsers();
+    } catch (e) {
+      console.error('Bulk status error:', e);
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  async function toggleUserStatus(uid, currentStatus) {
+    const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+    const action = newStatus === 'suspended' ? 'suspend' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+    try {
+      await db.collection('users').doc(uid).update({ status: newStatus });
+      showToast(`User ${action}d successfully`);
+      loadAllUsers(); // Refresh list
+    } catch (e) {
+      console.error('Status toggle error:', e);
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  // ── INVITE CODES (for stats count) ──
+  async function loadAllInviteCodes() {
+    // Only used for the overview stat card count now
+    try {
+      const snap = await db.collection('inviteCodes').where('status', '==', 'active').get();
+      document.getElementById('stat-active-codes').textContent = snap.size;
+    } catch (e) {
+      console.error('Invite codes count error:', e);
+    }
+  }
+
+  let lastGrantedCodes = [];
+
+  function copyCode(code) {
+    navigator.clipboard.writeText(code).then(() => {
+      showToast('Code copied: ' + code);
+    }).catch(() => {
+      const el = document.createElement('textarea');
+      el.value = code;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast('Code copied: ' + code);
+    });
+  }
+
+  function copyAllGrantedCodes() {
+    const text = lastGrantedCodes.join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`${lastGrantedCodes.length} codes copied!`);
+    }).catch(() => {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast(`${lastGrantedCodes.length} codes copied!`);
+    });
+  }
+
+  // ── GRANT INVITES MODAL ──
+  function openGrantModal(uid, name) {
+    grantTargetUid = uid;
+    lastGrantedCodes = [];
+    document.getElementById('grant-user-name').textContent = `Grant invite codes to ${name || 'this user'}`;
+    document.getElementById('grant-invite-count').value = 3;
+    document.getElementById('grant-step-form').style.display = 'block';
+    document.getElementById('grant-step-result').style.display = 'none';
+    document.getElementById('grant-submit-btn').disabled = false;
+    document.getElementById('grant-submit-btn').textContent = 'Generate & Grant';
+    document.getElementById('grant-invites-modal').classList.add('open');
+  }
+
+  function closeGrantModal() {
+    document.getElementById('grant-invites-modal').classList.remove('open');
+    grantTargetUid = null;
+    lastGrantedCodes = [];
+  }
+
+  async function confirmGrantInvites() {
+    if (!grantTargetUid) return;
+    const count = parseInt(document.getElementById('grant-invite-count').value) || 0;
+    if (count < 1) { showToast('Enter a valid number'); return; }
+
+    const btn = document.getElementById('grant-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    try {
+      const targetUids = grantTargetUid === '__bulk__' ? [...selectedUserUids] : [grantTargetUid];
+      const allCodes = [];
+
+      // For each target user, generate codes and bump their invitesRemaining
+      for (const uid of targetUids) {
+        const codePromises = [];
+        for (let i = 0; i < count; i++) {
+          codePromises.push(createInviteCode(uid, '', 'admin'));
+        }
+        const codes = await Promise.all(codePromises);
+        const validCodes = codes.filter(Boolean);
+        allCodes.push(...validCodes);
+
+        // Also increment their invitesRemaining
+        await db.collection('users').doc(uid).update({
+          invitesRemaining: firebase.firestore.FieldValue.increment(count)
+        });
+      }
+
+      lastGrantedCodes = allCodes;
+
+      // Show the generated codes
+      const codesContainer = document.getElementById('grant-generated-codes');
+      codesContainer.innerHTML = `
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
+          Generated <strong>${allCodes.length}</strong> code${allCodes.length !== 1 ? 's' : ''} for <strong>${targetUids.length}</strong> user${targetUids.length !== 1 ? 's' : ''}:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto;">
+          ${allCodes.map(code => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--bg-alt); border-radius: 6px; border: 1px solid var(--border);">
+              <code style="font-size: 0.82rem; font-weight: 600; letter-spacing: 0.5px;">${escapeHtml(code)}</code>
+              <button class="btn btn-xs btn-outline" onclick="copyCode('${escapeHtml(code)}')" style="flex-shrink:0;">Copy</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Switch to result step
+      document.getElementById('grant-step-form').style.display = 'none';
+      document.getElementById('grant-step-result').style.display = 'block';
+
+      if (grantTargetUid === '__bulk__') clearSelection();
+      loadAllUsers();
+      loadOverviewStats();
+    } catch (e) {
+      console.error('Grant invites error:', e);
+      showToast('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = 'Generate & Grant';
+    }
+  }
+
+  // Close grant modal on backdrop click
+  document.getElementById('grant-invites-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeGrantModal();
+  });
+</script>
+</body>
+</html>

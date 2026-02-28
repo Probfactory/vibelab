@@ -6,20 +6,63 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
       const doc = await db.collection('users').doc(user.uid).get();
       if (doc.exists) {
         currentUserProfile = doc.data();
+
+        // Grandfather existing users: backfill new invite fields if missing
+        if (!currentUserProfile.hasOwnProperty('invitesRemaining')) {
+          try {
+            await db.collection('users').doc(user.uid).update({
+              invitesRemaining: 3,
+              status: 'active',
+              lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            currentUserProfile.invitesRemaining = 3;
+            currentUserProfile.status = 'active';
+          } catch (backfillErr) {
+            console.warn('Could not backfill invite fields:', backfillErr);
+          }
+        } else {
+          // Update lastActive for existing users
+          try {
+            await db.collection('users').doc(user.uid).update({
+              lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          } catch (laErr) {
+            console.warn('Could not update lastActive:', laErr);
+          }
+        }
+
+        // Handle Google OAuth incomplete signup (user exists in Auth but needs username)
+        if (user.providerData?.some(p => p.providerId === 'google.com') && !currentUserProfile.username) {
+          showGoogleCompleteSignup();
+        }
       } else {
-        currentUserProfile = {
-          displayName: user.displayName || '',
-          email: user.email,
-          username: window._pendingUsername || '',
-          bio: '',
-          company: '',
-          skills: [],
-          photoURL: user.photoURL || '',
-          socials: { twitter: '', github: '', website: '' },
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        await db.collection('users').doc(user.uid).set(currentUserProfile);
-        window._pendingUsername = null;
+        // New user — check if this is from email signup (has _pendingUsername) or Google OAuth
+        if (window._pendingUsername) {
+          // Email signup — create user doc
+          currentUserProfile = {
+            displayName: user.displayName || '',
+            email: user.email,
+            username: window._pendingUsername,
+            bio: '',
+            company: '',
+            skills: [],
+            photoURL: user.photoURL || '',
+            socials: { twitter: '', github: '', website: '' },
+            invitesRemaining: 3,
+            invitedBy: window._pendingInviteCreator || null,
+            inviteCode: window._pendingInviteCode || '',
+            status: 'active',
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          await db.collection('users').doc(user.uid).set(currentUserProfile);
+          window._pendingUsername = null;
+          window._pendingInviteCode = null;
+          window._pendingInviteCreator = null;
+        } else {
+          // Google OAuth — no user doc yet, show complete signup modal
+          showGoogleCompleteSignup();
+        }
       }
     } catch (e) {
       console.error('Profile loading error:', e);
@@ -53,6 +96,12 @@ function updateNav() {
       if (avatarText) { avatarText.textContent = initials; avatarText.style.display = 'flex'; }
       if (avatarImg) avatarImg.style.display = 'none';
     }
+
+    // Show admin link if superadmin
+    const adminLink = document.getElementById('nav-admin-link');
+    if (adminLink) {
+      adminLink.style.display = (currentUserProfile?.role === 'superadmin') ? 'block' : 'none';
+    }
   } else {
     loggedOutEl.style.display = 'flex';
     loggedInEl.style.display = 'none';
@@ -64,11 +113,23 @@ function openAuthModal(mode) {
   switchAuthMode(mode || 'login');
   document.getElementById('auth-modal').classList.add('open');
   clearAuthError();
+  // Hide Google complete section
+  const googleSection = document.getElementById('google-complete-section');
+  if (googleSection) googleSection.style.display = 'none';
+  const authForm = document.getElementById('auth-form');
+  if (authForm) authForm.style.display = 'block';
 }
 
 function closeAuthModal() {
   document.getElementById('auth-modal').classList.remove('open');
   clearAuthError();
+  // If Google user has no profile, sign them out on modal close
+  if (currentUser && !currentUserProfile?.username) {
+    const isGoogleUser = currentUser.providerData?.some(p => p.providerId === 'google.com');
+    if (isGoogleUser) {
+      auth.signOut().catch(e => console.error('Signout error:', e));
+    }
+  }
 }
 
 function switchAuthMode(mode) {
@@ -79,6 +140,8 @@ function switchAuthMode(mode) {
   if (nameGroup) nameGroup.style.display = isSignup ? 'block' : 'none';
   const usernameGroup = document.getElementById('username-group');
   if (usernameGroup) usernameGroup.style.display = isSignup ? 'block' : 'none';
+  const inviteGroup = document.getElementById('invite-code-group');
+  if (inviteGroup) inviteGroup.style.display = isSignup ? 'block' : 'none';
   const submitBtn = document.getElementById('auth-submit-btn');
   if (submitBtn) {
     submitBtn.textContent = isSignup ? 'Sign Up' : 'Log In';
@@ -108,6 +171,7 @@ async function signUpWithEmail() {
   const displayName = document.getElementById('auth-display-name').value.trim();
   const usernameRaw = document.getElementById('auth-username')?.value.trim() || '';
   const username = usernameRaw.toLowerCase();
+  const inviteCodeInput = document.getElementById('auth-invite-code')?.value.trim().toUpperCase() || '';
 
   if (!email || !password || !displayName || !username) { showAuthError('Please fill in all fields'); return; }
   if (password.length < 6) { showAuthError('Password must be at least 6 characters'); return; }
@@ -116,12 +180,25 @@ async function signUpWithEmail() {
   const validation = validateUsername(username);
   if (!validation.valid) { showAuthError(validation.error); return; }
 
-  // Check availability
+  // Check username availability
   try {
     const available = await checkUsernameAvailable(username);
     if (!available) { showAuthError('Username is already taken'); return; }
   } catch (e) {
     showAuthError('Error checking username. Please try again.'); return;
+  }
+
+  // Validate invite code (skip if no superadmin exists — bootstrap mode)
+  let inviteResult = null;
+  try {
+    const adminExists = await checkSuperAdminExists();
+    if (adminExists) {
+      if (!inviteCodeInput) { showAuthError('Invite code is required'); return; }
+      inviteResult = await validateInviteCode(inviteCodeInput);
+      if (!inviteResult.valid) { showAuthError(inviteResult.error); return; }
+    }
+  } catch (e) {
+    showAuthError('Error validating invite code. Please try again.'); return;
   }
 
   try {
@@ -134,6 +211,13 @@ async function signUpWithEmail() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
+    // Redeem invite code if one was used
+    if (inviteResult && inviteResult.valid) {
+      await redeemInviteCode(inviteCodeInput, result.user.uid, displayName);
+      window._pendingInviteCode = inviteCodeInput;
+      window._pendingInviteCreator = inviteResult.codeData?.createdBy || null;
+    }
+
     // Store username as pending so onAuthStateChanged picks it up
     window._pendingUsername = username;
 
@@ -142,6 +226,7 @@ async function signUpWithEmail() {
     document.getElementById('auth-password').value = '';
     document.getElementById('auth-display-name').value = '';
     if (document.getElementById('auth-username')) document.getElementById('auth-username').value = '';
+    if (document.getElementById('auth-invite-code')) document.getElementById('auth-invite-code').value = '';
   } catch (error) {
     showAuthError(error.message);
   }
@@ -156,9 +241,124 @@ function logInWithEmail() {
     .catch(error => showAuthError(error.message));
 }
 
-function signInWithGoogle() {
+async function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).then(() => closeAuthModal()).catch(error => showAuthError(error.message));
+  try {
+    const result = await auth.signInWithPopup(provider);
+    const userDoc = await db.collection('users').doc(result.user.uid).get();
+
+    if (userDoc.exists && userDoc.data().username) {
+      // Existing user with complete profile — normal login
+      closeAuthModal();
+    } else {
+      // New Google user or incomplete profile — show complete signup form
+      showGoogleCompleteSignup();
+    }
+  } catch (error) {
+    showAuthError(error.message);
+  }
+}
+
+// Show the "Complete Signup" section for Google OAuth users who need username + invite code
+function showGoogleCompleteSignup() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.classList.add('open');
+
+  const authForm = document.getElementById('auth-form');
+  if (authForm) authForm.style.display = 'none';
+
+  const tabsEl = document.querySelector('.auth-tabs');
+  if (tabsEl) tabsEl.style.display = 'none';
+
+  const switchEl = document.querySelector('.auth-switch');
+  if (switchEl) switchEl.style.display = 'none';
+
+  const googleSection = document.getElementById('google-complete-section');
+  if (googleSection) googleSection.style.display = 'block';
+
+  clearAuthError();
+}
+
+// Complete Google OAuth signup with username + invite code
+async function completeGoogleSignup() {
+  if (!currentUser) { showAuthError('Not signed in'); return; }
+
+  const usernameRaw = document.getElementById('google-username')?.value.trim() || '';
+  const username = usernameRaw.toLowerCase();
+  const inviteCodeInput = document.getElementById('google-invite-code')?.value.trim().toUpperCase() || '';
+
+  if (!username) { showAuthError('Username is required'); return; }
+
+  // Validate username
+  const validation = validateUsername(username);
+  if (!validation.valid) { showAuthError(validation.error); return; }
+
+  try {
+    const available = await checkUsernameAvailable(username);
+    if (!available) { showAuthError('Username is already taken'); return; }
+  } catch (e) {
+    showAuthError('Error checking username. Please try again.'); return;
+  }
+
+  // Validate invite code (skip if no superadmin — bootstrap mode)
+  let inviteResult = null;
+  try {
+    const adminExists = await checkSuperAdminExists();
+    if (adminExists) {
+      if (!inviteCodeInput) { showAuthError('Invite code is required'); return; }
+      inviteResult = await validateInviteCode(inviteCodeInput);
+      if (!inviteResult.valid) { showAuthError(inviteResult.error); return; }
+    }
+  } catch (e) {
+    showAuthError('Error validating invite code. Please try again.'); return;
+  }
+
+  try {
+    // Claim username
+    await db.collection('usernames').doc(username).set({
+      uid: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Redeem invite code
+    if (inviteResult && inviteResult.valid) {
+      await redeemInviteCode(inviteCodeInput, currentUser.uid, currentUser.displayName || '');
+    }
+
+    // Create user profile
+    currentUserProfile = {
+      displayName: currentUser.displayName || '',
+      email: currentUser.email,
+      username: username,
+      bio: '',
+      company: '',
+      skills: [],
+      photoURL: currentUser.photoURL || '',
+      socials: { twitter: '', github: '', website: '' },
+      invitesRemaining: 3,
+      invitedBy: inviteResult?.codeData?.createdBy || null,
+      inviteCode: inviteCodeInput || '',
+      status: 'active',
+      lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('users').doc(currentUser.uid).set(currentUserProfile);
+
+    // Restore modal UI
+    const tabsEl = document.querySelector('.auth-tabs');
+    if (tabsEl) tabsEl.style.display = '';
+    const switchEl = document.querySelector('.auth-switch');
+    if (switchEl) switchEl.style.display = '';
+
+    updateNav();
+    closeAuthModal();
+    showToast('Welcome to VibeLab! 🎉');
+
+    // Re-fire auth event so page-specific logic runs
+    window.dispatchEvent(new CustomEvent('authStateReady', { detail: { user: currentUser, profile: currentUserProfile } }));
+  } catch (error) {
+    showAuthError(error.message);
+  }
 }
 
 function logOut() {
@@ -332,6 +532,8 @@ function initUsernameCheck() {
   _attachUsernameChecker('auth-username', 'username-status', '');
   // Profile edit modal
   _attachUsernameChecker('profile-username', 'profile-username-status', currentUserProfile?.username || '');
+  // Google complete signup
+  _attachUsernameChecker('google-username', 'google-username-status', '');
 }
 
 // Initialize profile photo input listener (retry until element exists after initPage injects modals)

@@ -21,11 +21,19 @@
       <!-- Profile Header -->
       <div class="profile-header" id="profile-header"></div>
 
-      <!-- Guest CTA (shown only to logged-out users) -->
+      <!-- Guest CTA (shown for non-logged-in visitors) -->
       <div class="guest-cta-box" id="profile-guest-cta" style="display: none;">
         <h3>Join VibeLab to connect with creators</h3>
         <p>Sign up to follow creators, vibe with projects, and share your own builds.</p>
         <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
+      </div>
+
+      <!-- Invite Friends Section (only shown for own profile) -->
+      <div id="invite-section" class="invite-section" style="display: none;">
+        <h3>🎟️ Invite Friends</h3>
+        <p class="invite-count">You have <strong id="invite-remaining-count">0</strong> invites remaining</p>
+        <button class="btn btn-primary btn-sm" id="generate-invite-btn" onclick="generateUserInvite()">Generate Invite Code</button>
+        <div class="invite-codes-grid" id="my-invite-codes"></div>
       </div>
 
       <!-- Profile Tabs -->
@@ -145,6 +153,11 @@ async function loadProfile() {
 
     renderProfileHeader(profileData, counts, isFollowing, isOwn, projectCount);
     loadProfileProjects();
+
+    // Show invite section for own profile
+    if (isOwn) {
+      showInviteSection();
+    }
 
     document.getElementById('profile-loading').style.display = 'none';
     document.getElementById('profile-content').style.display = 'block';
@@ -520,9 +533,104 @@ async function handleProfileFollow() {
   await toggleFollow(profileUserId, btn);
 }
 
-// Load profile for all visitors (logged-in or guest)
+// ── Invite Friends Section ──
+
+async function showInviteSection() {
+  const section = document.getElementById('invite-section');
+  if (!section || !currentUser) return;
+
+  section.style.display = 'block';
+  const remaining = currentUserProfile?.invitesRemaining ?? 0;
+  document.getElementById('invite-remaining-count').textContent = remaining;
+
+  // Disable generate button if no invites left
+  const genBtn = document.getElementById('generate-invite-btn');
+  if (genBtn) {
+    genBtn.disabled = remaining <= 0;
+    if (remaining <= 0) genBtn.textContent = 'No invites remaining';
+  }
+
+  // Load user's invite codes
+  loadMyInviteCodes();
+}
+
+async function loadMyInviteCodes() {
+  const container = document.getElementById('my-invite-codes');
+  if (!container || !currentUser) return;
+
+  try {
+    let snap;
+    try {
+      snap = await db.collection('inviteCodes')
+        .where('createdBy', '==', currentUser.uid)
+        .orderBy('createdAt', 'desc')
+        .get();
+    } catch (indexErr) {
+      // Fallback: query without ordering if composite index doesn't exist yet
+      console.warn('Invite codes index not ready, using fallback:', indexErr.message);
+      snap = await db.collection('inviteCodes')
+        .where('createdBy', '==', currentUser.uid)
+        .get();
+    }
+
+    if (snap.empty) {
+      container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">No invite codes generated yet.</p>';
+      return;
+    }
+
+    // Sort client-side (needed for fallback query without orderBy)
+    const docs = snap.docs.slice().sort((a, b) => {
+      const aTime = a.data().createdAt?.toDate?.() || new Date(0);
+      const bTime = b.data().createdAt?.toDate?.() || new Date(0);
+      return bTime - aTime;
+    });
+
+    container.innerHTML = docs.map(d => {
+      const c = d.data();
+      const isUsed = c.status === 'used';
+      return `
+        <div class="invite-code-card ${isUsed ? 'used' : ''}">
+          <span>${escapeHtml(c.code)}</span>
+          ${isUsed
+            ? '<span style="font-size: 0.75rem; color: var(--text-muted); font-family: Inter, sans-serif;">Used</span>'
+            : `<button class="copy-btn" onclick="event.stopPropagation(); navigator.clipboard.writeText('${escapeHtml(c.code)}'); showToast('Copied!');">📋</button>`
+          }
+        </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('Load invite codes error:', e);
+    container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Error loading invite codes.</p>';
+  }
+}
+
+async function generateUserInvite() {
+  if (!currentUser || !currentUserProfile) return;
+  const remaining = currentUserProfile.invitesRemaining ?? 0;
+  if (remaining <= 0) { showToast('No invites remaining'); return; }
+
+  try {
+    const code = await createInviteCode(currentUser.uid, currentUserProfile.displayName || '', 'user');
+    if (code) {
+      // Update local state
+      currentUserProfile.invitesRemaining = remaining - 1;
+      document.getElementById('invite-remaining-count').textContent = currentUserProfile.invitesRemaining;
+
+      const genBtn = document.getElementById('generate-invite-btn');
+      if (genBtn && currentUserProfile.invitesRemaining <= 0) {
+        genBtn.disabled = true;
+        genBtn.textContent = 'No invites remaining';
+      }
+
+      showToast('Invite code generated: ' + code);
+      loadMyInviteCodes();
+    }
+  } catch (e) {
+    showToast('Error generating invite: ' + e.message);
+  }
+}
+
+// Wait for auth then load (public profiles — loads for everyone)
 window.addEventListener('authStateReady', (e) => {
-  // Show/hide guest CTA
   const guestCta = document.getElementById('profile-guest-cta');
   if (guestCta) {
     guestCta.style.display = e.detail.user ? 'none' : 'block';
@@ -530,7 +638,7 @@ window.addEventListener('authStateReady', (e) => {
   loadProfile();
 });
 
-// Fallback load if auth takes too long (works for guests too)
+// Fallback load
 setTimeout(() => {
   if (!profileData) loadProfile();
 }, 2000);

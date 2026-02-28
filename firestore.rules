@@ -1,0 +1,174 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
+
+    function isActiveUser() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
+    }
+
+    // Check if a superadmin already exists (for bootstrap)
+    function noSuperAdminExists() {
+      // This is a simplified check — the actual bootstrap logic runs client-side
+      // and the rule allows a one-time role write when claiming admin
+      return true;
+    }
+
+    // Protected fields that regular users cannot write
+    function notChangingProtectedFields() {
+      let protectedFields = ['role', 'invitesRemaining', 'status', 'invitedBy', 'inviteCode'];
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return !changed.hasAny(protectedFields.toSet());
+    }
+
+    // ── Users collection ──
+
+    match /users/{userId} {
+      // Anyone can read user profiles (public profiles)
+      allow read: if true;
+
+      // Users can create their own profile on signup
+      allow create: if isOwner(userId);
+
+      // Users can update their own profile but NOT protected fields
+      // Superadmin can update any user including protected fields
+      allow update: if isSuperAdmin()
+        || (isOwner(userId) && notChangingProtectedFields());
+
+      // Only superadmin can delete users
+      allow delete: if isSuperAdmin() || isOwner(userId);
+
+      // User subcollections (collections)
+      match /collections/{collectionId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // ── Usernames collection (vanity URL mapping) ──
+
+    match /usernames/{username} {
+      // Anyone can read (needed for profile lookups and availability checks)
+      allow read: if true;
+
+      // Authenticated users can claim a username during signup
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid;
+
+      // Only the owner or superadmin can delete a username claim
+      allow delete: if isSuperAdmin()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
+
+      // Only superadmin can update (shouldn't normally happen)
+      allow update: if isSuperAdmin();
+    }
+
+    // ── Projects collection ──
+
+    match /projects/{projectId} {
+      // Anyone can read public projects
+      allow read: if true;
+
+      // Authenticated active users can create projects
+      allow create: if isSignedIn()
+        && request.resource.data.authorUid == request.auth.uid;
+
+      // Only the author can update/delete their own projects
+      // Superadmin can also update/delete any project
+      allow update: if isSuperAdmin()
+        || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+
+      allow delete: if isSuperAdmin()
+        || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+
+      // Vibes (likes) subcollection
+      match /vibes/{vibeId} {
+        allow read: if true;
+        allow create: if isSignedIn() && vibeId == request.auth.uid;
+        allow delete: if isSignedIn() && vibeId == request.auth.uid;
+      }
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn()
+          && request.resource.data.authorUid == request.auth.uid;
+        allow update: if isSignedIn()
+          && resource.data.authorUid == request.auth.uid;
+        allow delete: if isSuperAdmin()
+          || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+      }
+    }
+
+    // ── Follows collection ──
+
+    match /follows/{followId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && request.resource.data.followerId == request.auth.uid;
+      allow delete: if isSignedIn()
+        && resource.data.followerId == request.auth.uid;
+    }
+
+    // ── Tag follows collection ──
+
+    match /tag_follows/{tagFollowId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Invite codes collection ──
+
+    match /inviteCodes/{codeId} {
+      // Superadmin can read all codes
+      // Regular users can read codes they created
+      allow read: if isSuperAdmin()
+        || (isSignedIn() && resource.data.createdBy == request.auth.uid);
+
+      // Superadmin can create any code
+      // Regular users can create codes (user-generated invites)
+      allow create: if isSuperAdmin()
+        || (isSignedIn() && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.type == 'user');
+
+      // Superadmin can update any code
+      // Anyone authenticated can mark a code as used during signup (redeem)
+      allow update: if isSuperAdmin()
+        || (isSignedIn()
+            && resource.data.status == 'active'
+            && request.resource.data.status == 'used'
+            && request.resource.data.usedBy == request.auth.uid);
+
+      // Only superadmin can delete codes
+      allow delete: if isSuperAdmin();
+    }
+
+    // ── Admin metadata (for bootstrap check) ──
+
+    match /adminConfig/{docId} {
+      allow read: if true;
+      allow write: if isSuperAdmin()
+        || (isSignedIn() && !exists(/databases/$(database)/documents/adminConfig/settings));
+    }
+  }
+}

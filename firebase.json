@@ -1,7 +1,7 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", ".firebase", ".git", ".claude", "node_modules"],
+    "ignore": ["firebase.json", "firestore.rules", ".firebase", ".git", ".claude", "node_modules"],
     "cleanUrls": true,
     "rewrites": [
       { "source": "/explore", "destination": "/explore.html" },
@@ -11,7 +11,11 @@
       { "source": "/vibe", "destination": "/vibe.html" },
       { "source": "/project", "destination": "/vibe.html" },
       { "source": "/my-vibes", "destination": "/my-vibes.html" },
+      { "source": "/admin", "destination": "/admin.html" },
       { "source": "/:username", "destination": "/profile.html" }
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
   }
 }
