@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — VibeLab</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17Z'/></svg>">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="profile-page">
+  <div class="container">
+    <!-- Loading -->
+    <div id="profile-loading" class="loading-spinner" style="padding: 80px 0;"><div class="spinner"></div></div>
+
+    <!-- Profile Content -->
+    <div id="profile-content" style="display: none;">
+      <!-- Profile Header -->
+      <div class="profile-header" id="profile-header"></div>
+
+      <!-- Guest CTA (shown for non-logged-in visitors) -->
+      <div class="guest-cta-box" id="profile-guest-cta" style="display: none;">
+        <h3>Join VibeLab to connect with creators</h3>
+        <p>Sign up to follow creators, vibe with projects, and share your own builds.</p>
+        <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
+      </div>
+
+      <!-- Invite Friends Section (only shown for own profile) -->
+      <div id="invite-section" class="invite-section" style="display: none;">
+        <h3>🎟️ Invite Friends</h3>
+        <p class="invite-count">You have <strong id="invite-remaining-count">0</strong> invites remaining</p>
+        <button class="btn btn-primary btn-sm" id="generate-invite-btn" onclick="generateUserInvite()">Generate Invite Code</button>
+        <div class="invite-codes-grid" id="my-invite-codes"></div>
+      </div>
+
+      <!-- Profile Tabs -->
+      <div class="profile-tabs">
+        <button class="profile-tab active" onclick="switchProfileTab('vibes', this)">Vibes</button>
+        <button class="profile-tab" onclick="switchProfileTab('collections', this)">Collections</button>
+      </div>
+
+      <!-- Tab Content: Vibes (projects) -->
+      <div id="tab-vibes">
+        <div class="project-grid" id="profile-projects-grid">
+          <div class="loading-spinner"><div class="spinner"></div></div>
+        </div>
+        <div class="empty-state" id="profile-empty" style="display: none;">
+          <div class="empty-icon">&#127912;</div>
+          <h3>No vibes yet</h3>
+          <p>This creator hasn't shared any projects yet.</p>
+        </div>
+      </div>
+
+      <!-- Tab Content: Collections -->
+      <div id="tab-collections" style="display: none;">
+        <div class="collections-grid" id="profile-collections-grid"></div>
+        <div class="empty-state" id="collections-empty" style="display: none;">
+          <div class="empty-icon">&#128278;</div>
+          <h3>No collections yet</h3>
+          <p>Saved vibes will appear here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+<div id="modals-container"></div>
+
+<!-- Core UI (no Firebase dependency) -->
+<script src="js/shared.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+<!-- App JS (depends on Firebase) -->
+<script src="js/firebase-config.js"></script>
+<script src="js/auth.js"></script>
+
+<script>
+initPage('profile');
+
+let profileUserId = getUrlParam('id');
+let profileData = null;
+
+// Resolve vanity username from URL path to a UID
+async function resolveProfileUser() {
+  // 1. Already have an ID from query param? Use it directly
+  if (profileUserId) return true;
+
+  // 2. Check if this is a vanity URL (e.g. /probg)
+  const username = getUsernameFromPath();
+  if (username) {
+    try {
+      const usernameDoc = await db.collection('usernames').doc(username).get();
+      if (usernameDoc.exists) {
+        profileUserId = usernameDoc.data().uid;
+        return true;
+      } else {
+        // Username not found — show a proper 404
+        document.getElementById('profile-loading').innerHTML = '<div class="empty-state" style="padding: 80px 0; text-align: center;"><div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128566;</div><h3>Page not found</h3><p style="color: var(--text-muted); margin-bottom: 24px;">Nothing exists at <strong>' + escapeHtml(window.location.pathname) + '</strong></p><a href="/explore" class="btn btn-primary btn-sm">Explore Vibes</a></div>';
+        return false;
+      }
+    } catch (e) {
+      console.error('Username lookup error:', e);
+    }
+  }
+
+  // 3. If logged in with no params and no vanity path, show own profile
+  if (currentUser) {
+    profileUserId = currentUser.uid;
+    return true;
+  }
+
+  // 4. Not logged in and no identifier — show 404
+  document.getElementById('profile-loading').innerHTML = '<div class="empty-state" style="padding: 80px 0; text-align: center;"><div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128566;</div><h3>Page not found</h3><p style="color: var(--text-muted); margin-bottom: 24px;">The page you\'re looking for doesn\'t exist.</p><a href="/explore" class="btn btn-primary btn-sm">Explore Vibes</a></div>';
+  return false;
+}
+
+async function loadProfile() {
+  const resolved = await resolveProfileUser();
+  if (!resolved) return;
+
+  if (!profileUserId) {
+    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>No user ID specified.</p><br><a href="/explore" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+    return;
+  }
+
+  try {
+    const userDoc = await db.collection('users').doc(profileUserId).get();
+    if (!userDoc.exists) {
+      document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>This user doesn\'t exist.</p><br><a href="/explore" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+      return;
+    }
+
+    profileData = userDoc.data();
+    document.title = (profileData.displayName || 'Creator') + ' — VibeLab';
+
+    const counts = await getFollowCounts(profileUserId);
+    const isFollowing = currentUser ? await checkIfFollowing(profileUserId) : false;
+    const isOwn = currentUser && currentUser.uid === profileUserId;
+
+    // Count projects
+    let projectCount = 0;
+    try {
+      const projSnap = await db.collection('projects').where('authorUid', '==', profileUserId).get();
+      projectCount = projSnap.size;
+    } catch (e) {}
+
+    renderProfileHeader(profileData, counts, isFollowing, isOwn, projectCount);
+    loadProfileProjects();
+
+    // Show invite section for own profile
+    if (isOwn) {
+      showInviteSection();
+    }
+
+    document.getElementById('profile-loading').style.display = 'none';
+    document.getElementById('profile-content').style.display = 'block';
+  } catch (e) {
+    console.error('Load profile error:', e);
+    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Error loading profile</h3><p>' + e.message + '</p></div>';
+  }
+}
+
+let isEditMode = false;
+
+function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) {
+  const header = document.getElementById('profile-header');
+  const name = profile.displayName || 'Creator';
+  const initial = name[0].toUpperCase();
+
+  header.innerHTML = `
+    <!-- VIEW MODE -->
+    <div class="profile-view-mode" id="profile-view-mode">
+      <div class="profile-avatar-lg" style="background: var(--purple);">
+        ${profile.photoURL ? '<img src="' + profile.photoURL + '">' : initial}
+      </div>
+      <div class="profile-details">
+        <div class="profile-name-row">
+          <h1 class="profile-name">${escapeHtml(name)}</h1>
+          ${isOwn ? '<button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Edit Profile</button>' :
+            '<button class="follow-btn ' + (isFollowing ? 'following' : 'not-following') + '" id="profile-follow-btn" onclick="handleProfileFollow()" style="width:auto; padding: 8px 24px;">' + (isFollowing ? 'Following' : 'Follow') + '</button>'}
+        </div>
+        ${profile.username ? '<div class="profile-handle" style="color: var(--text-muted); font-size: 0.95rem;">vibelab.in/' + escapeHtml(profile.username) + '</div>' : ''}
+        ${profile.company ? '<div class="profile-handle">' + escapeHtml(profile.company) + '</div>' : ''}
+        ${profile.bio ? '<p class="profile-bio-text">' + escapeHtml(profile.bio) + '</p>' : ''}
+        <div class="profile-stats">
+          <span class="profile-stat"><strong>${projectCount}</strong> vibes</span>
+          <span class="profile-stat"><strong>${counts.followers}</strong> followers</span>
+          <span class="profile-stat"><strong>${counts.following}</strong> following</span>
+        </div>
+        ${(profile.skills && profile.skills.length > 0) ? '<div class="profile-skills"><span class="profile-skills-label">Skills & Interests:</span>' + profile.skills.map(s => '<span class="profile-skill-tag">' + escapeHtml(s) + '</span>').join('') + '</div>' : ''}
+        <div class="profile-social-links">
+          ${profile.socials?.twitter ? '<a href="https://twitter.com/' + profile.socials.twitter.replace('@', '') + '" target="_blank" class="profile-social-link">&#120143; Twitter</a>' : ''}
+          ${profile.socials?.github ? '<a href="https://github.com/' + profile.socials.github + '" target="_blank" class="profile-social-link">&#128187; GitHub</a>' : ''}
+          ${profile.socials?.website ? '<a href="' + profile.socials.website + '" target="_blank" class="profile-social-link">&#127760; Website</a>' : ''}
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT MODE -->
+    <div class="profile-edit-mode" id="profile-edit-mode" style="display: none;">
+      <div class="profile-edit-avatar" onclick="document.getElementById('inline-photo-input').click()">
+        <div class="profile-avatar-lg" style="background: var(--purple);" id="edit-avatar-display">
+          ${profile.photoURL ? '<img src="' + profile.photoURL + '" id="edit-avatar-img">' : '<span id="edit-avatar-initial">' + initial + '</span>'}
+        </div>
+        <div class="edit-avatar-overlay">&#128248; Change</div>
+        <input type="file" id="inline-photo-input" accept="image/*" style="display:none;" onchange="handleInlinePhotoUpload(event)">
+      </div>
+      <div class="profile-edit-fields">
+        <div class="form-group">
+          <label>Username</label>
+          <div class="username-input-wrapper">
+            <span class="username-prefix">vibelab.in/</span>
+            <input type="text" id="edit-username" value="${escapeHtml(profile.username || '')}" autocomplete="off">
+          </div>
+          <div class="username-status" id="edit-username-status"></div>
+        </div>
+        <div class="form-group">
+          <label>Display Name</label>
+          <input type="text" id="edit-display-name" value="${escapeHtml(profile.displayName || '')}">
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea id="edit-bio" rows="3">${escapeHtml(profile.bio || '')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Company</label>
+          <input type="text" id="edit-company" value="${escapeHtml(profile.company || '')}">
+        </div>
+        <div class="form-group">
+          <label>Skills & Interests</label>
+          <input type="text" id="edit-skills" value="${escapeHtml((profile.skills || []).join(', '))}" placeholder="e.g. React, Creative Coding, AI (comma separated)">
+        </div>
+        <div class="form-group">
+          <label>Twitter / X Handle</label>
+          <input type="text" id="edit-twitter" value="${escapeHtml(profile.socials?.twitter || '')}" placeholder="@yourhandle">
+        </div>
+        <div class="form-group">
+          <label>GitHub Username</label>
+          <input type="text" id="edit-github" value="${escapeHtml(profile.socials?.github || '')}" placeholder="yourusername">
+        </div>
+        <div class="form-group">
+          <label>Website URL</label>
+          <input type="url" id="edit-website" value="${escapeHtml(profile.socials?.website || '')}" placeholder="https://yoursite.com">
+        </div>
+        <div class="profile-edit-actions">
+          <button class="btn btn-primary btn-sm" onclick="saveInlineProfile()">Save Changes</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Cancel</button>
+        </div>
+        <div class="profile-danger-zone">
+          <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let inlinePhotoFile = null;
+
+function handleInlinePhotoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  inlinePhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const avatarDisplay = document.getElementById('edit-avatar-display');
+    if (avatarDisplay) {
+      avatarDisplay.innerHTML = '<img src="' + ev.target.result + '" id="edit-avatar-img">';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function toggleProfileEdit() {
+  isEditMode = !isEditMode;
+  const viewMode = document.getElementById('profile-view-mode');
+  const editMode = document.getElementById('profile-edit-mode');
+  if (viewMode) viewMode.style.display = isEditMode ? 'none' : 'flex';
+  if (editMode) editMode.style.display = isEditMode ? 'flex' : 'none';
+}
+
+async function saveInlineProfile() {
+  if (!currentUser) return;
+
+  try {
+    let photoURL = profileData?.photoURL || '';
+
+    // Upload new photo if selected
+    if (inlinePhotoFile) {
+      const storageRef = storage.ref('profile-photos/' + currentUser.uid);
+      await storageRef.put(inlinePhotoFile);
+      photoURL = await storageRef.getDownloadURL();
+      inlinePhotoFile = null;
+    }
+
+    const skillsInput = document.getElementById('edit-skills')?.value.trim() || '';
+    const skills = skillsInput ? skillsInput.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+    // Handle username change
+    const newUsername = (document.getElementById('edit-username')?.value || '').trim().toLowerCase();
+    const oldUsername = profileData?.username || '';
+
+    if (newUsername && newUsername !== oldUsername) {
+      const validation = validateUsername(newUsername);
+      if (!validation.valid) { showToast(validation.error); return; }
+      const available = await checkUsernameAvailable(newUsername);
+      if (!available) { showToast('Username is already taken'); return; }
+      if (oldUsername) await db.collection('usernames').doc(oldUsername).delete();
+      await db.collection('usernames').doc(newUsername).set({
+        uid: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    const updatedProfile = {
+      displayName: document.getElementById('edit-display-name').value.trim(),
+      username: newUsername || oldUsername,
+      bio: document.getElementById('edit-bio').value.trim(),
+      company: document.getElementById('edit-company').value.trim(),
+      skills: skills,
+      photoURL: photoURL,
+      socials: {
+        twitter: document.getElementById('edit-twitter').value.trim(),
+        github: document.getElementById('edit-github').value.trim(),
+        website: document.getElementById('edit-website').value.trim()
+      }
+    };
+
+    await db.collection('users').doc(currentUser.uid).update(updatedProfile);
+    profileData = { ...profileData, ...updatedProfile };
+    currentUserProfile = { ...currentUserProfile, ...updatedProfile };
+    updateNav();
+
+    // Re-render in view mode
+    isEditMode = false;
+    const counts = await getFollowCounts(profileUserId);
+    let projectCount = 0;
+    try {
+      const projSnap = await db.collection('projects').where('authorUid', '==', profileUserId).get();
+      projectCount = projSnap.size;
+    } catch (e) {}
+    renderProfileHeader(profileData, counts, false, true, projectCount);
+
+    showToast('Profile updated successfully!');
+  } catch (error) {
+    console.error('Profile save error:', error);
+    showToast('Error saving profile: ' + error.message);
+  }
+}
+
+async function deleteAccount() {
+  if (!currentUser) return;
+
+  const confirmed = confirm('Are you sure you want to delete your account? This will permanently delete your profile and all your projects. This cannot be undone.');
+  if (!confirmed) return;
+
+  const doubleConfirm = confirm('This is permanent and cannot be undone. Are you sure?');
+  if (!doubleConfirm) return;
+
+  try {
+    // Delete all user's projects
+    const projSnap = await db.collection('projects').where('authorUid', '==', currentUser.uid).get();
+    const batch = db.batch();
+    projSnap.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+
+    // Delete username claim
+    if (profileData?.username) {
+      await db.collection('usernames').doc(profileData.username).delete();
+    }
+
+    // Delete user profile document
+    await db.collection('users').doc(currentUser.uid).delete();
+
+    // Delete Firebase Auth account
+    await currentUser.delete();
+
+    showToast('Account deleted. Goodbye!');
+    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+  } catch (error) {
+    console.error('Delete account error:', error);
+    if (error.code === 'auth/requires-recent-login') {
+      showToast('Please log out and log back in before deleting your account (security requirement).');
+    } else {
+      showToast('Error deleting account: ' + error.message);
+    }
+  }
+}
+
+async function loadProfileProjects() {
+  const grid = document.getElementById('profile-projects-grid');
+  const empty = document.getElementById('profile-empty');
+
+  try {
+    let snapshot;
+    try {
+      snapshot = await db.collection('projects')
+        .where('authorUid', '==', profileUserId)
+        .orderBy('createdAt', 'desc')
+        .limit(30)
+        .get();
+    } catch (indexErr) {
+      // Fallback: query without ordering if composite index doesn't exist
+      console.warn('Index not ready, using fallback query:', indexErr.message);
+      snapshot = await db.collection('projects')
+        .where('authorUid', '==', profileUserId)
+        .limit(30)
+        .get();
+    }
+
+    if (snapshot.empty) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      const projects = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date()
+      }));
+      // Sort client-side as fallback
+      projects.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      grid.innerHTML = projects.map(p => renderProjectCard(p)).join('');
+    }
+  } catch (e) {
+    console.error('Load profile projects error:', e);
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+  }
+}
+
+async function loadProfileCollections() {
+  const grid = document.getElementById('profile-collections-grid');
+  const empty = document.getElementById('collections-empty');
+  const isOwn = currentUser && currentUser.uid === profileUserId;
+
+  if (!isOwn) {
+    grid.innerHTML = '';
+    empty.innerHTML = '<div class="empty-icon">&#128274;</div><h3>Private</h3><p>Collections are only visible to their owner.</p>';
+    empty.style.display = 'block';
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection('users').doc(profileUserId).collection('collections').get();
+
+    if (snapshot.empty) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      let html = '';
+      for (const doc of snapshot.docs) {
+        const col = doc.data();
+        const count = (col.projectIds || []).length;
+        html += `
+          <div class="collection-card" onclick="viewCollection('${doc.id}')">
+            <div class="collection-preview-grid">
+              ${[0,1,2,3].map(i => `<div class="collection-preview-item" style="background: ${gradMap[['web','art','game','tool','ai'][i % 5]]};"></div>`).join('')}
+            </div>
+            <h4>${escapeHtml(col.name)}</h4>
+            <p>${count} vibe${count !== 1 ? 's' : ''}</p>
+          </div>`;
+      }
+      html += `
+        <div class="collection-card" onclick="openSaveModal('')" style="display:flex;align-items:center;justify-content:center;min-height:180px;border-style:dashed;">
+          <div style="text-align:center;color:var(--text-muted);">
+            <div style="font-size:2rem;margin-bottom:8px;">+</div>
+            <p>New Collection</p>
+          </div>
+        </div>`;
+      grid.innerHTML = html;
+    }
+  } catch (e) {
+    console.error('Load collections error:', e);
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+  }
+}
+
+async function viewCollection(collectionId) {
+  // Could navigate to a collection detail page, for now show projects
+  if (!currentUser || currentUser.uid !== profileUserId) return;
+
+  try {
+    const colDoc = await db.collection('users').doc(profileUserId).collection('collections').doc(collectionId).get();
+    if (!colDoc.exists) return;
+    const col = colDoc.data();
+    const projectIds = col.projectIds || [];
+
+    if (projectIds.length === 0) {
+      showToast('This collection is empty');
+      return;
+    }
+
+    // Switch to vibes tab and show collection projects
+    switchProfileTab('vibes', document.querySelector('.profile-tab'));
+    const grid = document.getElementById('profile-projects-grid');
+    grid.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+    // Load each project (limited to 10 at a time by Firestore 'in')
+    const batch = projectIds.slice(0, 10);
+    const snap = await db.collection('projects').where(firebase.firestore.FieldPath.documentId(), 'in', batch).get();
+    const projects = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt?.toDate() || new Date() }));
+
+    grid.innerHTML = '<div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;"><button class="btn btn-outline btn-sm" onclick="loadProfileProjects();document.querySelector(\'.profile-tab\').click();">&#8592; Back</button><h3 style="font-size:1.1rem;">' + escapeHtml(col.name) + '</h3></div>' + projects.map(p => renderProjectCard(p)).join('');
+  } catch (e) {
+    console.error('View collection error:', e);
+  }
+}
+
+function switchProfileTab(tab, btn) {
+  document.querySelectorAll('.profile-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.getElementById('tab-vibes').style.display = tab === 'vibes' ? 'block' : 'none';
+  document.getElementById('tab-collections').style.display = tab === 'collections' ? 'block' : 'none';
+
+  if (tab === 'collections') {
+    loadProfileCollections();
+  }
+}
+
+async function handleProfileFollow() {
+  if (!requireAuth('follow creators')) return;
+  const btn = document.getElementById('profile-follow-btn');
+  await toggleFollow(profileUserId, btn);
+}
+
+// ── Invite Friends Section ──
+
+async function showInviteSection() {
+  const section = document.getElementById('invite-section');
+  if (!section || !currentUser) return;
+
+  section.style.display = 'block';
+  const remaining = currentUserProfile?.invitesRemaining ?? 0;
+  document.getElementById('invite-remaining-count').textContent = remaining;
+
+  // Disable generate button if no invites left
+  const genBtn = document.getElementById('generate-invite-btn');
+  if (genBtn) {
+    genBtn.disabled = remaining <= 0;
+    if (remaining <= 0) genBtn.textContent = 'No invites remaining';
+  }
+
+  // Load user's invite codes
+  loadMyInviteCodes();
+}
+
+async function loadMyInviteCodes() {
+  const container = document.getElementById('my-invite-codes');
+  if (!container || !currentUser) return;
+
+  try {
+    let snap;
+    try {
+      snap = await db.collection('inviteCodes')
+        .where('createdBy', '==', currentUser.uid)
+        .orderBy('createdAt', 'desc')
+        .get();
+    } catch (indexErr) {
+      // Fallback: query without ordering if composite index doesn't exist yet
+      console.warn('Invite codes index not ready, using fallback:', indexErr.message);
+      snap = await db.collection('inviteCodes')
+        .where('createdBy', '==', currentUser.uid)
+        .get();
+    }
+
+    if (snap.empty) {
+      container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">No invite codes generated yet.</p>';
+      return;
+    }
+
+    // Sort client-side (needed for fallback query without orderBy)
+    const docs = snap.docs.slice().sort((a, b) => {
+      const aTime = a.data().createdAt?.toDate?.() || new Date(0);
+      const bTime = b.data().createdAt?.toDate?.() || new Date(0);
+      return bTime - aTime;
+    });
+
+    container.innerHTML = docs.map(d => {
+      const c = d.data();
+      const isUsed = c.status === 'used';
+      return `
+        <div class="invite-code-card ${isUsed ? 'used' : ''}">
+          <span>${escapeHtml(c.code)}</span>
+          ${isUsed
+            ? '<span style="font-size: 0.75rem; color: var(--text-muted); font-family: Inter, sans-serif;">Used</span>'
+            : `<button class="copy-btn" onclick="event.stopPropagation(); navigator.clipboard.writeText('${escapeHtml(c.code)}'); showToast('Copied!');">📋</button>`
+          }
+        </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('Load invite codes error:', e);
+    container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Error loading invite codes.</p>';
+  }
+}
+
+async function generateUserInvite() {
+  if (!currentUser || !currentUserProfile) return;
+  const remaining = currentUserProfile.invitesRemaining ?? 0;
+  if (remaining <= 0) { showToast('No invites remaining'); return; }
+
+  try {
+    const code = await createInviteCode(currentUser.uid, currentUserProfile.displayName || '', 'user');
+    if (code) {
+      // Update local state
+      currentUserProfile.invitesRemaining = remaining - 1;
+      document.getElementById('invite-remaining-count').textContent = currentUserProfile.invitesRemaining;
+
+      const genBtn = document.getElementById('generate-invite-btn');
+      if (genBtn && currentUserProfile.invitesRemaining <= 0) {
+        genBtn.disabled = true;
+        genBtn.textContent = 'No invites remaining';
+      }
+
+      showToast('Invite code generated: ' + code);
+      loadMyInviteCodes();
+    }
+  } catch (e) {
+    showToast('Error generating invite: ' + e.message);
+  }
+}
+
+// Wait for auth then load (public profiles — loads for everyone)
+window.addEventListener('authStateReady', (e) => {
+  const guestCta = document.getElementById('profile-guest-cta');
+  if (guestCta) {
+    guestCta.style.display = e.detail.user ? 'none' : 'block';
+  }
+  loadProfile();
+});
+
+// Fallback load
+setTimeout(() => {
+  if (!profileData) loadProfile();
+}, 2000);
+</script>
+</body>
+</html>
