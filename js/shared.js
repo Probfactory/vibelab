@@ -23,7 +23,7 @@ function getNavHTML(activePage) {
               <img id="avatar-img" style="display: none;">
             </div>
             <div class="nav-dropdown" id="nav-dropdown">
-              <a href="#" onclick="if(currentUser) window.location.href=getProfileUrl(currentUserProfile?.username, currentUser.uid); return false;">My Profile</a>
+              <a href="/profile">My Profile</a>
               <a href="my-vibes.html">My Vibes</a>
               <a href="admin.html" id="nav-admin-link" style="display:none;">Admin Dashboard</a>
               <div class="divider"></div>
