@@ -10,6 +10,7 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
         currentUserProfile = {
           displayName: user.displayName || '',
           email: user.email,
+          username: window._pendingUsername || '',
           bio: '',
           company: '',
           skills: [],
@@ -18,6 +19,7 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         await db.collection('users').doc(user.uid).set(currentUserProfile);
+        window._pendingUsername = null;
       }
     } catch (e) {
       console.error('Profile loading error:', e);
@@ -75,6 +77,8 @@ function switchAuthMode(mode) {
   document.querySelectorAll('.auth-tab')[isSignup ? 1 : 0].classList.add('active');
   const nameGroup = document.getElementById('display-name-group');
   if (nameGroup) nameGroup.style.display = isSignup ? 'block' : 'none';
+  const usernameGroup = document.getElementById('username-group');
+  if (usernameGroup) usernameGroup.style.display = isSignup ? 'block' : 'none';
   const submitBtn = document.getElementById('auth-submit-btn');
   if (submitBtn) {
     submitBtn.textContent = isSignup ? 'Sign Up' : 'Log In';
@@ -98,16 +102,49 @@ function showAuthError(message) {
   if (el) { el.textContent = message; el.classList.add('show'); }
 }
 
-function signUpWithEmail() {
+async function signUpWithEmail() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const displayName = document.getElementById('auth-display-name').value.trim();
-  if (!email || !password || !displayName) { showAuthError('Please fill in all fields'); return; }
+  const usernameRaw = document.getElementById('auth-username')?.value.trim() || '';
+  const username = usernameRaw.toLowerCase();
+
+  if (!email || !password || !displayName || !username) { showAuthError('Please fill in all fields'); return; }
   if (password.length < 6) { showAuthError('Password must be at least 6 characters'); return; }
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(result => result.user.updateProfile({ displayName }).then(() => result))
-    .then(() => { closeAuthModal(); document.getElementById('auth-email').value = ''; document.getElementById('auth-password').value = ''; document.getElementById('auth-display-name').value = ''; })
-    .catch(error => showAuthError(error.message));
+
+  // Validate username format
+  const validation = validateUsername(username);
+  if (!validation.valid) { showAuthError(validation.error); return; }
+
+  // Check availability
+  try {
+    const available = await checkUsernameAvailable(username);
+    if (!available) { showAuthError('Username is already taken'); return; }
+  } catch (e) {
+    showAuthError('Error checking username. Please try again.'); return;
+  }
+
+  try {
+    const result = await auth.createUserWithEmailAndPassword(email, password);
+    await result.user.updateProfile({ displayName });
+
+    // Claim the username in the usernames collection
+    await db.collection('usernames').doc(username).set({
+      uid: result.user.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Store username as pending so onAuthStateChanged picks it up
+    window._pendingUsername = username;
+
+    closeAuthModal();
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-display-name').value = '';
+    if (document.getElementById('auth-username')) document.getElementById('auth-username').value = '';
+  } catch (error) {
+    showAuthError(error.message);
+  }
 }
 
 function logInWithEmail() {
@@ -153,6 +190,12 @@ function openProfileModal() {
     const vals = [currentUserProfile.displayName || '', currentUserProfile.bio || '', currentUserProfile.company || '', (currentUserProfile.skills || []).join(', ')];
     fields.forEach((id, i) => { const el = document.getElementById(id); if (el) el.value = vals[i]; });
 
+    // Populate username
+    const usernameEl = document.getElementById('profile-username');
+    if (usernameEl) usernameEl.value = currentUserProfile.username || '';
+    const usernameStatus = document.getElementById('profile-username-status');
+    if (usernameStatus) { usernameStatus.textContent = ''; usernameStatus.className = 'username-status'; }
+
     ['twitter', 'github', 'website'].forEach(s => {
       const el = document.getElementById('profile-' + s);
       if (el) el.value = currentUserProfile.socials?.[s] || '';
@@ -190,6 +233,24 @@ async function saveProfile() {
   const file = document.getElementById('profile-photo-input')?.files[0];
   let photoURL = currentUserProfile?.photoURL || '';
   try {
+    // Handle username change
+    const newUsername = (document.getElementById('profile-username')?.value || '').trim().toLowerCase();
+    const oldUsername = currentUserProfile?.username || '';
+
+    if (newUsername && newUsername !== oldUsername) {
+      const validation = validateUsername(newUsername);
+      if (!validation.valid) { showToast(validation.error); return; }
+      const available = await checkUsernameAvailable(newUsername);
+      if (!available) { showToast('Username is already taken'); return; }
+      // Delete old username claim
+      if (oldUsername) await db.collection('usernames').doc(oldUsername).delete();
+      // Claim new username
+      await db.collection('usernames').doc(newUsername).set({
+        uid: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
     if (file) {
       const storageRef = storage.ref(`profile-photos/${currentUser.uid}`);
       await storageRef.put(file);
@@ -199,6 +260,7 @@ async function saveProfile() {
     const skills = skillsInput ? skillsInput.split(',').map(s => s.trim()).filter(Boolean) : [];
     const updatedProfile = {
       displayName: document.getElementById('profile-display-name').value,
+      username: newUsername || oldUsername,
       bio: document.getElementById('profile-bio').value,
       company: document.getElementById('profile-company').value,
       skills: skills,
@@ -220,6 +282,58 @@ async function saveProfile() {
   }
 }
 
+// Real-time username availability check (debounced)
+let _usernameCheckTimer = null;
+function _attachUsernameChecker(inputId, statusId, currentUsername) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.addEventListener('input', function() {
+    clearTimeout(_usernameCheckTimer);
+    const status = document.getElementById(statusId);
+    const raw = this.value.trim().toLowerCase();
+
+    if (!raw) { if (status) { status.textContent = ''; status.className = 'username-status'; } return; }
+
+    // If same as current username, no check needed
+    if (currentUsername && raw === currentUsername) {
+      if (status) { status.textContent = ''; status.className = 'username-status'; }
+      return;
+    }
+
+    const validation = validateUsername(raw);
+    if (!validation.valid) {
+      if (status) { status.textContent = validation.error; status.className = 'username-status error'; }
+      return;
+    }
+
+    if (status) { status.textContent = 'Checking...'; status.className = 'username-status checking'; }
+
+    _usernameCheckTimer = setTimeout(async () => {
+      try {
+        const available = await checkUsernameAvailable(raw);
+        if (status) {
+          if (available) {
+            status.textContent = '\u2713 Available';
+            status.className = 'username-status available';
+          } else {
+            status.textContent = '\u2717 Already taken';
+            status.className = 'username-status taken';
+          }
+        }
+      } catch (e) {
+        if (status) { status.textContent = 'Error checking availability'; status.className = 'username-status error'; }
+      }
+    }, 400);
+  });
+}
+
+function initUsernameCheck() {
+  // Signup form
+  _attachUsernameChecker('auth-username', 'username-status', '');
+  // Profile edit modal
+  _attachUsernameChecker('profile-username', 'profile-username-status', currentUserProfile?.username || '');
+}
+
 // Initialize profile photo input listener (retry until element exists after initPage injects modals)
 let _profilePhotoRetries = 0;
 function initProfilePhotoListener() {
@@ -231,7 +345,10 @@ function initProfilePhotoListener() {
     setTimeout(initProfilePhotoListener, 100);
   }
 }
-document.addEventListener('DOMContentLoaded', initProfilePhotoListener);
+document.addEventListener('DOMContentLoaded', () => {
+  initProfilePhotoListener();
+  initUsernameCheck();
+});
 
 // Toast notification system
 function showToast(message, actionText, actionCallback) {

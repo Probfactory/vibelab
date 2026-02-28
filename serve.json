@@ -1,0 +1,11 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/feed", "destination": "/feed.html" },
+    { "source": "/community", "destination": "/community.html" },
+    { "source": "/profile", "destination": "/profile.html" },
+    { "source": "/project", "destination": "/project.html" },
+    { "source": "/my-vibes", "destination": "/my-vibes.html" },
+    { "source": "/:username", "destination": "/profile.html" }
+  ]
+}
