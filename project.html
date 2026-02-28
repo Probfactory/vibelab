@@ -271,7 +271,7 @@ async function loadCreator() {
 
     const displayName = profile?.displayName || projectData.authorName || projectData.author || 'Creator';
     const initial = displayName[0].toUpperCase();
-    const profileUrl = 'profile.html?id=' + projectData.authorUid;
+    const profileUrl = getProfileUrl(profile?.username || projectData.authorUsername, projectData.authorUid);
     const avatarBg = projectData.color || 'var(--purple)';
     const avatarContent = profile?.photoURL ? '<img src="' + profile.photoURL + '">' : initial;
 
@@ -459,7 +459,7 @@ function renderComment(c, replies = []) {
         ${c.authorPhoto ? '<img class="comment-avatar" src="' + c.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (c.authorColor || 'var(--purple)') + ';">' + initial + '</div>'}
         <div class="comment-content">
           <div class="comment-header">
-            <a href="profile.html?id=${c.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(c.authorName || 'Anonymous')}</a>
+            <a href="${getProfileUrl(c.authorUsername, c.authorUid)}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(c.authorName || 'Anonymous')}</a>
             <span class="comment-time">${time}</span>
           </div>
           <div class="comment-body">${escapeHtml(c.body)}</div>
@@ -477,7 +477,7 @@ function renderComment(c, replies = []) {
             ${r.authorPhoto ? '<img class="comment-avatar" src="' + r.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (r.authorColor || 'var(--purple)') + ';">' + rInitial + '</div>'}
             <div class="comment-content">
               <div class="comment-header">
-                <a href="profile.html?id=${r.authorUid}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(r.authorName || 'Anonymous')}</a>
+                <a href="${getProfileUrl(r.authorUsername, r.authorUid)}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(r.authorName || 'Anonymous')}</a>
                 <span class="comment-time">${rTime}</span>
               </div>
               <div class="comment-body">${escapeHtml(r.body)}</div>

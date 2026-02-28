@@ -180,6 +180,29 @@ nav {
   border-radius: 10px; font-size: 0.85rem; margin-bottom: 16px; display: none;
 }
 .auth-error.show { display: block; }
+
+/* Username input with prefix */
+.username-input-wrapper {
+  display: flex; align-items: center; border: 1.5px solid var(--border);
+  border-radius: 10px; overflow: hidden; background: var(--bg);
+}
+.username-input-wrapper:focus-within { border-color: var(--text); }
+.username-prefix {
+  padding: 10px 0 10px 14px; font-size: 0.9rem; color: var(--text-muted);
+  white-space: nowrap; user-select: none;
+}
+.username-input-wrapper input {
+  border: none; outline: none; padding: 10px 14px 10px 2px; font-size: 0.95rem;
+  flex: 1; min-width: 0; background: transparent;
+}
+.username-status {
+  font-size: 0.8rem; margin-top: 6px; min-height: 18px;
+}
+.username-status.available { color: #16a34a; }
+.username-status.taken { color: #dc2626; }
+.username-status.error { color: #dc2626; }
+.username-status.checking { color: var(--text-muted); }
+
 .auth-switch {
   text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted);
 }

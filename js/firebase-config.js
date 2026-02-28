@@ -138,3 +138,50 @@ function getUrlParam(name) {
   }
   return value;
 }
+
+// --- Username / Vanity URL utilities ---
+
+const RESERVED_USERNAMES = new Set([
+  'feed', 'community', 'profile', 'project', 'my-vibes', 'index',
+  'css', 'js', 'images', 'assets', 'api', 'admin', 'settings',
+  'login', 'signup', 'about', 'help', 'support', 'blog',
+  'terms', 'privacy', 'null', 'undefined', 'explore', 'search',
+  'new', 'edit', 'delete', 'auth', 'callback', 'error', '404'
+]);
+
+// Validate a username: returns { valid: boolean, error: string }
+function validateUsername(username) {
+  if (!username) return { valid: false, error: 'Username is required' };
+  const u = username.toLowerCase().trim();
+  if (u.length < 3) return { valid: false, error: 'Must be at least 3 characters' };
+  if (u.length > 20) return { valid: false, error: 'Must be 20 characters or less' };
+  if (!/^[a-z][a-z0-9_-]*$/.test(u)) return { valid: false, error: 'Start with a letter, use only letters, numbers, _ or -' };
+  if (RESERVED_USERNAMES.has(u)) return { valid: false, error: 'This username is not available' };
+  return { valid: true, error: '' };
+}
+
+// Check if a username is available in Firestore
+async function checkUsernameAvailable(username) {
+  if (!db) return false;
+  const doc = await db.collection('usernames').doc(username.toLowerCase().trim()).get();
+  return !doc.exists;
+}
+
+// Build a profile URL: prefers vanity /{username}, falls back to /profile?id={uid}
+function getProfileUrl(username, uid) {
+  if (username) return '/' + encodeURIComponent(username);
+  if (uid) return '/profile?id=' + encodeURIComponent(uid);
+  return '/profile';
+}
+
+// Extract username from current URL path (for vanity URL routing)
+function getUsernameFromPath() {
+  const path = window.location.pathname;
+  // Remove leading slash and .html extension
+  const segment = path.replace(/^\//, '').replace(/\.html$/, '');
+  // If it's a known page or empty, return null
+  if (!segment || segment === 'index' || RESERVED_USERNAMES.has(segment)) return null;
+  // If it looks like a file path (has dots or slashes), skip
+  if (segment.includes('/') || segment.includes('.')) return null;
+  return segment;
+}

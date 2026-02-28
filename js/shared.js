@@ -23,7 +23,7 @@ function getNavHTML(activePage) {
               <img id="avatar-img" style="display: none;">
             </div>
             <div class="nav-dropdown" id="nav-dropdown">
-              <a href="#" onclick="if(currentUser) window.location.href='profile.html?id='+currentUser.uid; return false;">My Profile</a>
+              <a href="#" onclick="if(currentUser) window.location.href=getProfileUrl(currentUserProfile?.username, currentUser.uid); return false;">My Profile</a>
               <a href="my-vibes.html">My Vibes</a>
               <div class="divider"></div>
               <button class="logout-btn" onclick="logOut()">Log Out</button>
@@ -55,6 +55,14 @@ function getAuthModalHTML() {
       <div class="form-group" id="display-name-group" style="display: none;">
         <label>Display Name</label>
         <input type="text" id="auth-display-name" placeholder="Your name">
+      </div>
+      <div class="form-group" id="username-group" style="display: none;">
+        <label>Username</label>
+        <div class="username-input-wrapper">
+          <span class="username-prefix">vibelab.in/</span>
+          <input type="text" id="auth-username" placeholder="yourname" autocomplete="off">
+        </div>
+        <div class="username-status" id="username-status"></div>
       </div>
       <div class="form-group">
         <label>Password</label>
@@ -89,6 +97,14 @@ function getProfileModalHTML() {
       </div>
       <input type="file" id="profile-photo-input" accept="image/*" style="display:none;">
       <p class="profile-photo-label">Click to upload profile photo</p>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <div class="username-input-wrapper">
+        <span class="username-prefix">vibelab.in/</span>
+        <input type="text" id="profile-username" placeholder="yourname" autocomplete="off">
+      </div>
+      <div class="username-status" id="profile-username-status"></div>
     </div>
     <div class="form-group">
       <label>Display Name</label>
@@ -427,6 +443,7 @@ async function submitProject() {
         imageURL,
         authorUid: currentUser.uid,
         authorName: currentUserProfile?.displayName || currentUser.displayName || currentUser.email,
+        authorUsername: currentUserProfile?.username || '',
         authorPhoto: currentUserProfile?.photoURL || '',
         color: colorMap[cat],
         gradient: gradMap[cat],

@@ -74,20 +74,51 @@ initPage('profile');
 let profileUserId = getUrlParam('id');
 let profileData = null;
 
-async function loadProfile() {
-  // If no ID in URL but user is logged in, show their own profile
-  if (!profileUserId && currentUser) {
-    profileUserId = currentUser.uid;
+// Resolve vanity username from URL path to a UID
+async function resolveProfileUser() {
+  // 1. Already have an ID from query param? Use it directly
+  if (profileUserId) return true;
+
+  // 2. Check if this is a vanity URL (e.g. /probg)
+  const username = getUsernameFromPath();
+  if (username) {
+    try {
+      const usernameDoc = await db.collection('usernames').doc(username).get();
+      if (usernameDoc.exists) {
+        profileUserId = usernameDoc.data().uid;
+        return true;
+      } else {
+        // Username not found
+        document.getElementById('profile-loading').innerHTML = '<div class="empty-state" style="padding: 80px 0; text-align: center;"><div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128566;</div><h3>Profile not found</h3><p style="color: var(--text-muted); margin-bottom: 24px;">The username <strong>' + escapeHtml(username) + '</strong> doesn\'t exist on VibeLab.</p><a href="/feed" class="btn btn-primary btn-sm">Explore Vibes</a></div>';
+        return false;
+      }
+    } catch (e) {
+      console.error('Username lookup error:', e);
+    }
   }
+
+  // 3. If logged in with no params and no vanity path, show own profile
+  if (currentUser) {
+    profileUserId = currentUser.uid;
+    return true;
+  }
+
+  return false;
+}
+
+async function loadProfile() {
+  const resolved = await resolveProfileUser();
+  if (!resolved) return;
+
   if (!profileUserId) {
-    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>No user ID specified.</p><br><a href="feed.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>No user ID specified.</p><br><a href="/feed" class="btn btn-primary btn-sm">Back to Explore</a></div>';
     return;
   }
 
   try {
     const userDoc = await db.collection('users').doc(profileUserId).get();
     if (!userDoc.exists) {
-      document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>This user doesn\'t exist.</p><br><a href="feed.html" class="btn btn-primary btn-sm">Back to Explore</a></div>';
+      document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Profile not found</h3><p>This user doesn\'t exist.</p><br><a href="/feed" class="btn btn-primary btn-sm">Back to Explore</a></div>';
       return;
     }
 
@@ -135,6 +166,7 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
           ${isOwn ? '<button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Edit Profile</button>' :
             '<button class="follow-btn ' + (isFollowing ? 'following' : 'not-following') + '" id="profile-follow-btn" onclick="handleProfileFollow()" style="width:auto; padding: 8px 24px;">' + (isFollowing ? 'Following' : 'Follow') + '</button>'}
         </div>
+        ${profile.username ? '<div class="profile-handle" style="color: var(--text-muted); font-size: 0.95rem;">vibelab.in/' + escapeHtml(profile.username) + '</div>' : ''}
         ${profile.company ? '<div class="profile-handle">' + escapeHtml(profile.company) + '</div>' : ''}
         ${profile.bio ? '<p class="profile-bio-text">' + escapeHtml(profile.bio) + '</p>' : ''}
         <div class="profile-stats">
@@ -161,6 +193,14 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
         <input type="file" id="inline-photo-input" accept="image/*" style="display:none;" onchange="handleInlinePhotoUpload(event)">
       </div>
       <div class="profile-edit-fields">
+        <div class="form-group">
+          <label>Username</label>
+          <div class="username-input-wrapper">
+            <span class="username-prefix">vibelab.in/</span>
+            <input type="text" id="edit-username" value="${escapeHtml(profile.username || '')}" autocomplete="off">
+          </div>
+          <div class="username-status" id="edit-username-status"></div>
+        </div>
         <div class="form-group">
           <label>Display Name</label>
           <input type="text" id="edit-display-name" value="${escapeHtml(profile.displayName || '')}">
@@ -242,8 +282,25 @@ async function saveInlineProfile() {
     const skillsInput = document.getElementById('edit-skills')?.value.trim() || '';
     const skills = skillsInput ? skillsInput.split(',').map(s => s.trim()).filter(Boolean) : [];
 
+    // Handle username change
+    const newUsername = (document.getElementById('edit-username')?.value || '').trim().toLowerCase();
+    const oldUsername = profileData?.username || '';
+
+    if (newUsername && newUsername !== oldUsername) {
+      const validation = validateUsername(newUsername);
+      if (!validation.valid) { showToast(validation.error); return; }
+      const available = await checkUsernameAvailable(newUsername);
+      if (!available) { showToast('Username is already taken'); return; }
+      if (oldUsername) await db.collection('usernames').doc(oldUsername).delete();
+      await db.collection('usernames').doc(newUsername).set({
+        uid: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
     const updatedProfile = {
       displayName: document.getElementById('edit-display-name').value.trim(),
+      username: newUsername || oldUsername,
       bio: document.getElementById('edit-bio').value.trim(),
       company: document.getElementById('edit-company').value.trim(),
       skills: skills,
@@ -292,6 +349,11 @@ async function deleteAccount() {
     const batch = db.batch();
     projSnap.docs.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
+
+    // Delete username claim
+    if (profileData?.username) {
+      await db.collection('usernames').doc(profileData.username).delete();
+    }
 
     // Delete user profile document
     await db.collection('users').doc(currentUser.uid).delete();
