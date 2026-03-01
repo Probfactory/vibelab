@@ -114,7 +114,7 @@ async function resolveProfileUser() {
   const username = getUsernameFromPath();
   if (username) {
     try {
-      const usernameDoc = await db.collection('usernames').doc(username).get();
+      const usernameDoc = await db.collection('usernames').doc(username.toLowerCase()).get();
       if (usernameDoc.exists) {
         profileUserId = usernameDoc.data().uid;
         return true;
@@ -125,6 +125,8 @@ async function resolveProfileUser() {
       }
     } catch (e) {
       console.error('Username lookup error:', e);
+      document.getElementById('profile-loading').innerHTML = '<div class="empty-state" style="padding: 80px 0; text-align: center;"><div class="empty-icon" style="font-size: 2.5rem; margin-bottom: 16px;">&#128566;</div><h3>Something went wrong</h3><p style="color: var(--text-muted); margin-bottom: 24px;">Could not load this profile. Please try again.</p><a href="/explore" class="btn btn-primary btn-sm">Explore Vibes</a></div>';
+      return false;
     }
   }
 
@@ -750,19 +752,18 @@ async function generateUserInvite() {
   }
 }
 
-// Wait for auth then load (public profiles — loads for everyone)
+// Load profile immediately for public profiles (vanity URL or ?id= param)
+loadProfile();
+
+// When auth resolves, show/hide guest CTA and retry load if needed (own profile case)
 window.addEventListener('authStateReady', (e) => {
   const guestCta = document.getElementById('profile-guest-cta');
   if (guestCta) {
     guestCta.style.display = e.detail.user ? 'none' : 'block';
   }
-  loadProfile();
-});
-
-// Fallback load
-setTimeout(() => {
+  // Retry if profile hasn't loaded yet (e.g. own profile with no URL params)
   if (!profileData) loadProfile();
-}, 2000);
+});
 
 // ══════════════════════════════════════════════
 //  STREAK CALENDAR + BADGES
