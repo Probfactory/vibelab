@@ -740,19 +740,18 @@ async function generateUserInvite() {
   }
 }
 
-// Wait for auth then load (public profiles — loads for everyone)
+// Load profile immediately for public profiles (vanity URL or ?id= param)
+loadProfile();
+
+// When auth resolves, show/hide guest CTA and retry load if needed (own profile case)
 window.addEventListener('authStateReady', (e) => {
   const guestCta = document.getElementById('profile-guest-cta');
   if (guestCta) {
     guestCta.style.display = e.detail.user ? 'none' : 'block';
   }
-  loadProfile();
-});
-
-// Fallback load
-setTimeout(() => {
+  // Retry if profile hasn't loaded yet (e.g. own profile with no URL params)
   if (!profileData) loadProfile();
-}, 2000);
+});
 
 // ══════════════════════════════════════════════
 //  STREAK CALENDAR + BADGES
