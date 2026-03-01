@@ -139,7 +139,7 @@ function getProfileModalHTML() {
         <img id="profile-photo-preview" style="display: none;">
         <span class="upload-icon" id="profile-upload-icon">&#128248;</span>
       </div>
-      <input type="file" id="profile-photo-input" accept="image/*" style="display:none;">
+      <input type="file" id="profile-photo-input" accept="image/png,image/jpeg,image/gif" style="display:none;">
       <p class="profile-photo-label">Click to upload profile photo</p>
     </div>
     <div class="form-group">
@@ -233,7 +233,7 @@ function getSubmitModalHTML() {
       </div>
       <div class="form-group">
         <label>Project Thumbnail (optional)</label>
-        <input type="file" id="proj-image" accept="image/*">
+        <input type="file" id="proj-image" accept="image/png,image/jpeg,image/gif">
       </div>
       <div class="form-group">
         <label>Live Demo URL (optional)</label>
@@ -547,11 +547,18 @@ async function submitProject() {
 
   if (!name || !desc) { alert('Please fill in project name and description'); return; }
 
+  // Validate thumbnail if provided
+  if (imageFile) {
+    const check = validateImage(imageFile, { maxSizeMB: IMAGE_RULES.thumbnail.maxSizeMB });
+    if (!check.valid) { showToast(check.error); return; }
+  }
+
   try {
     let imageURL = '';
     if (imageFile) {
+      const resized = await resizeImage(imageFile, { maxWidth: IMAGE_RULES.thumbnail.maxWidth, maxHeight: IMAGE_RULES.thumbnail.maxHeight, quality: IMAGE_RULES.thumbnail.quality });
       const storageRef = storage.ref(`project-thumbnails/${currentUser.uid}/${Date.now()}`);
-      await storageRef.put(imageFile);
+      await storageRef.put(resized);
       imageURL = await storageRef.getDownloadURL();
     }
 
