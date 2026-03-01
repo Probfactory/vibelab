@@ -398,11 +398,15 @@
         <div class="admin-user-avatar-sm" style="visibility:hidden;"></div>
         <div class="admin-overview-col admin-overview-name"><span class="admin-col-label">Name</span></div>
         <div class="admin-overview-col admin-overview-email"><span class="admin-col-label">Email</span></div>
-        <div class="admin-overview-col admin-overview-phone"><span class="admin-col-label">Phone</span></div>
+        <div class="admin-overview-col admin-overview-url"><span class="admin-col-label">Profile URL</span></div>
+        <div class="admin-overview-col admin-overview-phone hide-mobile"><span class="admin-col-label">Phone</span></div>
         <div class="admin-user-actions" style="visibility:hidden;"><button class="btn btn-xs btn-outline" style="visibility:hidden;">—</button></div>
       </div>`;
 
-    const rows = users.map(u => `
+    const rows = users.map(u => {
+      const profileUrl = u.username ? 'vibelab.in/' + u.username : '—';
+      const profileHref = u.username ? 'https://vibelab.in/' + encodeURIComponent(u.username) : '';
+      return `
       <div class="admin-user-row">
         <div class="admin-user-avatar-sm" style="background: ${u.photoURL ? `url(${escapeHtml(u.photoURL)}) center/cover` : 'var(--purple)'};">
           ${u.photoURL ? '' : (u.displayName || 'U')[0].toUpperCase()}
@@ -414,14 +418,19 @@
         <div class="admin-overview-col admin-overview-email">
           <span style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(u.email || '—')}</span>
         </div>
-        <div class="admin-overview-col admin-overview-phone">
+        <div class="admin-overview-col admin-overview-url">
+          ${u.username
+            ? `<a href="${profileHref}" target="_blank" style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">${escapeHtml(profileUrl)}</a>`
+            : '<span style="font-size: 0.8rem; color: var(--text-muted);">—</span>'}
+        </div>
+        <div class="admin-overview-col admin-overview-phone hide-mobile">
           <span style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(u.phone || '—')}</span>
         </div>
         <div class="admin-user-actions">
           <button class="btn btn-xs btn-outline" onclick="openGrantModal('${u.uid}', '${escapeHtml(u.displayName || '')}')">Invites</button>
         </div>
       </div>
-    `).join('');
+    `}).join('');
 
     container.innerHTML = headerRow + rows;
   }

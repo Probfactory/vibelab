@@ -1957,6 +1957,10 @@ footer {
   flex: 1.5;
 }
 
+.admin-overview-url {
+  flex: 1.2;
+}
+
 .admin-overview-phone {
   flex: 0.8;
 }
@@ -2762,8 +2766,9 @@ footer {
   .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
   .admin-user-detail.hide-mobile { display: none; }
   .admin-invite-detail.hide-mobile { display: none; }
-  .admin-overview-phone { display: none; }
+  .admin-overview-phone.hide-mobile { display: none; }
   .admin-overview-email { display: none; }
+  .admin-overview-url { display: none; }
   .admin-bulk-bar { flex-direction: column; align-items: stretch; gap: 8px; }
   .admin-bulk-actions { margin-left: 0; justify-content: flex-end; }
   .admin-top-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
