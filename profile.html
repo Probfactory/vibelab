@@ -28,12 +28,18 @@
         <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
       </div>
 
-      <!-- Invite Friends Section (only shown for own profile) -->
-      <div id="invite-section" class="invite-section" style="display: none;">
-        <h3>🎟️ Invite Friends</h3>
-        <p class="invite-count">You have <strong id="invite-remaining-count">0</strong> invites remaining</p>
-        <button class="btn btn-primary btn-sm" id="generate-invite-btn" onclick="generateUserInvite()">Generate Invite Code</button>
-        <div class="invite-codes-grid" id="my-invite-codes"></div>
+      <!-- Invite Drawer (slides in from right) -->
+      <div class="invite-drawer-overlay" id="invite-drawer-overlay" onclick="closeInviteDrawer()"></div>
+      <div class="invite-drawer" id="invite-drawer">
+        <div class="invite-drawer-header">
+          <h3>Invite Friends</h3>
+          <button class="invite-drawer-close" onclick="closeInviteDrawer()">&times;</button>
+        </div>
+        <div class="invite-drawer-body">
+          <p class="invite-count">You have <strong id="invite-remaining-count">0</strong> invites remaining</p>
+          <button class="btn btn-primary btn-sm" id="generate-invite-btn" onclick="generateUserInvite()" style="width: 100%; margin-bottom: 16px;">Generate Invite Code</button>
+          <div class="invite-drawer-codes" id="my-invite-codes"></div>
+        </div>
       </div>
 
       <!-- Profile Tabs -->
@@ -183,7 +189,7 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
       <div class="profile-details">
         <div class="profile-name-row">
           <h1 class="profile-name">${escapeHtml(name)}</h1>
-          ${isOwn ? '<button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Edit Profile</button>' :
+          ${isOwn ? '<div style="display:flex;gap:8px;align-items:center;"><button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Edit Profile</button><button class="btn btn-dark btn-sm invite-drawer-btn" id="invite-drawer-btn" style="display:none;" onclick="openInviteDrawer()">🎟️ <span id="invite-btn-count">0</span> Invites</button></div>' :
             '<button class="follow-btn ' + (isFollowing ? 'following' : 'not-following') + '" id="profile-follow-btn" onclick="handleProfileFollow()" style="width:auto; padding: 8px 24px;">' + (isFollowing ? 'Following' : 'Follow') + '</button>'}
         </div>
         ${profile.username ? '<div class="profile-handle" style="color: var(--text-muted); font-size: 0.95rem;">vibelab.in/' + escapeHtml(profile.username) + '</div>' : ''}
@@ -536,22 +542,38 @@ async function handleProfileFollow() {
 // ── Invite Friends Section ──
 
 async function showInviteSection() {
-  const section = document.getElementById('invite-section');
-  if (!section || !currentUser) return;
+  if (!currentUser) return;
 
-  section.style.display = 'block';
   const remaining = currentUserProfile?.invitesRemaining ?? 0;
-  document.getElementById('invite-remaining-count').textContent = remaining;
 
-  // Disable generate button if no invites left
+  // Show the invite button in the profile header
+  const btn = document.getElementById('invite-drawer-btn');
+  const btnCount = document.getElementById('invite-btn-count');
+  if (btn) btn.style.display = 'inline-flex';
+  if (btnCount) btnCount.textContent = remaining;
+
+  // Update drawer content
+  document.getElementById('invite-remaining-count').textContent = remaining;
   const genBtn = document.getElementById('generate-invite-btn');
   if (genBtn) {
     genBtn.disabled = remaining <= 0;
     if (remaining <= 0) genBtn.textContent = 'No invites remaining';
   }
 
-  // Load user's invite codes
+  // Pre-load invite codes
   loadMyInviteCodes();
+}
+
+function openInviteDrawer() {
+  document.getElementById('invite-drawer').classList.add('open');
+  document.getElementById('invite-drawer-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInviteDrawer() {
+  document.getElementById('invite-drawer').classList.remove('open');
+  document.getElementById('invite-drawer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 async function loadMyInviteCodes() {
@@ -614,6 +636,8 @@ async function generateUserInvite() {
       // Update local state
       currentUserProfile.invitesRemaining = remaining - 1;
       document.getElementById('invite-remaining-count').textContent = currentUserProfile.invitesRemaining;
+      const btnCount = document.getElementById('invite-btn-count');
+      if (btnCount) btnCount.textContent = currentUserProfile.invitesRemaining;
 
       const genBtn = document.getElementById('generate-invite-btn');
       if (genBtn && currentUserProfile.invitesRemaining <= 0) {
