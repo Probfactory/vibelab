@@ -161,8 +161,18 @@ async function loadProfile() {
     document.title = (profileData.displayName || 'Creator') + ' — VibeLab';
 
     // Clean up URL: replace /profile?id=UID with /username vanity URL
-    if (profileData.username && window.location.search.includes('id=')) {
-      history.replaceState(null, '', '/' + profileData.username);
+    if (window.location.search.includes('id=')) {
+      let vanityUsername = profileData.username;
+      // Fallback: look up username from usernames collection if not in user doc
+      if (!vanityUsername) {
+        try {
+          const snap = await db.collection('usernames').where('uid', '==', profileUserId).limit(1).get();
+          if (!snap.empty) vanityUsername = snap.docs[0].id;
+        } catch (e) { /* silent fallback */ }
+      }
+      if (vanityUsername) {
+        history.replaceState(null, '', '/' + vanityUsername);
+      }
     }
 
     const counts = await getFollowCounts(profileUserId);
