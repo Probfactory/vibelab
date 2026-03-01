@@ -86,6 +86,7 @@
 <div id="modals-container"></div>
 
 <!-- Core UI (no Firebase dependency) -->
+<script src="js/image-utils.js"></script>
 <script src="js/shared.js"></script>
 
 <!-- Firebase SDK -->
@@ -154,6 +155,11 @@ async function loadProfile() {
 
     profileData = userDoc.data();
     document.title = (profileData.displayName || 'Creator') + ' — VibeLab';
+
+    // Clean up URL: replace /profile?id=UID with /username vanity URL
+    if (profileData.username && window.location.search.includes('id=')) {
+      history.replaceState(null, '', '/' + profileData.username);
+    }
 
     const counts = await getFollowCounts(profileUserId);
     const isFollowing = currentUser ? await checkIfFollowing(profileUserId) : false;
@@ -227,7 +233,7 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
           ${profile.photoURL ? '<img src="' + profile.photoURL + '" id="edit-avatar-img">' : '<span id="edit-avatar-initial">' + initial + '</span>'}
         </div>
         <div class="edit-avatar-overlay">&#128248; Change</div>
-        <input type="file" id="inline-photo-input" accept="image/*" style="display:none;" onchange="handleInlinePhotoUpload(event)">
+        <input type="file" id="inline-photo-input" accept="image/png,image/jpeg,image/gif" style="display:none;" onchange="handleInlinePhotoUpload(event)">
       </div>
       <div class="profile-edit-fields">
         <div class="form-group">
@@ -311,6 +317,11 @@ let inlinePhotoFile = null;
 function handleInlinePhotoUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
+
+  // Validate image type and size
+  const check = validateImage(file, { maxSizeMB: IMAGE_RULES.avatar.maxSizeMB });
+  if (!check.valid) { showToast(check.error); e.target.value = ''; return; }
+
   inlinePhotoFile = file;
   const reader = new FileReader();
   reader.onload = function(ev) {
@@ -336,10 +347,11 @@ async function saveInlineProfile() {
   try {
     let photoURL = profileData?.photoURL || '';
 
-    // Upload new photo if selected
+    // Upload new photo if selected (resize to avatar dimensions)
     if (inlinePhotoFile) {
+      const resized = await resizeAvatar(inlinePhotoFile, { size: IMAGE_RULES.avatar.maxDim, quality: IMAGE_RULES.avatar.quality });
       const storageRef = storage.ref('profile-photos/' + currentUser.uid);
-      await storageRef.put(inlinePhotoFile);
+      await storageRef.put(resized);
       photoURL = await storageRef.getDownloadURL();
       inlinePhotoFile = null;
     }

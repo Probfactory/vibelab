@@ -425,6 +425,11 @@ function closeProfileModal() {
 function handleProfilePhotoUpload(e) {
   const file = e.target.files[0];
   if (!file || !currentUser) return;
+
+  // Validate image type and size
+  const check = validateImage(file, { maxSizeMB: IMAGE_RULES.avatar.maxSizeMB });
+  if (!check.valid) { showToast(check.error); e.target.value = ''; return; }
+
   const reader = new FileReader();
   reader.onload = function(event) {
     const preview = document.getElementById('profile-photo-preview');
@@ -459,8 +464,9 @@ async function saveProfile() {
     }
 
     if (file) {
+      const resized = await resizeAvatar(file, { size: IMAGE_RULES.avatar.maxDim, quality: IMAGE_RULES.avatar.quality });
       const storageRef = storage.ref(`profile-photos/${currentUser.uid}`);
-      await storageRef.put(file);
+      await storageRef.put(resized);
       photoURL = await storageRef.getDownloadURL();
     }
     const skillsInput = document.getElementById('profile-skills')?.value.trim() || '';
