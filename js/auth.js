@@ -7,34 +7,31 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
       if (doc.exists) {
         currentUserProfile = doc.data();
 
-        // Grandfather existing users: backfill new invite fields if missing
-        if (!currentUserProfile.hasOwnProperty('invitesRemaining')) {
-          try {
-            await db.collection('users').doc(user.uid).update({
-              invitesRemaining: 3,
-              status: 'active',
-              lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            currentUserProfile.invitesRemaining = 3;
-            currentUserProfile.status = 'active';
-          } catch (backfillErr) {
-            console.warn('Could not backfill invite fields:', backfillErr);
-          }
-        } else {
-          // Update lastActive for existing users
-          try {
-            await db.collection('users').doc(user.uid).update({
-              lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          } catch (laErr) {
-            console.warn('Could not update lastActive:', laErr);
-          }
-        }
-
         // Handle Google OAuth incomplete signup (user exists in Auth but needs username)
         if (user.providerData?.some(p => p.providerId === 'google.com') && !currentUserProfile.username) {
           showGoogleCompleteSignup();
         }
+
+        // Update nav and fire event immediately — don't block on background writes
+        updateNav();
+        window.dispatchEvent(new CustomEvent('authStateReady', { detail: { user, profile: currentUserProfile } }));
+
+        // Fire-and-forget: backfill invite fields or update lastActive
+        if (!currentUserProfile.hasOwnProperty('invitesRemaining')) {
+          db.collection('users').doc(user.uid).update({
+            invitesRemaining: 3,
+            status: 'active',
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+          }).then(() => {
+            currentUserProfile.invitesRemaining = 3;
+            currentUserProfile.status = 'active';
+          }).catch(err => console.warn('Could not backfill invite fields:', err));
+        } else {
+          db.collection('users').doc(user.uid).update({
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+          }).catch(err => console.warn('Could not update lastActive:', err));
+        }
+        return; // Already dispatched authStateReady above
       } else {
         // New user — check if this is from email signup (has _pendingUsername) or Google OAuth
         if (window._pendingUsername) {

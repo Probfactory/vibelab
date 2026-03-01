@@ -633,9 +633,12 @@ const observer = new IntersectionObserver((entries) => {
 const trigger = document.getElementById('load-more-trigger');
 if (trigger) observer.observe(trigger);
 
-// Load feed for all visitors (logged-in or guest)
+// Load feed immediately for all visitors
+loadFeedProjects();
+loadDiscoverCreators();
+
+// When auth resolves, load personalization data (following, tags)
 window.addEventListener('authStateReady', async (e) => {
-  // Always show feed content, hide login gate
   document.getElementById('feed-content').style.display = 'block';
   document.getElementById('feed-login-gate').style.display = 'none';
 
@@ -649,9 +652,6 @@ window.addEventListener('authStateReady', async (e) => {
     await loadFollowedTags();
     renderTagFollowChips();
   }
-
-  loadFeedProjects();
-  loadDiscoverCreators();
 });
 </script>
 </body>
