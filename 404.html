@@ -42,6 +42,15 @@
         </div>
       </div>
 
+      <!-- Badges -->
+      <div class="badges-row" id="profile-badges" style="display: none;"></div>
+
+      <!-- Streak Calendar -->
+      <div class="streak-calendar-section" id="streak-calendar-section" style="display: none;">
+        <h3 class="streak-calendar-title">Challenge Activity</h3>
+        <div class="streak-calendar" id="streak-calendar"></div>
+      </div>
+
       <!-- Profile Tabs -->
       <div class="profile-tabs">
         <button class="profile-tab active" onclick="switchProfileTab('vibes', this)">Vibes</button>
@@ -161,6 +170,8 @@ async function loadProfile() {
 
     renderProfileHeader(profileData, counts, isFollowing, isOwn, projectCount);
     loadProfileProjects();
+    loadStreakCalendar(profileUserId);
+    loadBadges(profileUserId, isOwn);
 
     // Show invite section for own profile
     if (isOwn) {
@@ -261,6 +272,34 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
           <button class="btn btn-primary btn-sm" onclick="saveInlineProfile()">Save Changes</button>
           <button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Cancel</button>
         </div>
+        ${(() => {
+          const isEmailUser = currentUser?.providerData?.some(p => p.providerId === 'password');
+          if (isEmailUser) {
+            return `
+        <div class="change-password-section">
+          <h3 class="change-password-title">Change Password</h3>
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" id="change-current-password" placeholder="Enter current password">
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="change-new-password" placeholder="At least 6 characters">
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="change-confirm-password" placeholder="Re-enter new password">
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="changePassword()">Update Password</button>
+        </div>`;
+          } else {
+            return `
+        <div class="change-password-section">
+          <h3 class="change-password-title">Password</h3>
+          <p class="provider-note">Signed in with Google — password managed by Google.</p>
+        </div>`;
+          }
+        })()}
         <div class="profile-danger-zone">
           <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
         </div>
@@ -397,6 +436,50 @@ async function deleteAccount() {
       showToast('Please log out and log back in before deleting your account (security requirement).');
     } else {
       showToast('Error deleting account: ' + error.message);
+    }
+  }
+}
+
+async function changePassword() {
+  if (!currentUser) return;
+
+  const currentPwd = document.getElementById('change-current-password')?.value;
+  const newPwd = document.getElementById('change-new-password')?.value;
+  const confirmPwd = document.getElementById('change-confirm-password')?.value;
+
+  if (!currentPwd || !newPwd || !confirmPwd) {
+    showToast('Please fill in all password fields.');
+    return;
+  }
+  if (newPwd.length < 6) {
+    showToast('New password must be at least 6 characters.');
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    showToast('New passwords do not match.');
+    return;
+  }
+
+  try {
+    const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentPwd);
+    await currentUser.reauthenticateWithCredential(credential);
+    await currentUser.updatePassword(newPwd);
+
+    document.getElementById('change-current-password').value = '';
+    document.getElementById('change-new-password').value = '';
+    document.getElementById('change-confirm-password').value = '';
+
+    showToast('Password updated successfully!');
+  } catch (error) {
+    console.error('Change password error:', error);
+    if (error.code === 'auth/wrong-password') {
+      showToast('Current password is incorrect.');
+    } else if (error.code === 'auth/requires-recent-login') {
+      showToast('Please log out and log back in, then try again.');
+    } else if (error.code === 'auth/weak-password') {
+      showToast('New password is too weak. Use at least 6 characters.');
+    } else {
+      showToast('Error changing password: ' + error.message);
     }
   }
 }
@@ -668,6 +751,177 @@ window.addEventListener('authStateReady', (e) => {
 setTimeout(() => {
   if (!profileData) loadProfile();
 }, 2000);
+
+// ══════════════════════════════════════════════
+//  STREAK CALENDAR + BADGES
+// ══════════════════════════════════════════════
+
+const BADGE_DEFS = [
+  { id: 'first-vibe', name: 'First Vibe', icon: '🌱', condition: (stats) => stats.totalSubmissions >= 1 },
+  { id: '7-day-streak', name: '7 Day Streak', icon: '🔥', condition: (stats) => stats.longestStreak >= 7 },
+  { id: '30-day-streak', name: '30 Day Streak', icon: '⚡', condition: (stats) => stats.longestStreak >= 30 },
+  { id: 'champion', name: 'Challenge Champion', icon: '🏆', condition: (stats) => stats.completedChallenges >= 1 },
+  { id: 'multi-challenger', name: 'Multi-Challenger', icon: '🎯', condition: (stats) => stats.challengesJoined >= 3 }
+];
+
+async function loadStreakCalendar(userId) {
+  if (!db || !userId) return;
+  const section = document.getElementById('streak-calendar-section');
+  const calendarEl = document.getElementById('streak-calendar');
+  if (!section || !calendarEl) return;
+
+  try {
+    const snap = await db.collection('projects')
+      .where('authorUid', '==', userId)
+      .where('challengeId', '!=', null)
+      .orderBy('challengeId')
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    if (snap.empty) return;
+
+    const dateMap = {};
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const date = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
+      if (!date) return;
+      const key = date.toISOString().split('T')[0];
+      if (!dateMap[key]) dateMap[key] = [];
+      dateMap[key].push({ challengeId: data.challengeId, challengeDay: data.challengeDay, name: data.name });
+    });
+
+    renderCalendar(calendarEl, dateMap);
+    section.style.display = 'block';
+  } catch (e) {
+    console.error('Streak calendar error:', e);
+  }
+}
+
+function renderCalendar(container, dateMap) {
+  const today = new Date();
+  const daysToShow = 90;
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - daysToShow + 1);
+
+  const weeks = [];
+  let current = new Date(startDate);
+  current.setDate(current.getDate() - current.getDay());
+
+  while (current <= today || weeks.length < Math.ceil(daysToShow / 7)) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const dateKey = current.toISOString().split('T')[0];
+      const submissions = dateMap[dateKey] || [];
+      const isToday = dateKey === today.toISOString().split('T')[0];
+      const isFuture = current > today;
+      const isPast = current < startDate;
+      week.push({ date: new Date(current), key: dateKey, submissions, isToday, isFuture, isPast });
+      current.setDate(current.getDate() + 1);
+    }
+    weeks.push(week);
+    if (weeks.length > 15) break;
+  }
+
+  const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+  const months = [];
+  let lastMonth = -1;
+  weeks.forEach((week, i) => {
+    const firstDay = week.find(d => !d.isPast && !d.isFuture);
+    if (firstDay) {
+      const m = firstDay.date.getMonth();
+      if (m !== lastMonth) { months.push({ index: i, label: firstDay.date.toLocaleDateString('en-US', { month: 'short' }) }); lastMonth = m; }
+    }
+  });
+
+  let html = '<div class="streak-grid">';
+  html += '<div class="streak-month-row"><div class="streak-day-label"></div>';
+  let monthIdx = 0;
+  for (let w = 0; w < weeks.length; w++) {
+    if (monthIdx < months.length && months[monthIdx].index === w) { html += `<div class="streak-month-label">${months[monthIdx].label}</div>`; monthIdx++; }
+    else { html += '<div class="streak-month-label"></div>'; }
+  }
+  html += '</div>';
+
+  for (let d = 0; d < 7; d++) {
+    html += `<div class="streak-row"><div class="streak-day-label">${dayLabels[d]}</div>`;
+    for (let w = 0; w < weeks.length; w++) {
+      const cell = weeks[w][d];
+      const count = cell.submissions.length;
+      let levelClass = 'streak-level-0';
+      if (cell.isFuture || cell.isPast) levelClass = 'streak-level-empty';
+      else if (count >= 3) levelClass = 'streak-level-3';
+      else if (count === 2) levelClass = 'streak-level-2';
+      else if (count === 1) levelClass = 'streak-level-1';
+      const todayClass = cell.isToday ? ' streak-today' : '';
+      const tooltip = count > 0
+        ? `${count} vibe${count > 1 ? 's' : ''} on ${cell.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+        : cell.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      html += `<div class="streak-day ${levelClass}${todayClass}" title="${tooltip}"></div>`;
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  html += `<div class="streak-legend"><span>Less</span><div class="streak-day streak-level-0" style="margin:0 2px;"></div><div class="streak-day streak-level-1" style="margin:0 2px;"></div><div class="streak-day streak-level-2" style="margin:0 2px;"></div><div class="streak-day streak-level-3" style="margin:0 2px;"></div><span>More</span></div>`;
+  container.innerHTML = html;
+}
+
+async function loadBadges(userId, isOwn) {
+  if (!db || !userId) return;
+  const badgesEl = document.getElementById('profile-badges');
+  if (!badgesEl) return;
+
+  try {
+    const userDoc = await db.collection('users').doc(userId).get();
+    let existingBadges = (userDoc.data()?.badges || []).map(b => b.id);
+
+    const projSnap = await db.collection('projects').where('authorUid', '==', userId).get();
+    const challengeSubmissions = {};
+    let totalSubmissions = 0;
+
+    projSnap.docs.forEach(d => {
+      const data = d.data();
+      if (data.challengeId) {
+        totalSubmissions++;
+        if (!challengeSubmissions[data.challengeId]) challengeSubmissions[data.challengeId] = [];
+        challengeSubmissions[data.challengeId].push(data.challengeDay || 0);
+      }
+    });
+
+    let longestStreak = 0;
+    let completedChallenges = 0;
+    Object.values(challengeSubmissions).forEach(days => {
+      const sorted = [...new Set(days)].sort((a, b) => a - b);
+      let streak = 1, maxStreak = 1;
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i] === sorted[i - 1] + 1) { streak++; maxStreak = Math.max(maxStreak, streak); }
+        else streak = 1;
+      }
+      longestStreak = Math.max(longestStreak, maxStreak);
+    });
+
+    const challengesJoined = Object.keys(challengeSubmissions).length;
+    const stats = { totalSubmissions, longestStreak, completedChallenges, challengesJoined };
+    const earnedBadges = BADGE_DEFS.filter(b => b.condition(stats));
+
+    if (earnedBadges.length === 0) return;
+
+    if (isOwn) {
+      const newBadges = earnedBadges.filter(b => !existingBadges.includes(b.id));
+      if (newBadges.length > 0) {
+        const badgeObjects = newBadges.map(b => ({ id: b.id, name: b.name, icon: b.icon, earnedAt: new Date().toISOString() }));
+        try {
+          await db.collection('users').doc(userId).update({ badges: firebase.firestore.FieldValue.arrayUnion(...badgeObjects) });
+          newBadges.forEach(b => showToast(`Badge earned: ${b.icon} ${b.name}!`));
+        } catch (e) { console.warn('Badge award error:', e); }
+      }
+    }
+
+    badgesEl.innerHTML = earnedBadges.map(b => `<div class="badge-icon" title="${b.name}"><span class="badge-emoji">${b.icon}</span><span class="badge-label">${b.name}</span></div>`).join('');
+    badgesEl.style.display = 'flex';
+  } catch (e) {
+    console.error('Badges error:', e);
+  }
+}
 </script>
 </body>
 </html>

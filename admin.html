@@ -54,8 +54,9 @@
       <div class="admin-top-bar">
         <h1 class="admin-title">Admin</h1>
         <div class="admin-tabs">
-          <button class="admin-tab active" onclick="switchAdminTab('overview')">Overview</button>
-          <button class="admin-tab" onclick="switchAdminTab('users')">Users</button>
+          <button class="admin-tab active" data-tab="overview" onclick="switchAdminTab('overview')">Overview</button>
+          <button class="admin-tab" data-tab="users" onclick="switchAdminTab('users')">Users</button>
+          <button class="admin-tab" data-tab="challenges" onclick="switchAdminTab('challenges')">Challenges</button>
         </div>
       </div>
 
@@ -121,8 +122,108 @@
         </div>
       </div>
 
+      <!-- ═══ CHALLENGES TAB ═══ -->
+      <div id="tab-challenges" class="admin-tab-content" style="display: none;">
+        <div class="admin-toolbar">
+          <button class="btn btn-dark btn-sm" onclick="openChallengeModal()">+ New Challenge</button>
+          <div class="admin-toolbar-actions">
+            <select id="challenge-status-filter" class="admin-select" onchange="filterChallenges()">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="ended">Ended</option>
+            </select>
+            <select id="challenge-type-filter" class="admin-select" onchange="filterChallenges()">
+              <option value="all">All Types</option>
+              <option value="evergreen">Evergreen</option>
+              <option value="weekly">Weekly</option>
+              <option value="seasonal">Seasonal</option>
+              <option value="special">Special</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="challenges-list" class="admin-user-list">
+          <div class="loading-spinner"><div class="spinner"></div></div>
+        </div>
+      </div>
+
     </div>
   </main>
+
+  <!-- Challenge Modal -->
+  <div class="modal-overlay" id="challenge-modal">
+    <div class="modal" style="max-width: 560px;">
+      <button class="modal-close" onclick="closeChallengeModal()">&times;</button>
+      <h2 id="challenge-modal-title">New Challenge</h2>
+
+      <div class="form-group" style="margin-top: 16px;">
+        <label>Title</label>
+        <input type="text" id="challenge-title" placeholder="e.g. 30 Day Vibe Challenge" maxlength="100">
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="challenge-desc" placeholder="Describe the challenge, rules, and what participants should do..." rows="3" style="width:100%;resize:vertical;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;outline:none;"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Type</label>
+        <select id="challenge-type" class="admin-select" onchange="onChallengeTypeChange()" style="width: 100%;">
+          <option value="evergreen">Evergreen (auto-restart)</option>
+          <option value="weekly">Weekly</option>
+          <option value="seasonal">Seasonal</option>
+          <option value="special">Special (one-off)</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="challenge-start-date" style="width:100%;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;outline:none;">
+        </div>
+        <div class="form-group" id="challenge-end-date-group">
+          <label>End Date</label>
+          <input type="date" id="challenge-end-date" style="width:100%;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;outline:none;">
+        </div>
+      </div>
+
+      <div class="form-group" id="challenge-round-days-group" style="display: none;">
+        <label>Days per Round</label>
+        <input type="number" id="challenge-round-days" min="1" max="365" value="30" placeholder="30" style="width:100%;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;outline:none;">
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Challenge auto-restarts a new round after this many days</p>
+      </div>
+
+      <div class="form-group">
+        <label>Challenge Document <span style="color:var(--text-muted);font-weight:400;">(PDF or image with daily prompts)</span></label>
+        <div id="challenge-doc-preview" style="display:none;margin-bottom:8px;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;align-items:center;gap:8px;">
+          <span style="font-size:1.2rem;">📄</span>
+          <span id="challenge-doc-name" style="font-size:0.85rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+          <button class="btn btn-xs btn-outline" onclick="removeChallengeDoc()" type="button">Remove</button>
+        </div>
+        <input type="file" id="challenge-doc-input" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="onChallengeDocSelected(this)" style="font-size:0.85rem;">
+      </div>
+
+      <div class="form-group">
+        <label>Banner Image <span style="color:var(--text-muted);font-weight:400;">(optional hero image)</span></label>
+        <div id="challenge-banner-preview" style="display:none;margin-bottom:8px;border-radius:10px;overflow:hidden;position:relative;">
+          <img id="challenge-banner-img" style="width:100%;height:120px;object-fit:cover;">
+          <button class="btn btn-xs btn-dark" onclick="removeChallengeBanner()" type="button" style="position:absolute;top:8px;right:8px;">Remove</button>
+        </div>
+        <input type="file" id="challenge-banner-input" accept=".png,.jpg,.jpeg,.webp" onchange="onChallengeBannerSelected(this)" style="font-size:0.85rem;">
+      </div>
+
+      <div class="form-group">
+        <label>Tags <span style="color:var(--text-muted);font-weight:400;">(comma-separated)</span></label>
+        <input type="text" id="challenge-tags" placeholder="e.g. creative, daily, beginner-friendly">
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 20px;">
+        <button class="submit-btn" onclick="saveChallenge()" id="challenge-save-btn" style="flex:1;">Create Challenge</button>
+        <button class="btn btn-outline" id="challenge-delete-btn" onclick="deleteChallenge()" style="display:none;color:#dc2626;border-color:#fecaca;">Delete</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Grant Invites Modal -->
   <div class="modal-overlay" id="grant-invites-modal">
@@ -239,8 +340,13 @@
   function switchAdminTab(tab) {
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
-    event.target.classList.add('active');
+    const activeBtn = document.querySelector(`.admin-tab[data-tab="${tab}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
     document.getElementById('tab-' + tab).style.display = 'block';
+    // Lazy-load challenges when tab is opened
+    if (tab === 'challenges' && allChallenges.length === 0) {
+      loadChallenges();
+    }
   }
 
   // ── OVERVIEW TAB ──
@@ -658,6 +764,421 @@
   document.getElementById('grant-invites-modal')?.addEventListener('click', function(e) {
     if (e.target === this) closeGrantModal();
   });
+
+  // ══════════════════════════════════════════════
+  //  CHALLENGES TAB
+  // ══════════════════════════════════════════════
+
+  let allChallenges = [];
+  let editingChallengeId = null;
+  let challengeDocFile = null;
+  let challengeBannerFile = null;
+  let existingDocURL = null;
+  let existingDocName = null;
+  let existingBannerURL = null;
+
+  // ── Load & Render ──
+  async function loadChallenges() {
+    try {
+      const snap = await db.collection('challenges').orderBy('createdAt', 'desc').get();
+      allChallenges = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      filterChallenges();
+    } catch (e) {
+      console.error('Challenges load error:', e);
+      document.getElementById('challenges-list').innerHTML = '<div class="admin-empty">Error loading challenges</div>';
+    }
+  }
+
+  function filterChallenges() {
+    const statusFilter = document.getElementById('challenge-status-filter').value;
+    const typeFilter = document.getElementById('challenge-type-filter').value;
+
+    let filtered = allChallenges;
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(c => computeChallengeStatus(c) === statusFilter);
+    }
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(c => c.type === typeFilter);
+    }
+    renderChallenges(filtered);
+  }
+
+  function renderChallenges(challenges) {
+    const container = document.getElementById('challenges-list');
+    if (challenges.length === 0) {
+      container.innerHTML = '<div class="admin-empty">No challenges found. Create your first challenge!</div>';
+      return;
+    }
+
+    // Header row
+    const header = `
+      <div class="admin-user-row admin-header-row">
+        <div class="admin-user-info"><span class="admin-col-label">Challenge</span></div>
+        <div class="admin-user-detail hide-mobile"><span class="admin-col-label">Type</span></div>
+        <div class="admin-user-detail hide-mobile"><span class="admin-col-label">Duration</span></div>
+        <div class="admin-user-detail hide-mobile"><span class="admin-col-label">Participants</span></div>
+        <div class="admin-user-detail"><span class="admin-col-label">Status</span></div>
+        <div class="admin-user-actions" style="visibility:hidden;"><button class="btn btn-xs btn-outline" style="visibility:hidden;">—</button></div>
+      </div>`;
+
+    const rows = challenges.map(c => {
+      const status = computeChallengeStatus(c);
+      const statusBadgeClass = status === 'active' ? 'admin-badge-active' :
+                                status === 'upcoming' ? 'admin-badge-upcoming' : 'admin-badge-ended';
+      const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+      const typeBadgeClass = 'admin-badge-type-' + c.type;
+      const typeLabel = c.type.charAt(0).toUpperCase() + c.type.slice(1);
+      const duration = getChallengesDuration(c);
+      const roundInfo = c.type === 'evergreen' ? ` · Round ${getCurrentRound(c)}` : '';
+
+      return `
+        <div class="admin-user-row" style="cursor:pointer;" onclick="openChallengeModal('${c.id}')">
+          <div class="admin-user-info">
+            <strong>${escapeHtml(c.title)}</strong>
+            <span class="admin-user-meta">${escapeHtml(c.description || '').substring(0, 60)}${(c.description || '').length > 60 ? '...' : ''}</span>
+          </div>
+          <div class="admin-user-detail hide-mobile">
+            <span class="admin-badge ${typeBadgeClass}">${typeLabel}</span>
+          </div>
+          <div class="admin-user-detail hide-mobile">
+            <span style="font-size:0.82rem;">${duration}${roundInfo}</span>
+          </div>
+          <div class="admin-user-detail hide-mobile">
+            <span style="font-size:0.82rem;">${c.participantCount || 0}</span>
+          </div>
+          <div class="admin-user-detail">
+            <span class="admin-badge ${statusBadgeClass}">${statusLabel}</span>
+          </div>
+          <div class="admin-user-actions">
+            <button class="btn btn-xs btn-outline" onclick="event.stopPropagation();openChallengeModal('${c.id}')">Edit</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = header + rows;
+  }
+
+  // ── Status & Round Computation ──
+  function computeChallengeStatus(c) {
+    const now = new Date();
+    const start = c.startDate ? (c.startDate.toDate ? c.startDate.toDate() : new Date(c.startDate)) : null;
+    const end = c.endDate ? (c.endDate.toDate ? c.endDate.toDate() : new Date(c.endDate)) : null;
+
+    if (!start) return 'upcoming';
+    if (start > now) return 'upcoming';
+
+    // Evergreen challenges are always active once started
+    if (c.type === 'evergreen') return 'active';
+
+    // For non-evergreen, check end date
+    if (end && end < now) return 'ended';
+    return 'active';
+  }
+
+  function getCurrentRound(c) {
+    if (c.type !== 'evergreen' || !c.startDate) return 1;
+    const now = new Date();
+    const start = c.startDate.toDate ? c.startDate.toDate() : new Date(c.startDate);
+    const roundDays = c.roundDays || 30;
+    const elapsed = now - start;
+    if (elapsed < 0) return 1;
+    return Math.floor(elapsed / (roundDays * 86400000)) + 1;
+  }
+
+  function getChallengesDuration(c) {
+    if (c.type === 'evergreen') return `${c.roundDays || 30} days/round`;
+    const start = c.startDate ? (c.startDate.toDate ? c.startDate.toDate() : new Date(c.startDate)) : null;
+    const end = c.endDate ? (c.endDate.toDate ? c.endDate.toDate() : new Date(c.endDate)) : null;
+    if (start && end) {
+      const days = Math.ceil((end - start) / 86400000);
+      return `${days} day${days !== 1 ? 's' : ''}`;
+    }
+    if (start) {
+      return start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    return '—';
+  }
+
+  // ── Type Change Handler ──
+  function onChallengeTypeChange() {
+    const type = document.getElementById('challenge-type').value;
+    const endGroup = document.getElementById('challenge-end-date-group');
+    const roundGroup = document.getElementById('challenge-round-days-group');
+
+    if (type === 'evergreen') {
+      endGroup.style.display = 'none';
+      roundGroup.style.display = 'block';
+    } else {
+      endGroup.style.display = 'block';
+      roundGroup.style.display = 'none';
+    }
+  }
+
+  // ── File Handlers ──
+  function onChallengeDocSelected(input) {
+    if (input.files && input.files[0]) {
+      challengeDocFile = input.files[0];
+      document.getElementById('challenge-doc-preview').style.display = 'flex';
+      document.getElementById('challenge-doc-name').textContent = challengeDocFile.name;
+    }
+  }
+
+  function removeChallengeDoc() {
+    challengeDocFile = null;
+    existingDocURL = null;
+    existingDocName = null;
+    document.getElementById('challenge-doc-input').value = '';
+    document.getElementById('challenge-doc-preview').style.display = 'none';
+  }
+
+  function onChallengeBannerSelected(input) {
+    if (input.files && input.files[0]) {
+      challengeBannerFile = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('challenge-banner-preview').style.display = 'block';
+        document.getElementById('challenge-banner-img').src = e.target.result;
+      };
+      reader.readAsDataURL(challengeBannerFile);
+    }
+  }
+
+  function removeChallengeBanner() {
+    challengeBannerFile = null;
+    existingBannerURL = null;
+    document.getElementById('challenge-banner-input').value = '';
+    document.getElementById('challenge-banner-preview').style.display = 'none';
+  }
+
+  // ── Modal Open/Close ──
+  function openChallengeModal(id) {
+    editingChallengeId = id || null;
+    challengeDocFile = null;
+    challengeBannerFile = null;
+
+    // Reset form
+    document.getElementById('challenge-title').value = '';
+    document.getElementById('challenge-desc').value = '';
+    document.getElementById('challenge-type').value = 'evergreen';
+    document.getElementById('challenge-start-date').value = '';
+    document.getElementById('challenge-end-date').value = '';
+    document.getElementById('challenge-round-days').value = '30';
+    document.getElementById('challenge-tags').value = '';
+    document.getElementById('challenge-doc-input').value = '';
+    document.getElementById('challenge-doc-preview').style.display = 'none';
+    document.getElementById('challenge-banner-input').value = '';
+    document.getElementById('challenge-banner-preview').style.display = 'none';
+    existingDocURL = null;
+    existingDocName = null;
+    existingBannerURL = null;
+
+    if (id) {
+      // Edit mode — populate form
+      const c = allChallenges.find(ch => ch.id === id);
+      if (c) {
+        document.getElementById('challenge-modal-title').textContent = 'Edit Challenge';
+        document.getElementById('challenge-save-btn').textContent = 'Save Changes';
+        document.getElementById('challenge-delete-btn').style.display = 'block';
+
+        document.getElementById('challenge-title').value = c.title || '';
+        document.getElementById('challenge-desc').value = c.description || '';
+        document.getElementById('challenge-type').value = c.type || 'evergreen';
+        document.getElementById('challenge-round-days').value = c.roundDays || 30;
+        document.getElementById('challenge-tags').value = (c.tags || []).join(', ');
+
+        // Dates
+        if (c.startDate) {
+          const start = c.startDate.toDate ? c.startDate.toDate() : new Date(c.startDate);
+          document.getElementById('challenge-start-date').value = start.toISOString().split('T')[0];
+        }
+        if (c.endDate) {
+          const end = c.endDate.toDate ? c.endDate.toDate() : new Date(c.endDate);
+          document.getElementById('challenge-end-date').value = end.toISOString().split('T')[0];
+        }
+
+        // Existing document
+        if (c.documentURL) {
+          existingDocURL = c.documentURL;
+          existingDocName = c.documentName || 'Document';
+          document.getElementById('challenge-doc-preview').style.display = 'flex';
+          document.getElementById('challenge-doc-name').textContent = existingDocName;
+        }
+
+        // Existing banner
+        if (c.bannerImage) {
+          existingBannerURL = c.bannerImage;
+          document.getElementById('challenge-banner-preview').style.display = 'block';
+          document.getElementById('challenge-banner-img').src = c.bannerImage;
+        }
+      }
+    } else {
+      document.getElementById('challenge-modal-title').textContent = 'New Challenge';
+      document.getElementById('challenge-save-btn').textContent = 'Create Challenge';
+      document.getElementById('challenge-delete-btn').style.display = 'none';
+    }
+
+    onChallengeTypeChange();
+    document.getElementById('challenge-modal').classList.add('open');
+  }
+
+  function closeChallengeModal() {
+    document.getElementById('challenge-modal').classList.remove('open');
+    editingChallengeId = null;
+    challengeDocFile = null;
+    challengeBannerFile = null;
+  }
+
+  // ── Save Challenge ──
+  async function saveChallenge() {
+    const title = document.getElementById('challenge-title').value.trim();
+    const description = document.getElementById('challenge-desc').value.trim();
+    const type = document.getElementById('challenge-type').value;
+    const startDateStr = document.getElementById('challenge-start-date').value;
+    const endDateStr = document.getElementById('challenge-end-date').value;
+    const roundDays = parseInt(document.getElementById('challenge-round-days').value) || 30;
+    const tagsStr = document.getElementById('challenge-tags').value.trim();
+
+    if (!title) { showToast('Title is required'); return; }
+    if (!startDateStr) { showToast('Start date is required'); return; }
+    if (type !== 'evergreen' && !endDateStr) { showToast('End date is required for this challenge type'); return; }
+
+    const btn = document.getElementById('challenge-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const challengeData = {
+        title,
+        description,
+        type,
+        startDate: firebase.firestore.Timestamp.fromDate(new Date(startDateStr + 'T00:00:00')),
+        tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      if (type === 'evergreen') {
+        challengeData.roundDays = roundDays;
+        challengeData.endDate = null;
+      } else {
+        challengeData.endDate = firebase.firestore.Timestamp.fromDate(new Date(endDateStr + 'T23:59:59'));
+        challengeData.roundDays = null;
+      }
+
+      // Determine doc ID for file uploads
+      let docId = editingChallengeId;
+
+      if (!docId) {
+        // Creating new — add the doc first to get ID
+        challengeData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        challengeData.createdBy = currentUser.uid;
+        challengeData.createdByName = currentUserProfile?.displayName || '';
+        challengeData.participantCount = 0;
+        challengeData.submissionCount = 0;
+        challengeData.documentURL = null;
+        challengeData.documentName = null;
+        challengeData.bannerImage = null;
+
+        const docRef = await db.collection('challenges').add(challengeData);
+        docId = docRef.id;
+      }
+
+      // Upload document if new file selected
+      if (challengeDocFile) {
+        const ext = challengeDocFile.name.split('.').pop();
+        const docPath = `challenge-assets/${docId}/document.${ext}`;
+        const docRef = storage.ref(docPath);
+        await docRef.put(challengeDocFile);
+        const docURL = await docRef.getDownloadURL();
+        challengeData.documentURL = docURL;
+        challengeData.documentName = challengeDocFile.name;
+      } else if (existingDocURL) {
+        challengeData.documentURL = existingDocURL;
+        challengeData.documentName = existingDocName;
+      }
+
+      // Upload banner if new file selected
+      if (challengeBannerFile) {
+        const ext = challengeBannerFile.name.split('.').pop();
+        const bannerPath = `challenge-assets/${docId}/banner.${ext}`;
+        const bannerRef = storage.ref(bannerPath);
+        await bannerRef.put(challengeBannerFile);
+        const bannerURL = await bannerRef.getDownloadURL();
+        challengeData.bannerImage = bannerURL;
+      } else if (existingBannerURL) {
+        challengeData.bannerImage = existingBannerURL;
+      }
+
+      if (editingChallengeId) {
+        // Update existing
+        await db.collection('challenges').doc(editingChallengeId).update(challengeData);
+        showToast('Challenge updated!');
+      } else {
+        // Update the newly created doc with file URLs
+        await db.collection('challenges').doc(docId).update({
+          documentURL: challengeData.documentURL || null,
+          documentName: challengeData.documentName || null,
+          bannerImage: challengeData.bannerImage || null
+        });
+        showToast('Challenge created!');
+      }
+
+      closeChallengeModal();
+      loadChallenges();
+    } catch (e) {
+      console.error('Save challenge error:', e);
+      showToast('Error: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = editingChallengeId ? 'Save Changes' : 'Create Challenge';
+    }
+  }
+
+  // ── Delete Challenge ──
+  async function deleteChallenge() {
+    if (!editingChallengeId) return;
+    if (!confirm('Are you sure you want to delete this challenge? This cannot be undone.')) return;
+
+    const btn = document.getElementById('challenge-delete-btn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+      // Delete participant subcollection docs
+      const partSnap = await db.collection('challenges').doc(editingChallengeId).collection('participants').get();
+      const batch = db.batch();
+      partSnap.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+
+      // Delete challenge doc
+      await db.collection('challenges').doc(editingChallengeId).delete();
+
+      // Try to delete storage files (best effort)
+      try {
+        await storage.ref(`challenge-assets/${editingChallengeId}`).listAll().then(res => {
+          res.items.forEach(item => item.delete());
+        });
+      } catch (storageErr) {
+        // Storage cleanup is best-effort
+        console.warn('Storage cleanup:', storageErr);
+      }
+
+      showToast('Challenge deleted');
+      closeChallengeModal();
+      loadChallenges();
+    } catch (e) {
+      console.error('Delete challenge error:', e);
+      showToast('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    }
+  }
+
+  // Close challenge modal on backdrop click
+  document.getElementById('challenge-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeChallengeModal();
+  });
+
+
 </script>
 </body>
 </html>

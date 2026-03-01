@@ -74,12 +74,32 @@ function getAuthModalHTML() {
         <label>Password</label>
         <input type="password" id="auth-password" placeholder="At least 6 characters">
       </div>
+      <div class="forgot-password-link" id="forgot-password-link">
+        <a onclick="showForgotPassword()">Forgot password?</a>
+      </div>
       <button class="submit-btn" id="auth-submit-btn" onclick="logInWithEmail()">Log In</button>
       <div class="auth-divider">or</div>
       <button class="google-btn" onclick="signInWithGoogle()">
         <svg viewBox="0 0 24 24" width="20" height="20"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         Continue with Google
       </button>
+    </div>
+    <div id="forgot-password-form" style="display: none;">
+      <div class="forgot-password-header">
+        <button class="forgot-back-btn" onclick="hideForgotPassword()">&larr;</button>
+        <h2>Reset Password</h2>
+      </div>
+      <p class="subtitle" style="margin-bottom: 20px;">Enter your email and we'll send you a link to reset your password.</p>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="forgot-email" placeholder="you@example.com">
+      </div>
+      <div class="forgot-password-success" id="forgot-success" style="display: none;">
+        <span class="forgot-success-icon">&#10003;</span>
+        <p>Reset link sent! Check your email inbox.</p>
+      </div>
+      <div class="forgot-password-error" id="forgot-error" style="display: none;"></div>
+      <button class="submit-btn" id="forgot-submit-btn" onclick="sendPasswordReset()">Send Reset Link</button>
     </div>
     <div id="google-complete-section" style="display: none;">
       <h2 style="margin-bottom: 8px;">Complete Your Profile</h2>
@@ -238,6 +258,17 @@ function getSubmitModalHTML() {
         <label>Tags (comma separated)</label>
         <input type="text" id="proj-tags" placeholder="e.g. three.js, shader, interactive">
       </div>
+      <div class="form-group" id="challenge-link-group" style="border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 8px;">
+        <label>🔥 Link to Challenge <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+        <select id="proj-challenge" onchange="onChallengeSelect()">
+          <option value="">No challenge</option>
+        </select>
+        <div id="challenge-day-group" style="display:none;margin-top:10px;">
+          <label style="font-size:0.85rem;">Challenge Day</label>
+          <input type="number" id="proj-challenge-day" min="1" max="365" value="1" placeholder="Which day?" style="width:100%;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;outline:none;">
+          <p id="challenge-day-hint" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;"></p>
+        </div>
+      </div>
       <button class="submit-btn" onclick="submitProject()">Post to VibeLab</button>
     </div>
     <div class="success-msg" id="success-msg">
@@ -334,6 +365,13 @@ function openSubmitModal() {
     if (subtitle) subtitle.textContent = 'Post your project for the community to see';
     const submitBtn = form?.querySelector('.submit-btn');
     if (submitBtn) submitBtn.textContent = 'Post to VibeLab';
+    // Reset challenge fields
+    const challengeSelect = document.getElementById('proj-challenge');
+    if (challengeSelect) challengeSelect.value = '';
+    const dayGroup = document.getElementById('challenge-day-group');
+    if (dayGroup) dayGroup.style.display = 'none';
+    // Load active challenges for dropdown
+    loadActiveChallengesForSubmit();
   }
 }
 
@@ -385,6 +423,14 @@ async function openEditProjectModal(projectId) {
       b.classList.toggle('active', b.textContent.trim().toLowerCase() === selectedVisibility);
     });
 
+    // Load challenges and set challenge fields
+    await loadActiveChallengesForSubmit();
+    if (p.challengeId) {
+      setVal('proj-challenge', p.challengeId);
+      onChallengeSelect();
+      if (p.challengeDay) setVal('proj-challenge-day', p.challengeDay);
+    }
+
   } catch (e) {
     console.error('Error loading project for edit:', e);
     showToast('Error loading project');
@@ -406,6 +452,84 @@ function selectVisibility(btn, vis) {
   document.querySelectorAll('.visibility-option').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   selectedVisibility = vis;
+}
+
+// ── Challenge link in Submit Modal ──
+let submitChallengesCache = [];
+
+async function loadActiveChallengesForSubmit() {
+  const select = document.getElementById('proj-challenge');
+  if (!select || !db) return;
+
+  try {
+    const snap = await db.collection('challenges').orderBy('createdAt', 'desc').get();
+    submitChallengesCache = [];
+    const now = new Date();
+
+    snap.docs.forEach(d => {
+      const c = { id: d.id, ...d.data() };
+      const start = c.startDate ? (c.startDate.toDate ? c.startDate.toDate() : new Date(c.startDate)) : null;
+      const end = c.endDate ? (c.endDate.toDate ? c.endDate.toDate() : new Date(c.endDate)) : null;
+      // Include active challenges only
+      if (!start || start > now) return;
+      if (c.type !== 'evergreen' && end && end < now) return;
+      submitChallengesCache.push(c);
+    });
+
+    // Rebuild options
+    select.innerHTML = '<option value="">No challenge</option>';
+    submitChallengesCache.forEach(c => {
+      const typeLabel = c.type.charAt(0).toUpperCase() + c.type.slice(1);
+      select.innerHTML += `<option value="${c.id}">${escapeHtml(c.title)} (${typeLabel})</option>`;
+    });
+  } catch (e) {
+    console.error('Error loading challenges for submit:', e);
+  }
+}
+
+function onChallengeSelect() {
+  const select = document.getElementById('proj-challenge');
+  const dayGroup = document.getElementById('challenge-day-group');
+  const dayInput = document.getElementById('proj-challenge-day');
+  const hint = document.getElementById('challenge-day-hint');
+
+  if (!select || !dayGroup) return;
+
+  const challengeId = select.value;
+  if (!challengeId) {
+    dayGroup.style.display = 'none';
+    return;
+  }
+
+  dayGroup.style.display = 'block';
+
+  // Auto-suggest current day
+  const challenge = submitChallengesCache.find(c => c.id === challengeId);
+  if (challenge) {
+    const start = challenge.startDate ? (challenge.startDate.toDate ? challenge.startDate.toDate() : new Date(challenge.startDate)) : null;
+    if (start) {
+      const now = new Date();
+      let currentDay;
+      if (challenge.type === 'evergreen') {
+        const roundDays = challenge.roundDays || 30;
+        const elapsed = now - start;
+        const roundMs = roundDays * 86400000;
+        const intoRound = elapsed % roundMs;
+        currentDay = Math.floor(intoRound / 86400000) + 1;
+        const round = Math.floor(elapsed / roundMs) + 1;
+        hint.textContent = `Round ${round} · Auto-suggested: Day ${currentDay} of ${roundDays}`;
+        dayInput.max = roundDays;
+      } else {
+        const elapsed = now - start;
+        currentDay = Math.floor(elapsed / 86400000) + 1;
+        const end = challenge.endDate ? (challenge.endDate.toDate ? challenge.endDate.toDate() : new Date(challenge.endDate)) : null;
+        const totalDays = end ? Math.ceil((end - start) / 86400000) : currentDay;
+        hint.textContent = `Auto-suggested: Day ${currentDay} of ${totalDays}`;
+        dayInput.max = totalDays;
+      }
+      dayInput.value = currentDay;
+    }
+  }
 }
 
 async function submitProject() {
@@ -433,6 +557,19 @@ async function submitProject() {
 
     const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
 
+    // Challenge linking
+    const challengeId = document.getElementById('proj-challenge')?.value || '';
+    const challengeDay = challengeId ? (parseInt(document.getElementById('proj-challenge-day')?.value) || 1) : null;
+    let challengeRound = null;
+    if (challengeId) {
+      const linkedChallenge = submitChallengesCache.find(c => c.id === challengeId);
+      if (linkedChallenge && linkedChallenge.type === 'evergreen' && linkedChallenge.startDate) {
+        const start = linkedChallenge.startDate.toDate ? linkedChallenge.startDate.toDate() : new Date(linkedChallenge.startDate);
+        const roundDays = linkedChallenge.roundDays || 30;
+        challengeRound = Math.floor((new Date() - start) / (roundDays * 86400000)) + 1;
+      }
+    }
+
     if (editingProjectId) {
       // UPDATE existing project
       const updateData = {
@@ -449,6 +586,11 @@ async function submitProject() {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       if (imageURL) updateData.imageURL = imageURL;
+      if (challengeId) {
+        updateData.challengeId = challengeId;
+        updateData.challengeDay = challengeDay;
+        updateData.challengeRound = challengeRound;
+      }
 
       await db.collection('projects').doc(editingProjectId).update(updateData);
       editingProjectId = null;
@@ -475,16 +617,34 @@ async function submitProject() {
         comments: 0,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
+      if (challengeId) {
+        project.challengeId = challengeId;
+        project.challengeDay = challengeDay;
+        project.challengeRound = challengeRound;
+      }
       await db.collection('projects').add(project);
+
+      // Increment challenge submission count
+      if (challengeId) {
+        try {
+          await db.collection('challenges').doc(challengeId).update({
+            submissionCount: firebase.firestore.FieldValue.increment(1)
+          });
+        } catch (e) {
+          console.warn('Could not increment challenge submission count:', e);
+        }
+      }
     }
 
     // Clear form
-    ['proj-name', 'proj-desc', 'proj-link', 'proj-github', 'proj-figma', 'proj-tags', 'proj-built-with'].forEach(id => {
+    ['proj-name', 'proj-desc', 'proj-link', 'proj-github', 'proj-figma', 'proj-tags', 'proj-built-with', 'proj-challenge'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
     const imageInput = document.getElementById('proj-image');
     if (imageInput) imageInput.value = '';
+    const dayGroup = document.getElementById('challenge-day-group');
+    if (dayGroup) dayGroup.style.display = 'none';
 
     const form = document.getElementById('submit-form');
     const success = document.getElementById('success-msg');
@@ -722,4 +882,73 @@ async function getFollowCounts(userId) {
     ]);
     return { followers: followersSnap.size, following: followingSnap.size };
   } catch (e) { return { followers: 0, following: 0 }; }
+}
+
+// ── Forgot Password ──
+function showForgotPassword() {
+  const authForm = document.getElementById('auth-form');
+  const forgotForm = document.getElementById('forgot-password-form');
+  const authTabs = document.querySelector('.auth-tabs');
+  const authSwitch = document.querySelector('.auth-switch');
+  const forgotLink = document.getElementById('forgot-password-link');
+
+  if (authForm) authForm.style.display = 'none';
+  if (forgotForm) forgotForm.style.display = 'block';
+  if (authTabs) authTabs.style.display = 'none';
+  if (authSwitch) authSwitch.style.display = 'none';
+
+  // Pre-fill email from login form
+  const loginEmail = document.getElementById('auth-email')?.value?.trim();
+  const forgotEmail = document.getElementById('forgot-email');
+  if (forgotEmail && loginEmail) forgotEmail.value = loginEmail;
+
+  // Reset state
+  const successEl = document.getElementById('forgot-success');
+  const errorEl = document.getElementById('forgot-error');
+  const submitBtn = document.getElementById('forgot-submit-btn');
+  if (successEl) successEl.style.display = 'none';
+  if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+  if (submitBtn) { submitBtn.style.display = 'block'; submitBtn.disabled = false; submitBtn.textContent = 'Send Reset Link'; }
+
+  clearAuthError();
+}
+
+function hideForgotPassword() {
+  const authForm = document.getElementById('auth-form');
+  const forgotForm = document.getElementById('forgot-password-form');
+  const authTabs = document.querySelector('.auth-tabs');
+  const authSwitch = document.querySelector('.auth-switch');
+
+  if (forgotForm) forgotForm.style.display = 'none';
+  if (authForm) authForm.style.display = 'block';
+  if (authTabs) authTabs.style.display = '';
+  if (authSwitch) authSwitch.style.display = '';
+}
+
+async function sendPasswordReset() {
+  const email = document.getElementById('forgot-email')?.value?.trim();
+  const successEl = document.getElementById('forgot-success');
+  const errorEl = document.getElementById('forgot-error');
+  const submitBtn = document.getElementById('forgot-submit-btn');
+
+  if (!email) {
+    if (errorEl) { errorEl.textContent = 'Please enter your email address.'; errorEl.style.display = 'block'; }
+    return;
+  }
+
+  if (errorEl) errorEl.style.display = 'none';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+
+  try {
+    await auth.sendPasswordResetEmail(email);
+    if (successEl) successEl.style.display = 'flex';
+    if (submitBtn) submitBtn.style.display = 'none';
+  } catch (error) {
+    let message = 'Something went wrong. Please try again.';
+    if (error.code === 'auth/user-not-found') message = 'No account found with this email.';
+    else if (error.code === 'auth/invalid-email') message = 'Please enter a valid email address.';
+    else if (error.code === 'auth/too-many-requests') message = 'Too many attempts. Please try again later.';
+    if (errorEl) { errorEl.textContent = message; errorEl.style.display = 'block'; }
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send Reset Link'; }
+  }
 }

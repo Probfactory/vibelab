@@ -153,6 +153,16 @@ function switchAuthMode(mode) {
       ? 'Already have an account? <a onclick="switchAuthMode(\'login\')">Log In</a>'
       : 'Don\'t have an account? <a onclick="switchAuthMode(\'signup\')">Sign Up</a>';
   }
+  // Hide forgot password form if visible
+  const forgotForm = document.getElementById('forgot-password-form');
+  if (forgotForm) forgotForm.style.display = 'none';
+  const authForm = document.getElementById('auth-form');
+  if (authForm) authForm.style.display = 'block';
+  const authTabs = document.querySelector('.auth-tabs');
+  if (authTabs) authTabs.style.display = '';
+  // Show/hide forgot password link based on mode
+  const forgotLink = document.getElementById('forgot-password-link');
+  if (forgotLink) forgotLink.style.display = isSignup ? 'none' : 'block';
 }
 
 function clearAuthError() {

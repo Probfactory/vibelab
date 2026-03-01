@@ -211,6 +211,65 @@ nav {
 }
 .auth-switch a:hover { text-decoration: underline; }
 
+/* Forgot password link */
+.forgot-password-link {
+  text-align: right; margin: -4px 0 12px;
+}
+.forgot-password-link a {
+  color: var(--text-muted); font-size: 0.82rem; cursor: pointer;
+  text-decoration: none; transition: color 0.2s;
+}
+.forgot-password-link a:hover { color: var(--text); text-decoration: underline; }
+
+/* Forgot password form */
+.forgot-password-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+}
+.forgot-password-header h2 { margin: 0; }
+.forgot-back-btn {
+  width: 36px; height: 36px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--surface);
+  font-size: 1.1rem; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.2s; color: var(--text);
+}
+.forgot-back-btn:hover { background: var(--bg-alt); border-color: var(--text-muted); }
+
+.forgot-password-success {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(16, 185, 129, 0.08); color: #059669;
+  padding: 14px 16px; border-radius: 12px; font-size: 0.88rem;
+  margin-bottom: 16px;
+}
+.forgot-password-success .forgot-success-icon {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #059669; color: white; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 0.75rem; flex-shrink: 0;
+}
+.forgot-password-success p { margin: 0; }
+
+.forgot-password-error {
+  background: rgba(239,68,68,0.08); color: #dc2626;
+  padding: 10px 14px; border-radius: 10px; font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+/* Change password section (profile edit) */
+.change-password-section {
+  border-top: 1px solid var(--border-light);
+  padding-top: 24px; margin-top: 24px;
+}
+.change-password-title {
+  font-size: 1rem; font-weight: 600; margin-bottom: 16px;
+  color: var(--text);
+}
+.provider-note {
+  color: var(--text-muted); font-size: 0.88rem;
+  line-height: 1.5; padding: 12px 16px;
+  background: var(--bg-alt); border-radius: 10px;
+}
+
 /* Profile modal */
 .profile-photo-upload {
   width: 100px; height: 100px; border-radius: 50%;
@@ -1991,6 +2050,34 @@ footer {
   color: #d97706;
 }
 
+.admin-badge-upcoming {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.admin-badge-ended {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+/* Challenge type badges */
+.admin-badge-type-evergreen {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+.admin-badge-type-weekly {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+.admin-badge-type-seasonal {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+.admin-badge-type-special {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
 .admin-generate-section {
   display: flex;
   gap: 12px;
@@ -2055,6 +2142,494 @@ footer {
   padding: 40px 0;
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+/* ═══ COMMUNITY CHALLENGES ═══ */
+
+.challenges-section {
+  padding: 48px 0;
+}
+
+/* ── Active Challenge Hero Card ── */
+.challenge-hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.challenge-hero-banner {
+  width: 100%;
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+}
+
+.challenge-hero-body {
+  padding: 28px 32px;
+}
+
+.challenge-hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.challenge-hero-round {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+.challenge-hero-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.challenge-hero-desc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.challenge-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.challenge-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.challenge-hero-progress {
+  margin-bottom: 16px;
+}
+
+.challenge-progress-bar {
+  height: 8px;
+  background: var(--bg-alt);
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.challenge-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  border-radius: 100px;
+  transition: width 0.5s ease;
+}
+
+.challenge-progress-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.challenge-hero-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.challenge-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.challenge-doc-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  transition: all 0.2s;
+}
+.challenge-doc-link:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.challenge-countdown {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--amber);
+  background: rgba(245, 158, 11, 0.08);
+  padding: 4px 12px;
+  border-radius: 100px;
+}
+
+/* ── Challenge Type Pills ── */
+.challenge-type-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.challenge-type-evergreen {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+.challenge-type-weekly {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+.challenge-type-seasonal {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+.challenge-type-special {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
+/* ── Leaderboard ── */
+.challenge-leaderboard {
+  border-top: 1px solid var(--border-light);
+  padding: 20px 32px 24px;
+}
+.challenge-leaderboard h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.15s;
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin: 0 -8px;
+}
+.leaderboard-row:hover {
+  background: var(--bg-alt);
+}
+.leaderboard-rank {
+  width: 28px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.leaderboard-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.leaderboard-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--purple);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.leaderboard-name {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leaderboard-score {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Upcoming Challenge Cards ── */
+.challenges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.challenge-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.challenge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.challenge-card-banner {
+  width: 100%;
+  height: 120px;
+  background-size: cover;
+  background-position: center;
+}
+.challenge-card-banner-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-alt);
+}
+
+.challenge-card-body {
+  padding: 16px 20px 20px;
+}
+
+.challenge-card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.challenge-card-desc {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.challenge-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.challenge-starts-in {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.challenge-start-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ── Past Challenge Archive Cards ── */
+.challenge-archive-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.challenge-archive-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.challenge-archive-header:hover {
+  background: var(--bg-alt);
+}
+
+.challenge-archive-info h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.challenge-archive-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.challenge-archive-toggle {
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.challenge-archive-gallery {
+  border-top: 1px solid var(--border-light);
+  padding: 20px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 800px) {
+  .challenges-grid { grid-template-columns: 1fr; }
+  .challenge-hero-banner { height: 140px; }
+  .challenge-hero-body { padding: 20px; }
+  .challenge-hero-title { font-size: 1.3rem; }
+  .challenge-leaderboard { padding: 16px 20px 20px; }
+  .challenge-hero-meta { flex-direction: column; gap: 4px; }
+}
+
+@media (max-width: 600px) {
+  .challenges-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ STREAK CALENDAR (Profile Page) ═══ */
+
+.streak-calendar-section {
+  margin-bottom: 20px;
+}
+
+.streak-calendar-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+}
+
+.streak-calendar {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.streak-grid {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.streak-month-row {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.streak-month-label {
+  width: 12px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.streak-row {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.streak-day-label {
+  width: 28px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: right;
+  padding-right: 4px;
+  flex-shrink: 0;
+}
+
+.streak-day {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.streak-level-empty {
+  background: transparent;
+}
+
+.streak-level-0 {
+  background: var(--bg-alt);
+  border: 1px solid var(--border-light);
+}
+
+.streak-level-1 {
+  background: rgba(200, 255, 0, 0.35);
+}
+
+.streak-level-2 {
+  background: rgba(200, 255, 0, 0.6);
+}
+
+.streak-level-3 {
+  background: var(--accent);
+}
+
+.streak-today {
+  outline: 2px solid var(--text);
+  outline-offset: -1px;
+}
+
+.streak-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  justify-content: flex-end;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ═══ BADGES (Profile Page) ═══ */
+
+.badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.badge-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 100px;
+  cursor: default;
+  transition: transform 0.15s;
+}
+
+.badge-icon:hover {
+  transform: scale(1.05);
+}
+
+.badge-emoji {
+  font-size: 1rem;
+}
+
+.badge-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 /* ═══ INVITE DRAWER (Profile Page) ═══ */
