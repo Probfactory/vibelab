@@ -28,17 +28,14 @@
         <button class="btn btn-primary" onclick="openAuthModal('signup')">Join VibeLab</button>
       </div>
 
-      <!-- Invite Drawer (slides in from right) -->
-      <div class="invite-drawer-overlay" id="invite-drawer-overlay" onclick="closeInviteDrawer()"></div>
-      <div class="invite-drawer" id="invite-drawer">
-        <div class="invite-drawer-header">
-          <h3>Invite Friends</h3>
-          <button class="invite-drawer-close" onclick="closeInviteDrawer()">&times;</button>
-        </div>
-        <div class="invite-drawer-body">
-          <p class="invite-count">You have <strong id="invite-remaining-count">0</strong> invites remaining</p>
-          <button class="btn btn-primary btn-sm" id="generate-invite-btn" onclick="generateUserInvite()" style="width: 100%; margin-bottom: 16px;">Generate Invite Code</button>
-          <div class="invite-drawer-codes" id="my-invite-codes"></div>
+      <!-- Invite Modal -->
+      <div class="modal-overlay" id="invite-modal">
+        <div class="modal" style="max-width: 440px;">
+          <button class="modal-close" onclick="closeInviteModal()">&times;</button>
+          <h2>Invite Friends</h2>
+          <p class="subtitle">Share VibeLab with people who build with feeling</p>
+          <p class="invite-remaining">You have <strong id="invite-remaining-count">0</strong> invites remaining</p>
+          <div class="invite-codes-list" id="my-invite-codes"></div>
         </div>
       </div>
 
@@ -218,7 +215,7 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
       <div class="profile-details">
         <div class="profile-name-row">
           <h1 class="profile-name">${escapeHtml(name)}</h1>
-          ${isOwn ? '<div style="display:flex;gap:8px;align-items:center;"><button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Edit Profile</button><button class="btn btn-dark btn-sm invite-drawer-btn" id="invite-drawer-btn" style="display:none;" onclick="openInviteDrawer()">🎟️ <span id="invite-btn-count">0</span> Invites</button></div>' :
+          ${isOwn ? '<div style="display:flex;gap:8px;align-items:center;"><button class="btn btn-outline btn-sm" onclick="toggleProfileEdit()">Edit Profile</button><button class="btn btn-dark btn-sm invite-drawer-btn" id="invite-drawer-btn" style="display:none;" onclick="openInviteModal()">🎟️ <span id="invite-btn-count">0</span> Invites</button></div>' :
             '<button class="follow-btn ' + (isFollowing ? 'following' : 'not-following') + '" id="profile-follow-btn" onclick="handleProfileFollow()" style="width:auto; padding: 8px 24px;">' + (isFollowing ? 'Following' : 'Follow') + '</button>'}
         </div>
         ${profile.username ? '<div class="profile-handle" style="color: var(--text-muted); font-size: 0.95rem;">vibelab.in/' + escapeHtml(profile.username) + '</div>' : ''}
@@ -663,28 +660,19 @@ async function showInviteSection() {
   if (btn) btn.style.display = 'inline-flex';
   if (btnCount) btnCount.textContent = remaining;
 
-  // Update drawer content
+  // Update modal content
   document.getElementById('invite-remaining-count').textContent = remaining;
-  const genBtn = document.getElementById('generate-invite-btn');
-  if (genBtn) {
-    genBtn.disabled = remaining <= 0;
-    if (remaining <= 0) genBtn.textContent = 'No invites remaining';
-  }
 
   // Pre-load invite codes
   loadMyInviteCodes();
 }
 
-function openInviteDrawer() {
-  document.getElementById('invite-drawer').classList.add('open');
-  document.getElementById('invite-drawer-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+function openInviteModal() {
+  document.getElementById('invite-modal').classList.add('open');
 }
 
-function closeInviteDrawer() {
-  document.getElementById('invite-drawer').classList.remove('open');
-  document.getElementById('invite-drawer-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+function closeInviteModal() {
+  document.getElementById('invite-modal').classList.remove('open');
 }
 
 async function loadMyInviteCodes() {
@@ -721,46 +709,32 @@ async function loadMyInviteCodes() {
     container.innerHTML = docs.map(d => {
       const c = d.data();
       const isUsed = c.status === 'used';
-      return `
-        <div class="invite-code-card ${isUsed ? 'used' : ''}">
-          <span>${escapeHtml(c.code)}</span>
-          ${isUsed
-            ? '<span style="font-size: 0.75rem; color: var(--text-muted); font-family: Inter, sans-serif;">Used</span>'
-            : `<button class="copy-btn" onclick="event.stopPropagation(); navigator.clipboard.writeText('${escapeHtml(c.code)}'); showToast('Copied!');">📋</button>`
-          }
-        </div>`;
+      const inviteLink = 'https://vibelab.in/invite/' + encodeURIComponent(c.code);
+      if (isUsed) {
+        const claimer = c.usedByName || c.usedByEmail || 'Someone';
+        const claimerDetail = c.usedByEmail ? escapeHtml(claimer) + ' (' + escapeHtml(c.usedByEmail) + ')' : escapeHtml(claimer);
+        return `
+          <div class="invite-code-card used">
+            <div class="invite-code-info">
+              <span class="invite-code-sub">${escapeHtml(c.code)}</span>
+              <span class="invite-claimer">Claimed by ${claimerDetail}</span>
+            </div>
+            <span class="invite-used-badge">Used</span>
+          </div>`;
+      } else {
+        return `
+          <div class="invite-code-card">
+            <div class="invite-code-info">
+              <a href="${inviteLink}" target="_blank" class="invite-link-text">${inviteLink}</a>
+              <span class="invite-code-sub">${escapeHtml(c.code)}</span>
+            </div>
+            <button class="copy-btn" onclick="event.stopPropagation(); navigator.clipboard.writeText('${inviteLink}'); showToast('Invite link copied!');">${copyIconSVG}</button>
+          </div>`;
+      }
     }).join('');
   } catch (e) {
     console.error('Load invite codes error:', e);
     container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Error loading invite codes.</p>';
-  }
-}
-
-async function generateUserInvite() {
-  if (!currentUser || !currentUserProfile) return;
-  const remaining = currentUserProfile.invitesRemaining ?? 0;
-  if (remaining <= 0) { showToast('No invites remaining'); return; }
-
-  try {
-    const code = await createInviteCode(currentUser.uid, currentUserProfile.displayName || '', 'user');
-    if (code) {
-      // Update local state
-      currentUserProfile.invitesRemaining = remaining - 1;
-      document.getElementById('invite-remaining-count').textContent = currentUserProfile.invitesRemaining;
-      const btnCount = document.getElementById('invite-btn-count');
-      if (btnCount) btnCount.textContent = currentUserProfile.invitesRemaining;
-
-      const genBtn = document.getElementById('generate-invite-btn');
-      if (genBtn && currentUserProfile.invitesRemaining <= 0) {
-        genBtn.disabled = true;
-        genBtn.textContent = 'No invites remaining';
-      }
-
-      showToast('Invite code generated: ' + code);
-      loadMyInviteCodes();
-    }
-  } catch (e) {
-    showToast('Error generating invite: ' + e.message);
   }
 }
 
