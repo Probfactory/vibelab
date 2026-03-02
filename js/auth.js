@@ -57,8 +57,22 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
           window._pendingInviteCode = null;
           window._pendingInviteCreator = null;
         } else {
-          // Google OAuth — no user doc yet, show complete signup modal
-          showGoogleCompleteSignup();
+          // Only show complete signup for actual Google OAuth users
+          const isGoogleUser = user.providerData?.some(p => p.providerId === 'google.com');
+          if (isGoogleUser) {
+            showGoogleCompleteSignup();
+          } else {
+            // Email/password user whose doc is still being created (race condition)
+            // Wait briefly and retry before giving up
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            const retryDoc = await db.collection('users').doc(user.uid).get();
+            if (retryDoc.exists) {
+              currentUserProfile = retryDoc.data();
+              updateNav();
+              window.dispatchEvent(new CustomEvent('authStateReady', { detail: { user, profile: currentUserProfile } }));
+              return;
+            }
+          }
         }
       }
     } catch (e) {
@@ -110,16 +124,26 @@ function openAuthModal(mode) {
   switchAuthMode(mode || 'login');
   document.getElementById('auth-modal').classList.add('open');
   clearAuthError();
-  // Hide Google complete section
-  const googleSection = document.getElementById('google-complete-section');
-  if (googleSection) googleSection.style.display = 'none';
-  const authForm = document.getElementById('auth-form');
-  if (authForm) authForm.style.display = 'block';
 }
 
 function closeAuthModal() {
   document.getElementById('auth-modal').classList.remove('open');
   clearAuthError();
+  // Reset invite verification state
+  _verifiedInviteCode = null;
+  _verifiedInviteData = null;
+  // Reset invite step UI
+  const verifyBtn = document.getElementById('invite-verify-btn');
+  if (verifyBtn) { verifyBtn.disabled = false; verifyBtn.textContent = 'Verify & Continue'; }
+  const inviteStatus = document.getElementById('invite-verify-status');
+  if (inviteStatus) { inviteStatus.innerHTML = ''; inviteStatus.className = ''; }
+  const inviteInput = document.getElementById('auth-invite-code');
+  if (inviteInput) { inviteInput.value = ''; }
+  // Reset Google invite field
+  const googleInviteInput = document.getElementById('google-invite-code');
+  if (googleInviteInput) { googleInviteInput.readOnly = false; googleInviteInput.style.opacity = ''; googleInviteInput.style.cursor = ''; googleInviteInput.value = ''; }
+  const googleInviteGroup = document.getElementById('google-invite-group');
+  if (googleInviteGroup) googleInviteGroup.style.display = '';
   // If Google user has no profile, sign them out on modal close
   if (currentUser && !currentUserProfile?.username) {
     const isGoogleUser = currentUser.providerData?.some(p => p.providerId === 'google.com');
@@ -129,27 +153,15 @@ function closeAuthModal() {
   }
 }
 
+// Invite verification state
+let _verifiedInviteCode = null;
+let _verifiedInviteData = null;
+
 function switchAuthMode(mode) {
   const isSignup = mode === 'signup';
   document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.auth-tab')[isSignup ? 1 : 0].classList.add('active');
-  const nameGroup = document.getElementById('display-name-group');
-  if (nameGroup) nameGroup.style.display = isSignup ? 'block' : 'none';
-  const usernameGroup = document.getElementById('username-group');
-  if (usernameGroup) usernameGroup.style.display = isSignup ? 'block' : 'none';
-  const inviteGroup = document.getElementById('invite-code-group');
-  if (inviteGroup) inviteGroup.style.display = isSignup ? 'block' : 'none';
-  const submitBtn = document.getElementById('auth-submit-btn');
-  if (submitBtn) {
-    submitBtn.textContent = isSignup ? 'Sign Up' : 'Log In';
-    submitBtn.onclick = isSignup ? signUpWithEmail : logInWithEmail;
-  }
-  const switchText = document.getElementById('auth-switch-text');
-  if (switchText) {
-    switchText.innerHTML = isSignup
-      ? 'Already have an account? <a onclick="switchAuthMode(\'login\')">Log In</a>'
-      : 'Don\'t have an account? <a onclick="switchAuthMode(\'signup\')">Sign Up</a>';
-  }
+
   // Hide forgot password form if visible
   const forgotForm = document.getElementById('forgot-password-form');
   if (forgotForm) forgotForm.style.display = 'none';
@@ -157,9 +169,149 @@ function switchAuthMode(mode) {
   if (authForm) authForm.style.display = 'block';
   const authTabs = document.querySelector('.auth-tabs');
   if (authTabs) authTabs.style.display = '';
-  // Show/hide forgot password link based on mode
-  const forgotLink = document.getElementById('forgot-password-link');
-  if (forgotLink) forgotLink.style.display = isSignup ? 'none' : 'block';
+  // Hide Google complete section
+  const googleSection = document.getElementById('google-complete-section');
+  if (googleSection) googleSection.style.display = 'none';
+
+  // Get the three sections
+  const loginFields = document.getElementById('login-fields');
+  const inviteStep = document.getElementById('signup-invite-step');
+  const signupFields = document.getElementById('signup-fields-step');
+
+  // Hide all sections first
+  if (loginFields) loginFields.style.display = 'none';
+  if (inviteStep) inviteStep.style.display = 'none';
+  if (signupFields) signupFields.style.display = 'none';
+
+  if (isSignup) {
+    // Check if arriving from invite link (auto-verify)
+    if (window._inviteLinkCode && !_verifiedInviteCode) {
+      const inviteInput = document.getElementById('auth-invite-code');
+      if (inviteInput) inviteInput.value = window._inviteLinkCode;
+      if (inviteStep) inviteStep.style.display = 'block';
+      // Auto-verify the invite code
+      verifyInviteCode();
+    } else if (_verifiedInviteCode) {
+      // Already verified — show signup fields directly
+      if (signupFields) signupFields.style.display = 'block';
+    } else {
+      // Show invite step
+      if (inviteStep) inviteStep.style.display = 'block';
+    }
+  } else {
+    // Login mode
+    if (loginFields) loginFields.style.display = 'block';
+  }
+
+  const switchText = document.getElementById('auth-switch-text');
+  if (switchText) {
+    switchText.innerHTML = isSignup
+      ? 'Already have an account? <a onclick="switchAuthMode(\'login\')">Log In</a>'
+      : 'Don\'t have an account? <a onclick="switchAuthMode(\'signup\')">Sign Up</a>';
+  }
+
+  clearAuthError();
+}
+
+// Extract invite code from raw code or full URL
+function extractInviteCode(input) {
+  const trimmed = input.trim();
+
+  // Direct code: VIBE-XXXX or VIBE-XXXXXXXX (4-8 chars, case insensitive)
+  if (/^VIBE-[A-Za-z0-9]{4,8}$/i.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+
+  // URL: https://vibelab.in/invite/VIBE-XXXX or vibelab.in/invite/VIBE-XXXX
+  const urlMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?vibelab\.in\/invite\/([A-Za-z0-9-]+)/i);
+  if (urlMatch) {
+    return urlMatch[1].toUpperCase();
+  }
+
+  // Try as-is if it looks like a code (uppercase it)
+  const upper = trimmed.toUpperCase();
+  if (/^[A-Z0-9]+-[A-Z0-9]+$/.test(upper)) {
+    return upper;
+  }
+
+  return null;
+}
+
+// Verify the invite code and transition to signup fields
+async function verifyInviteCode() {
+  const input = document.getElementById('auth-invite-code');
+  const rawValue = (input?.value || '').trim();
+  const statusEl = document.getElementById('invite-verify-status');
+  const verifyBtn = document.getElementById('invite-verify-btn');
+
+  if (!rawValue) {
+    if (statusEl) { statusEl.textContent = 'Please enter an invite code or link'; statusEl.className = 'invite-verify-error'; }
+    return;
+  }
+
+  const code = extractInviteCode(rawValue);
+  if (!code) {
+    if (statusEl) { statusEl.textContent = 'Invalid invite code format'; statusEl.className = 'invite-verify-error'; }
+    return;
+  }
+
+  // Show loading
+  if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.textContent = 'Verifying...'; }
+  if (statusEl) { statusEl.innerHTML = ''; statusEl.className = ''; }
+
+  try {
+    // Check bootstrap mode (no superadmin = skip validation)
+    const adminExists = await checkSuperAdminExists();
+    if (!adminExists) {
+      _verifiedInviteCode = code;
+      _verifiedInviteData = null;
+      showSignupFields(null);
+      return;
+    }
+
+    const result = await validateInviteCode(code);
+    if (!result.valid) {
+      if (statusEl) { statusEl.textContent = result.error; statusEl.className = 'invite-verify-error'; }
+      if (verifyBtn) { verifyBtn.disabled = false; verifyBtn.textContent = 'Verify & Continue'; }
+      return;
+    }
+
+    // Success — store validated data
+    _verifiedInviteCode = code;
+    _verifiedInviteData = result.codeData;
+
+    // Fetch inviter display name
+    let inviterName = null;
+    if (result.codeData?.createdBy) {
+      try {
+        const inviterDoc = await db.collection('users').doc(result.codeData.createdBy).get();
+        if (inviterDoc.exists) {
+          inviterName = inviterDoc.data().displayName;
+        }
+      } catch (e) { /* silent */ }
+    }
+
+    showSignupFields(inviterName);
+  } catch (e) {
+    if (statusEl) { statusEl.textContent = 'Error verifying invite. Please try again.'; statusEl.className = 'invite-verify-error'; }
+    if (verifyBtn) { verifyBtn.disabled = false; verifyBtn.textContent = 'Verify & Continue'; }
+  }
+}
+
+// Transition from invite step to registration fields
+function showSignupFields(inviterName) {
+  const inviteStep = document.getElementById('signup-invite-step');
+  if (inviteStep) inviteStep.style.display = 'none';
+
+  const banner = document.getElementById('invite-verified-banner');
+  if (banner) {
+    const nameText = inviterName ? 'Invited by ' + escapeHtml(inviterName) : 'Invite verified';
+    banner.innerHTML = '<span class="invite-verified-check">&#10003;</span> ' + nameText;
+    banner.style.display = 'flex';
+  }
+
+  const signupFields = document.getElementById('signup-fields-step');
+  if (signupFields) signupFields.style.display = 'block';
 }
 
 function clearAuthError() {
@@ -173,12 +325,11 @@ function showAuthError(message) {
 }
 
 async function signUpWithEmail() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const displayName = document.getElementById('auth-display-name').value.trim();
+  const email = document.getElementById('signup-email')?.value.trim() || '';
+  const password = document.getElementById('signup-password')?.value || '';
+  const displayName = document.getElementById('auth-display-name')?.value.trim() || '';
   const usernameRaw = document.getElementById('auth-username')?.value.trim() || '';
   const username = usernameRaw.toLowerCase();
-  const inviteCodeInput = document.getElementById('auth-invite-code')?.value.trim().toUpperCase() || '';
 
   if (!email || !password || !displayName || !username) { showAuthError('Please fill in all fields'); return; }
   if (password.length < 6) { showAuthError('Password must be at least 6 characters'); return; }
@@ -195,20 +346,19 @@ async function signUpWithEmail() {
     showAuthError('Error checking username. Please try again.'); return;
   }
 
-  // Validate invite code (skip if no superadmin exists — bootstrap mode)
-  let inviteResult = null;
-  try {
-    const adminExists = await checkSuperAdminExists();
-    if (adminExists) {
-      if (!inviteCodeInput) { showAuthError('Invite code is required'); return; }
-      inviteResult = await validateInviteCode(inviteCodeInput);
-      if (!inviteResult.valid) { showAuthError(inviteResult.error); return; }
-    }
-  } catch (e) {
-    showAuthError('Error validating invite code. Please try again.'); return;
-  }
+  // Use pre-verified invite code (already validated at invite step)
+  const inviteCode = _verifiedInviteCode;
+  const inviteCreator = _verifiedInviteData?.createdBy || null;
 
   try {
+    // Set pending flags BEFORE creating auth user so onAuthStateChanged
+    // has them immediately when it fires (prevents race condition)
+    window._pendingUsername = username;
+    if (inviteCode) {
+      window._pendingInviteCode = inviteCode;
+      window._pendingInviteCreator = inviteCreator;
+    }
+
     const result = await auth.createUserWithEmailAndPassword(email, password);
     await result.user.updateProfile({ displayName });
 
@@ -219,22 +369,29 @@ async function signUpWithEmail() {
     });
 
     // Redeem invite code if one was used
-    if (inviteResult && inviteResult.valid) {
-      await redeemInviteCode(inviteCodeInput, result.user.uid, displayName);
-      window._pendingInviteCode = inviteCodeInput;
-      window._pendingInviteCreator = inviteResult.codeData?.createdBy || null;
+    if (inviteCode) {
+      await redeemInviteCode(inviteCode, result.user.uid, displayName, email);
     }
 
-    // Store username as pending so onAuthStateChanged picks it up
-    window._pendingUsername = username;
+    // Reset verified state
+    _verifiedInviteCode = null;
+    _verifiedInviteData = null;
 
     closeAuthModal();
-    document.getElementById('auth-email').value = '';
-    document.getElementById('auth-password').value = '';
-    document.getElementById('auth-display-name').value = '';
-    if (document.getElementById('auth-username')) document.getElementById('auth-username').value = '';
-    if (document.getElementById('auth-invite-code')) document.getElementById('auth-invite-code').value = '';
+    // Clear form fields
+    const signupEmail = document.getElementById('signup-email');
+    const signupPassword = document.getElementById('signup-password');
+    const authDisplayName = document.getElementById('auth-display-name');
+    const authUsername = document.getElementById('auth-username');
+    if (signupEmail) signupEmail.value = '';
+    if (signupPassword) signupPassword.value = '';
+    if (authDisplayName) authDisplayName.value = '';
+    if (authUsername) authUsername.value = '';
   } catch (error) {
+    // Clear pending flags on error so onAuthStateChanged doesn't misuse them
+    window._pendingUsername = null;
+    window._pendingInviteCode = null;
+    window._pendingInviteCreator = null;
     showAuthError(error.message);
   }
 }
@@ -283,6 +440,23 @@ function showGoogleCompleteSignup() {
   const googleSection = document.getElementById('google-complete-section');
   if (googleSection) googleSection.style.display = 'block';
 
+  // If invite is already verified (user clicked Google from signup-fields-step), hide invite field
+  if (_verifiedInviteCode) {
+    const googleInviteGroup = document.getElementById('google-invite-group');
+    if (googleInviteGroup) googleInviteGroup.style.display = 'none';
+    const googleInviteInput = document.getElementById('google-invite-code');
+    if (googleInviteInput) googleInviteInput.value = _verifiedInviteCode;
+  } else if (window._inviteLinkCode) {
+    // Pre-fill from invite link
+    const googleInviteInput = document.getElementById('google-invite-code');
+    if (googleInviteInput) {
+      googleInviteInput.value = window._inviteLinkCode;
+      googleInviteInput.readOnly = true;
+      googleInviteInput.style.opacity = '0.7';
+      googleInviteInput.style.cursor = 'not-allowed';
+    }
+  }
+
   clearAuthError();
 }
 
@@ -292,7 +466,6 @@ async function completeGoogleSignup() {
 
   const usernameRaw = document.getElementById('google-username')?.value.trim() || '';
   const username = usernameRaw.toLowerCase();
-  const inviteCodeInput = document.getElementById('google-invite-code')?.value.trim().toUpperCase() || '';
 
   if (!username) { showAuthError('Username is required'); return; }
 
@@ -307,17 +480,26 @@ async function completeGoogleSignup() {
     showAuthError('Error checking username. Please try again.'); return;
   }
 
-  // Validate invite code (skip if no superadmin — bootstrap mode)
-  let inviteResult = null;
-  try {
-    const adminExists = await checkSuperAdminExists();
-    if (adminExists) {
-      if (!inviteCodeInput) { showAuthError('Invite code is required'); return; }
-      inviteResult = await validateInviteCode(inviteCodeInput);
-      if (!inviteResult.valid) { showAuthError(inviteResult.error); return; }
+  // Use pre-verified invite code if available, otherwise read from Google invite field
+  let inviteCode = _verifiedInviteCode;
+  let inviteCreator = _verifiedInviteData?.createdBy || null;
+  let inviteResult = _verifiedInviteData ? { valid: true, codeData: _verifiedInviteData } : null;
+
+  if (!inviteCode) {
+    // Fallback: read from Google invite field (for direct Google OAuth without prior invite verification)
+    const inviteCodeInput = document.getElementById('google-invite-code')?.value.trim().toUpperCase() || '';
+    try {
+      const adminExists = await checkSuperAdminExists();
+      if (adminExists) {
+        if (!inviteCodeInput) { showAuthError('Invite code is required'); return; }
+        inviteResult = await validateInviteCode(inviteCodeInput);
+        if (!inviteResult.valid) { showAuthError(inviteResult.error); return; }
+        inviteCode = inviteCodeInput;
+        inviteCreator = inviteResult.codeData?.createdBy || null;
+      }
+    } catch (e) {
+      showAuthError('Error validating invite code. Please try again.'); return;
     }
-  } catch (e) {
-    showAuthError('Error validating invite code. Please try again.'); return;
   }
 
   try {
@@ -328,8 +510,8 @@ async function completeGoogleSignup() {
     });
 
     // Redeem invite code
-    if (inviteResult && inviteResult.valid) {
-      await redeemInviteCode(inviteCodeInput, currentUser.uid, currentUser.displayName || '');
+    if (inviteCode && inviteResult?.valid) {
+      await redeemInviteCode(inviteCode, currentUser.uid, currentUser.displayName || '', currentUser.email || '');
     }
 
     // Create user profile
@@ -343,13 +525,17 @@ async function completeGoogleSignup() {
       photoURL: currentUser.photoURL || '',
       socials: { twitter: '', github: '', website: '' },
       invitesRemaining: 3,
-      invitedBy: inviteResult?.codeData?.createdBy || null,
-      inviteCode: inviteCodeInput || '',
+      invitedBy: inviteCreator,
+      inviteCode: inviteCode || '',
       status: 'active',
       lastActive: firebase.firestore.FieldValue.serverTimestamp(),
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     await db.collection('users').doc(currentUser.uid).set(currentUserProfile);
+
+    // Reset verified state
+    _verifiedInviteCode = null;
+    _verifiedInviteData = null;
 
     // Restore modal UI
     const tabsEl = document.querySelector('.auth-tabs');
@@ -547,6 +733,13 @@ function initUsernameCheck() {
   _attachUsernameChecker('profile-username', 'profile-username-status', currentUserProfile?.username || '');
   // Google complete signup
   _attachUsernameChecker('google-username', 'google-username-status', '');
+  // Enter key on invite code input triggers verify
+  const inviteInput = document.getElementById('auth-invite-code');
+  if (inviteInput) {
+    inviteInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); verifyInviteCode(); }
+    });
+  }
 }
 
 // Initialize profile photo input listener (retry until element exists after initPage injects modals)

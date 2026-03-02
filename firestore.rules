@@ -49,8 +49,12 @@ service cloud.firestore {
 
       // Users can update their own profile but NOT protected fields
       // Superadmin can update any user including protected fields
+      // Special case: users can decrement their own invitesRemaining by 1 (invite generation)
       allow update: if isSuperAdmin()
-        || (isOwner(userId) && notChangingProtectedFields());
+        || (isOwner(userId) && notChangingProtectedFields())
+        || (isOwner(userId)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['invitesRemaining'])
+            && request.resource.data.invitesRemaining == resource.data.invitesRemaining - 1);
 
       // Only superadmin can delete users
       allow delete: if isSuperAdmin() || isOwner(userId);
@@ -140,10 +144,8 @@ service cloud.firestore {
     // ── Invite codes collection ──
 
     match /inviteCodes/{codeId} {
-      // Superadmin can read all codes
-      // Regular users can read codes they created
-      allow read: if isSuperAdmin()
-        || (isSignedIn() && resource.data.createdBy == request.auth.uid);
+      // Anyone can read invite codes (needed for invite link landing page validation)
+      allow read: if true;
 
       // Superadmin can create any code
       // Regular users can create codes (user-generated invites)
