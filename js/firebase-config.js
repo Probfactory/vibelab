@@ -147,7 +147,7 @@ const RESERVED_USERNAMES = new Set([
   'login', 'signup', 'about', 'help', 'support', 'blog',
   'terms', 'privacy', 'null', 'undefined', 'explore', 'search',
   'new', 'edit', 'delete', 'auth', 'callback', 'error', '404',
-  'vibe', 'invite', 'invites'
+  'vibe', 'invite', 'invites', 'reset-password'
 ]);
 
 // Validate a username: returns { valid: boolean, error: string }
