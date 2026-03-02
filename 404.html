@@ -200,7 +200,7 @@ async function loadProfile() {
     document.getElementById('profile-content').style.display = 'block';
   } catch (e) {
     console.error('Load profile error:', e);
-    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Error loading profile</h3><p>' + e.message + '</p></div>';
+    document.getElementById('profile-loading').innerHTML = '<div class="empty-state"><h3>Error loading profile</h3><p>' + escapeHtml(cleanErrorMessage(e.message)) + '</p></div>';
   }
 }
 
@@ -215,7 +215,7 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
     <!-- VIEW MODE -->
     <div class="profile-view-mode" id="profile-view-mode">
       <div class="profile-avatar-lg" style="background: var(--purple);">
-        ${profile.photoURL ? '<img src="' + profile.photoURL + '">' : initial}
+        ${profile.photoURL ? '<img src="' + escapeHtml(profile.photoURL) + '">' : initial}
       </div>
       <div class="profile-details">
         <div class="profile-name-row">
@@ -235,7 +235,7 @@ function renderProfileHeader(profile, counts, isFollowing, isOwn, projectCount) 
         <div class="profile-social-links">
           ${profile.socials?.twitter ? '<a href="https://twitter.com/' + profile.socials.twitter.replace('@', '') + '" target="_blank" class="profile-social-link">&#120143; Twitter</a>' : ''}
           ${profile.socials?.github ? '<a href="https://github.com/' + profile.socials.github + '" target="_blank" class="profile-social-link">&#128187; GitHub</a>' : ''}
-          ${profile.socials?.website ? '<a href="' + profile.socials.website + '" target="_blank" class="profile-social-link">&#127760; Website</a>' : ''}
+          ${profile.socials?.website ? (profile.socials.website.startsWith('http://') || profile.socials.website.startsWith('https://') ? '<a href="' + escapeHtml(profile.socials.website) + '" target="_blank" rel="noopener noreferrer" class="profile-social-link">&#127760; Website</a>' : '') : ''}
         </div>
       </div>
     </div>
@@ -421,7 +421,7 @@ async function saveInlineProfile() {
     showToast('Profile updated successfully!');
   } catch (error) {
     console.error('Profile save error:', error);
-    showToast('Error saving profile: ' + error.message);
+    showToast('Error saving profile: ' + cleanErrorMessage(error.message));
   }
 }
 
@@ -459,7 +459,7 @@ async function deleteAccount() {
     if (error.code === 'auth/requires-recent-login') {
       showToast('Please log out and log back in before deleting your account (security requirement).');
     } else {
-      showToast('Error deleting account: ' + error.message);
+      showToast('Error deleting account: ' + cleanErrorMessage(error.message));
     }
   }
 }
@@ -503,7 +503,7 @@ async function changePassword() {
     } else if (error.code === 'auth/weak-password') {
       showToast('New password is too weak. Use at least 6 characters.');
     } else {
-      showToast('Error changing password: ' + error.message);
+      showToast('Error changing password: ' + cleanErrorMessage(error.message));
     }
   }
 }

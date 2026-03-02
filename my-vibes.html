@@ -156,7 +156,7 @@ async function loadMyVibes() {
   } catch (e) {
     console.error('Load my vibes error:', e);
     loading.style.display = 'none';
-    grid.innerHTML = '<div class="empty-state"><h3>Error loading projects</h3><p>' + e.message + '</p></div>';
+    grid.innerHTML = '<div class="empty-state"><h3>Error loading projects</h3><p>' + escapeHtml(cleanErrorMessage(e.message)) + '</p></div>';
     grid.style.display = 'block';
   }
 }

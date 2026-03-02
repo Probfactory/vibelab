@@ -155,7 +155,7 @@ async function loadProject() {
     loadComments();
   } catch (e) {
     console.error('Load project error:', e);
-    document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Error loading project</h3><p>' + e.message + '</p></div>';
+    document.getElementById('project-loading').innerHTML = '<div class="empty-state"><h3>Error loading project</h3><p>' + escapeHtml(cleanErrorMessage(e.message)) + '</p></div>';
   }
 }
 
@@ -274,7 +274,7 @@ async function loadCreator() {
     const initial = displayName[0].toUpperCase();
     const profileUrl = getProfileUrl(profile?.username || projectData.authorUsername, projectData.authorUid);
     const avatarBg = projectData.color || 'var(--purple)';
-    const avatarContent = profile?.photoURL ? '<img src="' + profile.photoURL + '">' : initial;
+    const avatarContent = profile?.photoURL ? '<img src="' + escapeHtml(profile.photoURL) + '">' : initial;
 
     // Author bar (below image, left side)
     authorBar.innerHTML = `
@@ -457,7 +457,7 @@ function renderComment(c, replies = []) {
   return `
     <div class="comment-thread">
       <div class="comment">
-        ${c.authorPhoto ? '<img class="comment-avatar" src="' + c.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (c.authorColor || 'var(--purple)') + ';">' + initial + '</div>'}
+        ${c.authorPhoto ? '<img class="comment-avatar" src="' + escapeHtml(c.authorPhoto) + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (c.authorColor || 'var(--purple)') + ';">' + initial + '</div>'}
         <div class="comment-content">
           <div class="comment-header">
             <a href="${getProfileUrl(c.authorUsername, c.authorUid)}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(c.authorName || 'Anonymous')}</a>
@@ -475,7 +475,7 @@ function renderComment(c, replies = []) {
         const rTime = r.createdAt ? timeAgo(r.createdAt.toDate ? r.createdAt.toDate() : r.createdAt) : '';
         return `
           <div class="comment">
-            ${r.authorPhoto ? '<img class="comment-avatar" src="' + r.authorPhoto + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (r.authorColor || 'var(--purple)') + ';">' + rInitial + '</div>'}
+            ${r.authorPhoto ? '<img class="comment-avatar" src="' + escapeHtml(r.authorPhoto) + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div class="comment-avatar" style="background: ' + (r.authorColor || 'var(--purple)') + ';">' + rInitial + '</div>'}
             <div class="comment-content">
               <div class="comment-header">
                 <a href="${getProfileUrl(r.authorUsername, r.authorUid)}" class="comment-author" style="text-decoration:none;color:inherit;">${escapeHtml(r.authorName || 'Anonymous')}</a>
@@ -621,7 +621,7 @@ window.addEventListener('authStateReady', (e) => {
     const avatar = document.getElementById('comment-user-avatar');
     if (avatar) {
       if (e.detail.profile.photoURL) {
-        avatar.innerHTML = '<img src="' + e.detail.profile.photoURL + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+        avatar.innerHTML = '<img src="' + escapeHtml(e.detail.profile.photoURL) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
       } else {
         avatar.textContent = (e.detail.profile.displayName || e.detail.user.email || 'U')[0].toUpperCase();
       }
@@ -643,6 +643,11 @@ function openDemoModal(url) {
   const iframe = document.getElementById('demo-modal-iframe');
   const urlDisplay = document.getElementById('demo-modal-url');
   if (!overlay || !iframe) return;
+  // Validate URL — only allow http/https to prevent javascript: and data: injection
+  if (!url || !(url.startsWith('http://') || url.startsWith('https://'))) {
+    console.warn('Blocked non-http(s) URL in demo modal:', url);
+    return;
+  }
   iframe.src = url;
   if (urlDisplay) urlDisplay.textContent = url;
   overlay.classList.add('open');

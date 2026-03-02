@@ -333,7 +333,7 @@
       console.error('Admin claim error:', error);
       btn.textContent = 'Claim Admin Access';
       btn.disabled = false;
-      showToast('Error: ' + error.message);
+      showToast('Error: ' + cleanErrorMessage(error.message));
     }
   }
 

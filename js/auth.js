@@ -321,7 +321,9 @@ function clearAuthError() {
 
 function showAuthError(message) {
   const el = document.getElementById('auth-error');
-  if (el) { el.textContent = message; el.classList.add('show'); }
+  if (!el) return;
+  el.textContent = cleanErrorMessage(message);
+  el.classList.add('show');
 }
 
 async function signUpWithEmail() {
@@ -677,7 +679,7 @@ async function saveProfile() {
     showToast('Profile updated successfully!');
   } catch (error) {
     console.error('Profile save error:', error);
-    showToast('Error saving profile: ' + error.message);
+    showToast('Error saving profile: ' + cleanErrorMessage(error.message));
   }
 }
 
@@ -769,16 +771,23 @@ function showToast(message, actionText, actionCallback) {
 
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = `
-    <span>${message}</span>
-    ${actionText ? `<a class="toast-action" href="#">${actionText}</a>` : ''}
-  `;
 
-  if (actionText && actionCallback) {
-    toast.querySelector('.toast-action').addEventListener('click', (e) => {
-      e.preventDefault();
-      actionCallback();
-    });
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = message;
+  toast.appendChild(msgSpan);
+
+  if (actionText) {
+    const actionLink = document.createElement('a');
+    actionLink.className = 'toast-action';
+    actionLink.href = '#';
+    actionLink.textContent = actionText;
+    if (actionCallback) {
+      actionLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        actionCallback();
+      });
+    }
+    toast.appendChild(actionLink);
   }
 
   container.appendChild(toast);

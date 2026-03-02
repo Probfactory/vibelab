@@ -1,0 +1,46 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Profile photos ──
+    // Path: profile-photos/{userId}
+    match /profile-photos/{userId} {
+      // Anyone can read profile photos (public avatars)
+      allow read: if true;
+      // Only the owner can upload/overwrite their own photo
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    }
+
+    // ── Project thumbnails ──
+    // Path: project-thumbnails/{userId}/{filename}
+    match /project-thumbnails/{userId}/{filename} {
+      // Anyone can read project thumbnails (public)
+      allow read: if true;
+      // Only the owner can upload to their own directory
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    }
+
+    // ── Challenge assets (admin only) ──
+    // Path: challenge-assets/{challengeId}/{filename}
+    match /challenge-assets/{challengeId}/{filename=**} {
+      // Anyone can read challenge assets (public)
+      allow read: if true;
+      // Only superadmin can upload challenge assets
+      allow write: if request.auth != null
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'superadmin'
+        && request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+
+    // ── Deny everything else ──
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

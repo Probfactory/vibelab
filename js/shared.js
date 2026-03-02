@@ -1,3 +1,14 @@
+// Clean Firebase error messages: strip "Firebase: " prefix and "(auth/xxx)." suffix
+function cleanErrorMessage(msg) {
+  if (!msg) return 'Something went wrong. Please try again.';
+  let clean = String(msg);
+  clean = clean.replace(/^Firebase:\s*/i, '');
+  clean = clean.replace(/\s*\(auth\/[\w-]+\)\.?$/, '');
+  clean = clean.replace(/\s*\(storage\/[\w-]+\)\.?$/, '');
+  clean = clean.replace(/\s*\(firestore\/[\w-]+\)\.?$/, '');
+  return clean;
+}
+
 // Generate navigation HTML - call this to insert nav on any page
 function getNavHTML(activePage) {
   // activePage can be 'home', 'feed', etc.
@@ -577,7 +588,7 @@ async function submitProject() {
   const tagsInput = document.getElementById('proj-tags')?.value.trim() || '';
   const imageFile = document.getElementById('proj-image')?.files[0];
 
-  if (!name || !desc) { alert('Please fill in project name and description'); return; }
+  if (!name || !desc) { showToast('Please fill in project name and description'); return; }
 
   // Validate thumbnail if provided
   if (imageFile) {
@@ -697,7 +708,7 @@ async function submitProject() {
     if (typeof loadMyVibes === 'function') loadMyVibes();
   } catch (error) {
     console.error('Project submission error:', error);
-    alert('Error posting project: ' + error.message);
+    showToast('Error posting project: ' + cleanErrorMessage(error.message));
   }
 }
 
