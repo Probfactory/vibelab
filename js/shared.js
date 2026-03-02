@@ -588,7 +588,7 @@ async function submitProject() {
   const tagsInput = document.getElementById('proj-tags')?.value.trim() || '';
   const imageFile = document.getElementById('proj-image')?.files[0];
 
-  if (!name || !desc) { alert('Please fill in project name and description'); return; }
+  if (!name || !desc) { showToast('Please fill in project name and description'); return; }
 
   // Validate thumbnail if provided
   if (imageFile) {

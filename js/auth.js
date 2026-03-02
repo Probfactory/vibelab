@@ -771,16 +771,23 @@ function showToast(message, actionText, actionCallback) {
 
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = `
-    <span>${message}</span>
-    ${actionText ? `<a class="toast-action" href="#">${actionText}</a>` : ''}
-  `;
 
-  if (actionText && actionCallback) {
-    toast.querySelector('.toast-action').addEventListener('click', (e) => {
-      e.preventDefault();
-      actionCallback();
-    });
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = message;
+  toast.appendChild(msgSpan);
+
+  if (actionText) {
+    const actionLink = document.createElement('a');
+    actionLink.className = 'toast-action';
+    actionLink.href = '#';
+    actionLink.textContent = actionText;
+    if (actionCallback) {
+      actionLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        actionCallback();
+      });
+    }
+    toast.appendChild(actionLink);
   }
 
   container.appendChild(toast);

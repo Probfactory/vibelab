@@ -24,13 +24,6 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
     }
 
-    // Check if a superadmin already exists (for bootstrap)
-    function noSuperAdminExists() {
-      // This is a simplified check — the actual bootstrap logic runs client-side
-      // and the rule allows a one-time role write when claiming admin
-      return true;
-    }
-
     // Protected fields that regular users cannot write
     function notChangingProtectedFields() {
       let protectedFields = ['role', 'invitesRemaining', 'status', 'invitedBy', 'inviteCode'];
@@ -38,14 +31,22 @@ service cloud.firestore {
       return !changed.hasAny(protectedFields.toSet());
     }
 
+    // Block role field on profile creation to prevent privilege escalation
+    function noRoleOnCreate() {
+      return !request.resource.data.keys().hasAny(['role'].toSet());
+    }
+
     // ── Users collection ──
 
     match /users/{userId} {
-      // Anyone can read user profiles (public profiles)
-      allow read: if true;
+      // Anyone can read individual profiles (public profiles)
+      allow get: if true;
+      // Only authenticated users can list/query users (prevents anonymous scraping)
+      allow list: if isSignedIn();
 
       // Users can create their own profile on signup
-      allow create: if isOwner(userId);
+      // Block role field on creation to prevent privilege escalation
+      allow create: if isOwner(userId) && noRoleOnCreate();
 
       // Users can update their own profile but NOT protected fields
       // Superadmin can update any user including protected fields
@@ -91,8 +92,12 @@ service cloud.firestore {
       allow read: if true;
 
       // Authenticated active users can create projects
+      // Validate required fields and prevent stat inflation
       allow create: if isSignedIn()
-        && request.resource.data.authorUid == request.auth.uid;
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.keys().hasAll(['name', 'description', 'authorUid'])
+        && (!request.resource.data.keys().hasAny(['vibes', 'comments'])
+            || (request.resource.data.vibes == 0 && request.resource.data.comments == 0));
 
       // Only the author can update/delete their own projects
       // Superadmin can also update/delete any project
@@ -113,7 +118,8 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if true;
         allow create: if isSignedIn()
-          && request.resource.data.authorUid == request.auth.uid;
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.keys().hasAll(['authorUid', 'body']);
         allow update: if isSignedIn()
           && resource.data.authorUid == request.auth.uid;
         allow delete: if isSuperAdmin()
@@ -142,9 +148,11 @@ service cloud.firestore {
     }
 
     // ── Invite codes collection ──
+    // NOTE: This collection is publicly readable because the invite landing page
+    // validates codes via .where('code', '==', ...) for unauthenticated users.
+    // To fully lock this down, move invite validation to a Cloud Function.
 
     match /inviteCodes/{codeId} {
-      // Anyone can read invite codes (needed for invite link landing page validation)
       allow read: if true;
 
       // Superadmin can create any code
