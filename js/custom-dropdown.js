@@ -75,9 +75,17 @@ function toggleCustomDropdown(id) {
   const dd = document.getElementById(id);
   if (!dd) return;
   const wasOpen = dd.classList.contains('open');
-  // Close every open dropdown
-  document.querySelectorAll('.custom-dropdown.open').forEach(d => d.classList.remove('open'));
-  if (!wasOpen) dd.classList.add('open');
+  const trigger = dd.querySelector('.custom-dropdown-trigger');
+  // Close every open dropdown and reset their aria-expanded
+  document.querySelectorAll('.custom-dropdown.open').forEach(d => {
+    d.classList.remove('open');
+    const t = d.querySelector('.custom-dropdown-trigger');
+    if (t) t.setAttribute('aria-expanded', 'false');
+  });
+  if (!wasOpen) {
+    dd.classList.add('open');
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+  }
 }
 
 /**
@@ -93,13 +101,17 @@ function selectDropdownOption(dropdownId, value, label) {
   const labelEl = dd.querySelector('.custom-dropdown-label');
   if (labelEl) labelEl.textContent = label;
 
-  // Highlight selected option
+  // Highlight selected option and update aria-selected
   dd.querySelectorAll('.custom-dropdown-option').forEach(opt => {
-    opt.classList.toggle('selected', opt.getAttribute('data-value') === value);
+    const isMatch = opt.getAttribute('data-value') === value;
+    opt.classList.toggle('selected', isMatch);
+    opt.setAttribute('aria-selected', isMatch ? 'true' : 'false');
   });
 
-  // Close menu
+  // Close menu and update aria-expanded
   dd.classList.remove('open');
+  const trigger = dd.querySelector('.custom-dropdown-trigger');
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
 
   // Fire callback
   if (_dropdownCallbacks[dropdownId]) {
@@ -159,16 +171,16 @@ function createCustomDropdown(config) {
 
   const optionsHTML = options.map((opt, i) => {
     const isSelected = i === 0 ? ' selected' : '';
-    return `<div class="custom-dropdown-option${isSelected}" data-value="${opt.value}" onclick="selectDropdownOption('${id}', '${opt.value}', '${opt.label.replace(/'/g, "\\'")}')">${opt.label}</div>`;
+    return `<div class="custom-dropdown-option${isSelected}" data-value="${opt.value}" role="option" tabindex="-1" aria-selected="${i === 0 ? 'true' : 'false'}">${opt.label}</div>`;
   }).join('\n          ');
 
   return `
     <div class="custom-dropdown" id="${id}">
-      <button class="custom-dropdown-trigger" onclick="toggleCustomDropdown('${id}')">
+      <button class="custom-dropdown-trigger" aria-expanded="false" aria-haspopup="listbox" onclick="toggleCustomDropdown('${id}')">
         <span class="custom-dropdown-label">${defaultLabel}</span>
         ${chevronSVG}
       </button>
-      <div class="custom-dropdown-menu">
+      <div class="custom-dropdown-menu" role="listbox">
         ${optionsHTML}
       </div>
     </div>`;
@@ -177,6 +189,89 @@ function createCustomDropdown(config) {
 // ---- Global: close dropdowns when clicking outside ----
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.custom-dropdown')) {
-    document.querySelectorAll('.custom-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.custom-dropdown.open').forEach(d => {
+      d.classList.remove('open');
+      const t = d.querySelector('.custom-dropdown-trigger');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
   }
+});
+
+// ---- Keyboard navigation for custom dropdowns ----
+document.addEventListener('keydown', function(e) {
+  const dd = e.target.closest('.custom-dropdown');
+  if (!dd) return;
+
+  const trigger = dd.querySelector('.custom-dropdown-trigger');
+  const menu = dd.querySelector('.custom-dropdown-menu');
+  const options = Array.from(dd.querySelectorAll('.custom-dropdown-option'));
+  if (!options.length) return;
+
+  const isOpen = dd.classList.contains('open');
+  const focused = dd.querySelector('.custom-dropdown-option:focus');
+  const currentIndex = focused ? options.indexOf(focused) : -1;
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault();
+      if (!isOpen) {
+        toggleCustomDropdown(dd.id);
+        options[0].focus();
+      } else {
+        const nextIndex = currentIndex < options.length - 1 ? currentIndex + 1 : 0;
+        options[nextIndex].focus();
+      }
+      break;
+
+    case 'ArrowUp':
+      e.preventDefault();
+      if (isOpen) {
+        const prevIndex = currentIndex > 0 ? currentIndex - 1 : options.length - 1;
+        options[prevIndex].focus();
+      }
+      break;
+
+    case 'Enter':
+    case ' ':
+      if (isOpen && focused) {
+        e.preventDefault();
+        selectDropdownOption(dd.id, focused.getAttribute('data-value'), focused.textContent.trim());
+        trigger.focus();
+      }
+      break;
+
+    case 'Escape':
+      if (isOpen) {
+        e.preventDefault();
+        dd.classList.remove('open');
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'false');
+          trigger.focus();
+        }
+      }
+      break;
+
+    case 'Home':
+      if (isOpen) {
+        e.preventDefault();
+        options[0].focus();
+      }
+      break;
+
+    case 'End':
+      if (isOpen) {
+        e.preventDefault();
+        options[options.length - 1].focus();
+      }
+      break;
+  }
+});
+
+// ---- Click delegation for dropdown options ----
+document.addEventListener('click', function(e) {
+  const option = e.target.closest('.custom-dropdown-option');
+  if (!option) return;
+  const dd = option.closest('.custom-dropdown');
+  if (!dd) return;
+  selectDropdownOption(dd.id, option.getAttribute('data-value'), option.textContent.trim());
 });

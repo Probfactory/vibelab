@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VibeLab Admin Dashboard — manage users, invite codes, and platform settings.">
   <title>Admin Dashboard — VibeLab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
@@ -19,7 +20,7 @@
 <body>
   <div id="nav-container"></div>
 
-  <main class="container" style="padding-top: 56px; padding-bottom: 40px; min-height: 80vh;">
+  <main id="main-content" class="container" style="padding-top: 56px; padding-bottom: 40px; min-height: 80vh;">
 
     <!-- Loading State -->
     <div id="admin-loading" style="text-align: center; padding: 80px 0;">
@@ -54,15 +55,15 @@
       <!-- Compact header with inline tabs -->
       <div class="admin-top-bar">
         <h1 class="admin-title">Admin</h1>
-        <div class="admin-tabs">
-          <button class="admin-tab active" data-tab="overview" onclick="switchAdminTab('overview')">Overview</button>
-          <button class="admin-tab" data-tab="users" onclick="switchAdminTab('users')">Users</button>
-          <button class="admin-tab" data-tab="challenges" onclick="switchAdminTab('challenges')">Challenges</button>
+        <div class="admin-tabs" role="tablist">
+          <button class="admin-tab active" data-tab="overview" onclick="switchAdminTab('overview')" role="tab" aria-selected="true" aria-controls="tab-overview">Overview</button>
+          <button class="admin-tab" data-tab="users" onclick="switchAdminTab('users')" role="tab" aria-selected="false" aria-controls="tab-users">Users</button>
+          <button class="admin-tab" data-tab="challenges" onclick="switchAdminTab('challenges')" role="tab" aria-selected="false" aria-controls="tab-challenges">Challenges</button>
         </div>
       </div>
 
       <!-- ═══ OVERVIEW TAB ═══ -->
-      <div id="tab-overview" class="admin-tab-content">
+      <div id="tab-overview" class="admin-tab-content" role="tabpanel" aria-labelledby="tab-overview">
         <div class="admin-stats-grid">
           <div class="admin-stat-card stat-blue">
             <div class="admin-stat-icon">👥</div>
@@ -93,7 +94,7 @@
       </div>
 
       <!-- ═══ USERS TAB ═══ -->
-      <div id="tab-users" class="admin-tab-content" style="display: none;">
+      <div id="tab-users" class="admin-tab-content" role="tabpanel" aria-labelledby="tab-users" style="display: none;">
         <div class="admin-toolbar">
           <input type="text" id="user-search" placeholder="Search by name, email, or username..." class="admin-search-input" oninput="filterUsers()">
           <div class="admin-toolbar-actions">
@@ -124,7 +125,7 @@
       </div>
 
       <!-- ═══ CHALLENGES TAB ═══ -->
-      <div id="tab-challenges" class="admin-tab-content" style="display: none;">
+      <div id="tab-challenges" class="admin-tab-content" role="tabpanel" aria-labelledby="tab-challenges" style="display: none;">
         <div class="admin-toolbar">
           <button class="btn btn-dark btn-sm" onclick="openChallengeModal()">+ New Challenge</button>
           <div class="admin-toolbar-actions">
@@ -339,10 +340,10 @@
 
   // ── Tab Switching ──
   function switchAdminTab(tab) {
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
     document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
     const activeBtn = document.querySelector(`.admin-tab[data-tab="${tab}"]`);
-    if (activeBtn) activeBtn.classList.add('active');
+    if (activeBtn) { activeBtn.classList.add('active'); activeBtn.setAttribute('aria-selected', 'true'); }
     document.getElementById('tab-' + tab).style.display = 'block';
     // Lazy-load challenges when tab is opened
     if (tab === 'challenges' && allChallenges.length === 0) {

@@ -121,13 +121,18 @@ function updateNav() {
 }
 
 function openAuthModal(mode) {
+  _modalTrigger = document.activeElement;
   switchAuthMode(mode || 'login');
-  document.getElementById('auth-modal').classList.add('open');
+  const modal = document.getElementById('auth-modal');
+  modal.classList.add('open');
   clearAuthError();
+  setTimeout(() => trapFocusInModal(modal.querySelector('[role="dialog"]') || modal), 50);
 }
 
 function closeAuthModal() {
-  document.getElementById('auth-modal').classList.remove('open');
+  const modal = document.getElementById('auth-modal');
+  releaseFocusTrap(modal.querySelector('[role="dialog"]') || modal);
+  modal.classList.remove('open');
   clearAuthError();
   // Reset invite verification state
   _verifiedInviteCode = null;
@@ -352,6 +357,9 @@ async function signUpWithEmail() {
   const inviteCode = _verifiedInviteCode;
   const inviteCreator = _verifiedInviteData?.createdBy || null;
 
+  const btn = document.querySelector('#signup-fields-step .submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Signing up...'; }
+
   try {
     // Set pending flags BEFORE creating auth user so onAuthStateChanged
     // has them immediately when it fires (prevents race condition)
@@ -395,20 +403,33 @@ async function signUpWithEmail() {
     window._pendingInviteCode = null;
     window._pendingInviteCreator = null;
     showAuthError(error.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Sign Up'; }
   }
 }
 
-function logInWithEmail() {
+async function logInWithEmail() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   if (!email || !password) { showAuthError('Please fill in all fields'); return; }
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => { closeAuthModal(); document.getElementById('auth-email').value = ''; document.getElementById('auth-password').value = ''; })
-    .catch(error => showAuthError(error.message));
+  const btn = document.getElementById('auth-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Logging in...'; }
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    closeAuthModal();
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+  } catch (error) {
+    showAuthError(error.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Log In'; }
+  }
 }
 
 async function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  const btns = document.querySelectorAll('.google-btn');
+  btns.forEach(b => { b.disabled = true; b.textContent = 'Signing in...'; });
   try {
     const result = await auth.signInWithPopup(provider);
     const userDoc = await db.collection('users').doc(result.user.uid).get();
@@ -422,6 +443,8 @@ async function signInWithGoogle() {
     }
   } catch (error) {
     showAuthError(error.message);
+  } finally {
+    btns.forEach(b => { b.disabled = false; b.textContent = 'Continue with Google'; });
   }
 }
 
@@ -562,12 +585,17 @@ function logOut() {
 }
 
 function toggleDropdown() {
-  document.getElementById('nav-dropdown').classList.toggle('open');
+  const dd = document.getElementById('nav-dropdown');
+  dd.classList.toggle('open');
+  const avatar = document.getElementById('nav-avatar');
+  if (avatar) avatar.setAttribute('aria-expanded', dd.classList.contains('open') ? 'true' : 'false');
 }
 
 function closeDropdown() {
   const dd = document.getElementById('nav-dropdown');
   if (dd) dd.classList.remove('open');
+  const avatar = document.getElementById('nav-avatar');
+  if (avatar) avatar.setAttribute('aria-expanded', 'false');
 }
 
 document.addEventListener('click', function(e) {
@@ -580,6 +608,7 @@ document.addEventListener('click', function(e) {
 
 // Profile modal functions
 function openProfileModal() {
+  _modalTrigger = document.activeElement;
   if (currentUserProfile) {
     const fields = ['profile-display-name', 'profile-bio', 'profile-company', 'profile-skills'];
     const vals = [currentUserProfile.displayName || '', currentUserProfile.bio || '', currentUserProfile.company || '', (currentUserProfile.skills || []).join(', ')];
@@ -603,11 +632,15 @@ function openProfileModal() {
       if (icon) icon.style.display = 'none';
     }
   }
-  document.getElementById('profile-modal').classList.add('open');
+  const modal = document.getElementById('profile-modal');
+  modal.classList.add('open');
+  setTimeout(() => trapFocusInModal(modal.querySelector('[role="dialog"]') || modal), 50);
 }
 
 function closeProfileModal() {
-  document.getElementById('profile-modal').classList.remove('open');
+  const modal = document.getElementById('profile-modal');
+  releaseFocusTrap(modal.querySelector('[role="dialog"]') || modal);
+  modal.classList.remove('open');
 }
 
 function handleProfilePhotoUpload(e) {
@@ -632,6 +665,8 @@ async function saveProfile() {
   if (!currentUser) return;
   const file = document.getElementById('profile-photo-input')?.files[0];
   let photoURL = currentUserProfile?.photoURL || '';
+  const btn = document.querySelector('#profile-modal .submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   try {
     // Handle username change
     const newUsername = (document.getElementById('profile-username')?.value || '').trim().toLowerCase();
@@ -680,6 +715,8 @@ async function saveProfile() {
   } catch (error) {
     console.error('Profile save error:', error);
     showToast('Error saving profile: ' + cleanErrorMessage(error.message));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Profile'; }
   }
 }
 
@@ -766,11 +803,14 @@ function showToast(message, actionText, actionCallback) {
   if (!container) {
     container = document.createElement('div');
     container.className = 'toast-container';
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('aria-atomic', 'false');
     document.body.appendChild(container);
   }
 
   const toast = document.createElement('div');
   toast.className = 'toast';
+  toast.setAttribute('role', 'status');
 
   const msgSpan = document.createElement('span');
   msgSpan.textContent = message;
