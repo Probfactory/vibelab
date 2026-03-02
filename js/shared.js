@@ -13,10 +13,11 @@ function cleanErrorMessage(msg) {
 function getNavHTML(activePage) {
   // activePage can be 'home', 'feed', etc.
   return `
-<nav>
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
+<nav aria-label="Main navigation">
   <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <div class="logo-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z"/></svg></div>
+    <a href="index.html" class="logo" aria-label="VibeLab home">
+      <div class="logo-mark"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z"/></svg></div>
       VibeLab
     </a>
     <div class="nav-links">
@@ -29,16 +30,16 @@ function getNavHTML(activePage) {
         <div class="nav-auth-logged-in" id="nav-auth-logged-in">
           <a href="#" class="btn btn-primary btn-sm" onclick="openSubmitModal(); return false;">+ Share Your Vibe</a>
           <div style="position: relative;">
-            <div class="nav-avatar" id="nav-avatar" onclick="toggleDropdown()">
+            <div class="nav-avatar" id="nav-avatar" onclick="toggleDropdown()" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true" aria-label="User menu">
               <span id="avatar-text">V</span>
-              <img id="avatar-img" style="display: none;">
+              <img id="avatar-img" style="display: none;" alt="">
             </div>
-            <div class="nav-dropdown" id="nav-dropdown">
-              <a href="/profile">My Profile</a>
-              <a href="my-vibes.html">My Vibes</a>
-              <a href="admin.html" id="nav-admin-link" style="display:none;">Admin Dashboard</a>
-              <div class="divider"></div>
-              <button class="logout-btn" onclick="logOut()">Log Out</button>
+            <div class="nav-dropdown" id="nav-dropdown" role="menu">
+              <a href="/profile" role="menuitem">My Profile</a>
+              <a href="my-vibes.html" role="menuitem">My Vibes</a>
+              <a href="admin.html" id="nav-admin-link" style="display:none;" role="menuitem">Admin Dashboard</a>
+              <div class="divider" role="separator"></div>
+              <button class="logout-btn" onclick="logOut()" role="menuitem">Log Out</button>
             </div>
           </div>
         </div>
@@ -52,22 +53,23 @@ function getNavHTML(activePage) {
 function getAuthModalHTML() {
   return `
 <div class="modal-overlay" id="auth-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeAuthModal()">&times;</button>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthMode('login')">Log In</button>
-      <button class="auth-tab" onclick="switchAuthMode('signup')">Sign Up</button>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">&times;</button>
+    <h2 id="auth-modal-title" class="sr-only">Account</h2>
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab active" onclick="switchAuthMode('login')" role="tab" aria-selected="true" id="tab-login" aria-controls="login-fields">Log In</button>
+      <button class="auth-tab" onclick="switchAuthMode('signup')" role="tab" aria-selected="false" id="tab-signup" aria-controls="signup-invite-step">Sign Up</button>
     </div>
-    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-error" id="auth-error" role="alert" aria-live="assertive"></div>
     <div id="auth-form">
       <!-- Login fields -->
-      <div id="login-fields">
+      <div id="login-fields" role="tabpanel" aria-labelledby="tab-login">
         <div class="form-group">
-          <label>Email</label>
+          <label for="auth-email">Email</label>
           <input type="email" id="auth-email" placeholder="you@example.com">
         </div>
         <div class="form-group">
-          <label>Password</label>
+          <label for="auth-password">Password</label>
           <input type="password" id="auth-password" placeholder="At least 6 characters">
         </div>
         <div class="forgot-password-link" id="forgot-password-link">
@@ -82,16 +84,16 @@ function getAuthModalHTML() {
       </div>
 
       <!-- Signup Step 1: Invite verification -->
-      <div id="signup-invite-step" style="display: none;">
+      <div id="signup-invite-step" style="display: none;" role="tabpanel" aria-labelledby="tab-signup">
         <div style="text-align: center; margin-bottom: 24px;">
-          <div style="font-size: 2rem; margin-bottom: 8px;">🎟️</div>
+          <div style="font-size: 2rem; margin-bottom: 8px;" aria-hidden="true">🎟️</div>
           <h3 style="margin: 0 0 6px; font-size: 1.15rem;">Got an invite?</h3>
           <p class="subtitle" style="margin: 0; font-size: 0.85rem;">Paste your invite code or link to get started</p>
         </div>
         <div class="form-group">
-          <label>Invite Code or Link</label>
+          <label for="auth-invite-code">Invite Code or Link</label>
           <input type="text" id="auth-invite-code" placeholder="VIBE-XXXX or paste invite link" autocomplete="off">
-          <div id="invite-verify-status"></div>
+          <div id="invite-verify-status" aria-live="polite"></div>
         </div>
         <button class="submit-btn" id="invite-verify-btn" onclick="verifyInviteCode()">Verify & Continue</button>
       </div>
@@ -100,23 +102,23 @@ function getAuthModalHTML() {
       <div id="signup-fields-step" style="display: none;">
         <div class="invite-verified-banner" id="invite-verified-banner"></div>
         <div class="form-group">
-          <label>Email</label>
+          <label for="signup-email">Email</label>
           <input type="email" id="signup-email" placeholder="you@example.com">
         </div>
         <div class="form-group">
-          <label>Display Name</label>
+          <label for="auth-display-name">Display Name</label>
           <input type="text" id="auth-display-name" placeholder="Your name">
         </div>
         <div class="form-group">
-          <label>Username</label>
+          <label for="auth-username">Username</label>
           <div class="username-input-wrapper">
-            <span class="username-prefix">vibelab.in/</span>
-            <input type="text" id="auth-username" placeholder="yourname" autocomplete="off">
+            <span class="username-prefix" aria-hidden="true">vibelab.in/</span>
+            <input type="text" id="auth-username" placeholder="yourname" autocomplete="off" aria-describedby="username-status">
           </div>
-          <div class="username-status" id="username-status"></div>
+          <div class="username-status" id="username-status" aria-live="polite"></div>
         </div>
         <div class="form-group">
-          <label>Password</label>
+          <label for="signup-password">Password</label>
           <input type="password" id="signup-password" placeholder="At least 6 characters">
         </div>
         <button class="submit-btn" onclick="signUpWithEmail()">Sign Up</button>
@@ -129,36 +131,36 @@ function getAuthModalHTML() {
     </div>
     <div id="forgot-password-form" style="display: none;">
       <div class="forgot-password-header">
-        <button class="forgot-back-btn" onclick="hideForgotPassword()">&larr;</button>
+        <button class="forgot-back-btn" onclick="hideForgotPassword()" aria-label="Back to login">&larr;</button>
         <h2>Reset Password</h2>
       </div>
       <p class="subtitle" style="margin-bottom: 20px;">Enter your email and we'll send you a link to reset your password.</p>
       <div class="form-group">
-        <label>Email</label>
+        <label for="forgot-email">Email</label>
         <input type="email" id="forgot-email" placeholder="you@example.com">
       </div>
-      <div class="forgot-password-success" id="forgot-success" style="display: none;">
-        <span class="forgot-success-icon">&#10003;</span>
+      <div class="forgot-password-success" id="forgot-success" style="display: none;" role="status">
+        <span class="forgot-success-icon" aria-hidden="true">&#10003;</span>
         <p>Reset link sent! Check your email inbox.</p>
       </div>
-      <div class="forgot-password-error" id="forgot-error" style="display: none;"></div>
+      <div class="forgot-password-error" id="forgot-error" style="display: none;" role="alert"></div>
       <button class="submit-btn" id="forgot-submit-btn" onclick="sendPasswordReset()">Send Reset Link</button>
     </div>
     <div id="google-complete-section" style="display: none;">
       <h2 style="margin-bottom: 8px;">Complete Your Profile</h2>
       <p class="subtitle" style="margin-bottom: 24px;">Choose a username to finish signing up</p>
       <div class="form-group">
-        <label>Username</label>
+        <label for="google-username">Username</label>
         <div class="username-input-wrapper">
-          <span class="username-prefix">vibelab.in/</span>
-          <input type="text" id="google-username" placeholder="yourname" autocomplete="off">
+          <span class="username-prefix" aria-hidden="true">vibelab.in/</span>
+          <input type="text" id="google-username" placeholder="yourname" autocomplete="off" aria-describedby="google-username-status">
         </div>
-        <div class="username-status" id="google-username-status"></div>
+        <div class="username-status" id="google-username-status" aria-live="polite"></div>
       </div>
       <div class="form-group" id="google-invite-group">
-        <label>Invite Code</label>
-        <input type="text" id="google-invite-code" placeholder="e.g. VIBE-A3X9" autocomplete="off" style="text-transform: uppercase;">
-        <div class="username-status" id="google-invite-status"></div>
+        <label for="google-invite-code">Invite Code</label>
+        <input type="text" id="google-invite-code" placeholder="e.g. VIBE-A3X9" autocomplete="off" style="text-transform: uppercase;" aria-describedby="google-invite-status">
+        <div class="username-status" id="google-invite-status" aria-live="polite"></div>
       </div>
       <button class="submit-btn" onclick="completeGoogleSignup()">Complete Signup</button>
     </div>
@@ -173,52 +175,52 @@ function getAuthModalHTML() {
 function getProfileModalHTML() {
   return `
 <div class="modal-overlay" id="profile-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeProfileModal()">&times;</button>
-    <h2>Edit Profile</h2>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+    <button class="modal-close" onclick="closeProfileModal()" aria-label="Close">&times;</button>
+    <h2 id="profile-modal-title">Edit Profile</h2>
     <p class="subtitle">Customize your VibeLab profile</p>
     <div style="text-align: center;">
-      <div class="profile-photo-upload" id="profile-photo-upload" onclick="document.getElementById('profile-photo-input').click()">
-        <img id="profile-photo-preview" style="display: none;">
-        <span class="upload-icon" id="profile-upload-icon">&#128248;</span>
+      <div class="profile-photo-upload" id="profile-photo-upload" onclick="document.getElementById('profile-photo-input').click()" role="button" tabindex="0" aria-label="Upload profile photo">
+        <img id="profile-photo-preview" style="display: none;" alt="Profile photo preview">
+        <span class="upload-icon" id="profile-upload-icon" aria-hidden="true">&#128248;</span>
       </div>
-      <input type="file" id="profile-photo-input" accept="image/png,image/jpeg,image/gif" style="display:none;">
+      <input type="file" id="profile-photo-input" accept="image/png,image/jpeg,image/gif" style="display:none;" aria-label="Choose profile photo">
       <p class="profile-photo-label">Click to upload profile photo</p>
     </div>
     <div class="form-group">
-      <label>Username</label>
+      <label for="profile-username">Username</label>
       <div class="username-input-wrapper">
-        <span class="username-prefix">vibelab.in/</span>
-        <input type="text" id="profile-username" placeholder="yourname" autocomplete="off">
+        <span class="username-prefix" aria-hidden="true">vibelab.in/</span>
+        <input type="text" id="profile-username" placeholder="yourname" autocomplete="off" aria-describedby="profile-username-status">
       </div>
-      <div class="username-status" id="profile-username-status"></div>
+      <div class="username-status" id="profile-username-status" aria-live="polite"></div>
     </div>
     <div class="form-group">
-      <label>Display Name</label>
+      <label for="profile-display-name">Display Name</label>
       <input type="text" id="profile-display-name" placeholder="Your name">
     </div>
     <div class="form-group">
-      <label>Bio</label>
+      <label for="profile-bio">Bio</label>
       <textarea id="profile-bio" placeholder="Tell us about yourself..."></textarea>
     </div>
     <div class="form-group">
-      <label>Company</label>
+      <label for="profile-company">Company</label>
       <input type="text" id="profile-company" placeholder="Where you work (optional)">
     </div>
     <div class="form-group">
-      <label>Skills & Interests</label>
+      <label for="profile-skills">Skills & Interests</label>
       <input type="text" id="profile-skills" placeholder="e.g. React, Creative Coding, AI, Game Dev (comma separated)">
     </div>
     <div class="form-group">
-      <label>Twitter / X Handle</label>
+      <label for="profile-twitter">Twitter / X Handle</label>
       <input type="text" id="profile-twitter" placeholder="@yourhandle">
     </div>
     <div class="form-group">
-      <label>GitHub Username</label>
+      <label for="profile-github">GitHub Username</label>
       <input type="text" id="profile-github" placeholder="yourusername">
     </div>
     <div class="form-group">
-      <label>Website URL</label>
+      <label for="profile-website">Website URL</label>
       <input type="url" id="profile-website" placeholder="https://yoursite.com">
     </div>
     <button class="submit-btn" onclick="saveProfile()">Save Profile</button>
@@ -230,17 +232,17 @@ function getProfileModalHTML() {
 function getSubmitModalHTML() {
   return `
 <div class="modal-overlay" id="submit-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeSubmitModal()">&times;</button>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="submit-modal-title">
+    <button class="modal-close" onclick="closeSubmitModal()" aria-label="Close">&times;</button>
     <div id="submit-form">
-      <h2>Share Your Vibe</h2>
+      <h2 id="submit-modal-title">Share Your Vibe</h2>
       <p class="subtitle">Post your project for the community to see</p>
       <div class="form-group">
-        <label>Project Name</label>
+        <label for="proj-name">Project Name</label>
         <input type="text" id="proj-name" placeholder="e.g. Neon Waves">
       </div>
       <div class="form-group">
-        <label>Category</label>
+        <label for="proj-cat">Category</label>
         <select id="proj-cat">
           <option value="web">Web</option>
           <option value="mobile">Mobile</option>
@@ -250,7 +252,7 @@ function getSubmitModalHTML() {
         </select>
       </div>
       <div class="form-group">
-        <label>Built With</label>
+        <label for="proj-built-with">Built With</label>
         <select id="proj-built-with">
           <option value="">Select app (optional)</option>
           <option value="Claude">Claude</option>
@@ -263,51 +265,51 @@ function getSubmitModalHTML() {
         </select>
       </div>
       <div class="form-group">
-        <label>Status</label>
-        <div class="status-tags">
-          <button class="status-tag active" onclick="selectStatus(this, 'WIP')">WIP</button>
-          <button class="status-tag" onclick="selectStatus(this, 'Experiment')">Experiment</button>
-          <button class="status-tag" onclick="selectStatus(this, 'Shipped')">Shipped</button>
+        <label id="status-label">Status</label>
+        <div class="status-tags" role="radiogroup" aria-labelledby="status-label">
+          <button class="status-tag active" onclick="selectStatus(this, 'WIP')" role="radio" aria-checked="true">WIP</button>
+          <button class="status-tag" onclick="selectStatus(this, 'Experiment')" role="radio" aria-checked="false">Experiment</button>
+          <button class="status-tag" onclick="selectStatus(this, 'Shipped')" role="radio" aria-checked="false">Shipped</button>
         </div>
       </div>
       <div class="form-group">
-        <label>Description</label>
+        <label for="proj-desc">Description</label>
         <textarea id="proj-desc" placeholder="Tell us what you built and the vibe behind it..."></textarea>
       </div>
       <div class="form-group">
-        <label>Project Thumbnail (optional)</label>
+        <label for="proj-image">Project Thumbnail (optional)</label>
         <input type="file" id="proj-image" accept="image/png,image/jpeg,image/gif">
       </div>
       <div class="form-group">
-        <label>Live Demo URL (optional)</label>
+        <label for="proj-link">Live Demo URL (optional)</label>
         <input type="url" id="proj-link" placeholder="https://your-project.com">
       </div>
       <div class="form-group">
-        <label>GitHub URL (optional)</label>
+        <label for="proj-github">GitHub URL (optional)</label>
         <input type="url" id="proj-github" placeholder="https://github.com/you/project">
       </div>
       <div class="form-group">
-        <label>Figma URL (optional)</label>
+        <label for="proj-figma">Figma URL (optional)</label>
         <input type="url" id="proj-figma" placeholder="https://figma.com/file/...">
       </div>
       <div class="form-group">
-        <label>Visibility</label>
-        <div class="visibility-toggle">
-          <button class="visibility-option active" onclick="selectVisibility(this, 'public')">Public</button>
-          <button class="visibility-option" onclick="selectVisibility(this, 'unlisted')">Unlisted</button>
+        <label id="visibility-label">Visibility</label>
+        <div class="visibility-toggle" role="radiogroup" aria-labelledby="visibility-label">
+          <button class="visibility-option active" onclick="selectVisibility(this, 'public')" role="radio" aria-checked="true">Public</button>
+          <button class="visibility-option" onclick="selectVisibility(this, 'unlisted')" role="radio" aria-checked="false">Unlisted</button>
         </div>
       </div>
       <div class="form-group">
-        <label>Tags (comma separated)</label>
+        <label for="proj-tags">Tags (comma separated)</label>
         <input type="text" id="proj-tags" placeholder="e.g. three.js, shader, interactive">
       </div>
       <div class="form-group" id="challenge-link-group" style="border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 8px;">
-        <label>🔥 Link to Challenge <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+        <label for="proj-challenge">🔥 Link to Challenge <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
         <select id="proj-challenge" onchange="onChallengeSelect()">
           <option value="">No challenge</option>
         </select>
         <div id="challenge-day-group" style="display:none;margin-top:10px;">
-          <label style="font-size:0.85rem;">Challenge Day</label>
+          <label for="proj-challenge-day" style="font-size:0.85rem;">Challenge Day</label>
           <input type="number" id="proj-challenge-day" min="1" max="365" value="1" placeholder="Which day?" style="width:100%;padding:10px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;outline:none;">
           <p id="challenge-day-hint" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;"></p>
         </div>
@@ -327,15 +329,15 @@ function getSubmitModalHTML() {
 function getSaveModalHTML() {
   return `
 <div class="modal-overlay" id="save-modal">
-  <div class="modal" style="max-width: 420px;">
-    <button class="modal-close" onclick="closeSaveModal()">&times;</button>
-    <h2>Save to Collection</h2>
+  <div class="modal" style="max-width: 420px;" role="dialog" aria-modal="true" aria-labelledby="save-modal-title">
+    <button class="modal-close" onclick="closeSaveModal()" aria-label="Close">&times;</button>
+    <h2 id="save-modal-title">Save to Collection</h2>
     <p class="subtitle">Organize your favorite vibes</p>
     <div class="save-modal-list" id="save-modal-list">
-      <div class="loading-spinner"><div class="spinner"></div></div>
+      <div class="loading-spinner"><div class="spinner" role="status"><span class="sr-only">Loading...</span></div></div>
     </div>
     <div class="new-collection-input">
-      <input type="text" id="new-collection-name" placeholder="New collection name...">
+      <input type="text" id="new-collection-name" placeholder="New collection name..." aria-label="New collection name">
       <button onclick="createCollection()">Create</button>
     </div>
   </div>
@@ -345,12 +347,12 @@ function getSaveModalHTML() {
 // Generate Footer HTML
 function getFooterHTML() {
   return `
-<footer>
+<footer role="contentinfo">
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a href="index.html" class="logo">
-          <div class="logo-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z"/></svg></div>
+        <a href="index.html" class="logo" aria-label="VibeLab home">
+          <div class="logo-mark"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z"/></svg></div>
           VibeLab
         </a>
         <p>The community where creative developers share what they build. Code with feeling.</p>
@@ -386,6 +388,59 @@ function getFooterHTML() {
 </footer>`;
 }
 
+// ============ ACCESSIBILITY: Modal Focus Management ============
+let _modalTrigger = null; // Element that opened the current modal
+const _focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function trapFocusInModal(modal) {
+  if (!modal) return;
+  const focusable = modal.querySelectorAll(_focusableSelector);
+  if (focusable.length === 0) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  // Focus the first focusable element
+  first.focus();
+  modal._trapHandler = function(e) {
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
+  };
+  modal.addEventListener('keydown', modal._trapHandler);
+}
+
+function releaseFocusTrap(modal) {
+  if (!modal) return;
+  if (modal._trapHandler) {
+    modal.removeEventListener('keydown', modal._trapHandler);
+    delete modal._trapHandler;
+  }
+  if (_modalTrigger) {
+    _modalTrigger.focus();
+    _modalTrigger = null;
+  }
+}
+
+// Global Escape key handler for all modals
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  const modals = ['auth-modal', 'profile-modal', 'submit-modal', 'save-modal'];
+  for (const id of modals) {
+    const modal = document.getElementById(id);
+    if (modal && modal.classList.contains('open')) {
+      e.preventDefault();
+      if (id === 'auth-modal') closeAuthModal();
+      else if (id === 'profile-modal') closeProfileModal();
+      else if (id === 'submit-modal') closeSubmitModal();
+      else if (id === 'save-modal') closeSaveModal();
+      break;
+    }
+  }
+});
+
 // Submit modal functions
 let selectedStatus = 'WIP';
 let selectedVisibility = 'public';
@@ -393,10 +448,12 @@ let editingProjectId = null; // Set when editing an existing project
 
 function openSubmitModal() {
   if (!requireAuth('share your vibe')) return;
+  _modalTrigger = document.activeElement;
   editingProjectId = null; // Reset edit mode
   const modal = document.getElementById('submit-modal');
   if (modal) {
     modal.classList.add('open');
+    setTimeout(() => trapFocusInModal(modal.querySelector('[role="dialog"]') || modal), 50);
     const form = document.getElementById('submit-form');
     const success = document.getElementById('success-msg');
     if (form) form.style.display = 'block';
@@ -482,18 +539,23 @@ async function openEditProjectModal(projectId) {
 
 function closeSubmitModal() {
   const modal = document.getElementById('submit-modal');
-  if (modal) modal.classList.remove('open');
+  if (modal) {
+    releaseFocusTrap(modal.querySelector('[role="dialog"]') || modal);
+    modal.classList.remove('open');
+  }
 }
 
 function selectStatus(btn, status) {
-  document.querySelectorAll('.status-tag').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.status-tag').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-checked', 'false'); });
   btn.classList.add('active');
+  btn.setAttribute('aria-checked', 'true');
   selectedStatus = status;
 }
 
 function selectVisibility(btn, vis) {
-  document.querySelectorAll('.visibility-option').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.visibility-option').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-checked', 'false'); });
   btn.classList.add('active');
+  btn.setAttribute('aria-checked', 'true');
   selectedVisibility = vis;
 }
 
@@ -595,6 +657,10 @@ async function submitProject() {
     const check = validateImage(imageFile, { maxSizeMB: IMAGE_RULES.thumbnail.maxSizeMB });
     if (!check.valid) { showToast(check.error); return; }
   }
+
+  const btn = document.querySelector('#submit-form .submit-btn');
+  const isEditing = !!editingProjectId;
+  if (btn) { btn.disabled = true; btn.textContent = isEditing ? 'Updating...' : 'Posting...'; }
 
   try {
     let imageURL = '';
@@ -709,6 +775,8 @@ async function submitProject() {
   } catch (error) {
     console.error('Project submission error:', error);
     showToast('Error posting project: ' + cleanErrorMessage(error.message));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = isEditing ? 'Update Vibe' : 'Post Vibe'; }
   }
 }
 
@@ -739,17 +807,22 @@ async function deleteProject(projectId, projectName) {
 // Save modal functions
 function openSaveModal(projectId) {
   if (!requireAuth('save projects')) return;
+  _modalTrigger = document.activeElement;
   const modal = document.getElementById('save-modal');
   if (modal) {
     modal.classList.add('open');
     modal.dataset.projectId = projectId;
     loadCollections(projectId);
+    setTimeout(() => trapFocusInModal(modal.querySelector('[role="dialog"]') || modal), 50);
   }
 }
 
 function closeSaveModal() {
   const modal = document.getElementById('save-modal');
-  if (modal) modal.classList.remove('open');
+  if (modal) {
+    releaseFocusTrap(modal.querySelector('[role="dialog"]') || modal);
+    modal.classList.remove('open');
+  }
 }
 
 async function loadCollections(projectId) {
@@ -837,6 +910,28 @@ function initPage(activePage) {
       if (e.target === this) this.classList.remove('open');
     });
   });
+
+  // Keyboard support for nav avatar (Enter/Space to toggle)
+  const navAvatar = document.getElementById('nav-avatar');
+  if (navAvatar) {
+    navAvatar.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleDropdown();
+      }
+    });
+  }
+
+  // Keyboard support for profile photo upload
+  const photoUpload = document.getElementById('profile-photo-upload');
+  if (photoUpload) {
+    photoUpload.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        document.getElementById('profile-photo-input')?.click();
+      }
+    });
+  }
 }
 
 // Toggle vibe (like) on a project
@@ -869,6 +964,7 @@ async function toggleVibe(projectId, btn) {
     }
   } catch (e) {
     console.error('Toggle vibe error:', e);
+    showToast('Something went wrong. Please try again.');
   }
 }
 
@@ -902,6 +998,7 @@ async function toggleFollow(targetUid, btn) {
     }
   } catch (e) {
     console.error('Toggle follow error:', e);
+    showToast('Something went wrong. Please try again.');
   }
 }
 
