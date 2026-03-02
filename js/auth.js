@@ -57,8 +57,22 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
           window._pendingInviteCode = null;
           window._pendingInviteCreator = null;
         } else {
-          // Google OAuth — no user doc yet, show complete signup modal
-          showGoogleCompleteSignup();
+          // Only show complete signup for actual Google OAuth users
+          const isGoogleUser = user.providerData?.some(p => p.providerId === 'google.com');
+          if (isGoogleUser) {
+            showGoogleCompleteSignup();
+          } else {
+            // Email/password user whose doc is still being created (race condition)
+            // Wait briefly and retry before giving up
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            const retryDoc = await db.collection('users').doc(user.uid).get();
+            if (retryDoc.exists) {
+              currentUserProfile = retryDoc.data();
+              updateNav();
+              window.dispatchEvent(new CustomEvent('authStateReady', { detail: { user, profile: currentUserProfile } }));
+              return;
+            }
+          }
         }
       }
     } catch (e) {
@@ -209,6 +223,14 @@ async function signUpWithEmail() {
   }
 
   try {
+    // Set pending flags BEFORE creating auth user so onAuthStateChanged
+    // has them immediately when it fires (prevents race condition)
+    window._pendingUsername = username;
+    if (inviteResult && inviteResult.valid) {
+      window._pendingInviteCode = inviteCodeInput;
+      window._pendingInviteCreator = inviteResult.codeData?.createdBy || null;
+    }
+
     const result = await auth.createUserWithEmailAndPassword(email, password);
     await result.user.updateProfile({ displayName });
 
@@ -221,12 +243,7 @@ async function signUpWithEmail() {
     // Redeem invite code if one was used
     if (inviteResult && inviteResult.valid) {
       await redeemInviteCode(inviteCodeInput, result.user.uid, displayName);
-      window._pendingInviteCode = inviteCodeInput;
-      window._pendingInviteCreator = inviteResult.codeData?.createdBy || null;
     }
-
-    // Store username as pending so onAuthStateChanged picks it up
-    window._pendingUsername = username;
 
     closeAuthModal();
     document.getElementById('auth-email').value = '';
@@ -235,6 +252,10 @@ async function signUpWithEmail() {
     if (document.getElementById('auth-username')) document.getElementById('auth-username').value = '';
     if (document.getElementById('auth-invite-code')) document.getElementById('auth-invite-code').value = '';
   } catch (error) {
+    // Clear pending flags on error so onAuthStateChanged doesn't misuse them
+    window._pendingUsername = null;
+    window._pendingInviteCode = null;
+    window._pendingInviteCreator = null;
     showAuthError(error.message);
   }
 }
