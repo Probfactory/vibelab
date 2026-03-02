@@ -321,7 +321,9 @@ function clearAuthError() {
 
 function showAuthError(message) {
   const el = document.getElementById('auth-error');
-  if (el) { el.textContent = message; el.classList.add('show'); }
+  if (!el) return;
+  el.textContent = cleanErrorMessage(message);
+  el.classList.add('show');
 }
 
 async function signUpWithEmail() {
@@ -677,7 +679,7 @@ async function saveProfile() {
     showToast('Profile updated successfully!');
   } catch (error) {
     console.error('Profile save error:', error);
-    showToast('Error saving profile: ' + error.message);
+    showToast('Error saving profile: ' + cleanErrorMessage(error.message));
   }
 }
 

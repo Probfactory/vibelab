@@ -1,3 +1,14 @@
+// Clean Firebase error messages: strip "Firebase: " prefix and "(auth/xxx)." suffix
+function cleanErrorMessage(msg) {
+  if (!msg) return 'Something went wrong. Please try again.';
+  let clean = String(msg);
+  clean = clean.replace(/^Firebase:\s*/i, '');
+  clean = clean.replace(/\s*\(auth\/[\w-]+\)\.?$/, '');
+  clean = clean.replace(/\s*\(storage\/[\w-]+\)\.?$/, '');
+  clean = clean.replace(/\s*\(firestore\/[\w-]+\)\.?$/, '');
+  return clean;
+}
+
 // Generate navigation HTML - call this to insert nav on any page
 function getNavHTML(activePage) {
   // activePage can be 'home', 'feed', etc.
@@ -697,7 +708,7 @@ async function submitProject() {
     if (typeof loadMyVibes === 'function') loadMyVibes();
   } catch (error) {
     console.error('Project submission error:', error);
-    alert('Error posting project: ' + error.message);
+    showToast('Error posting project: ' + cleanErrorMessage(error.message));
   }
 }
 

@@ -421,7 +421,7 @@ async function saveInlineProfile() {
     showToast('Profile updated successfully!');
   } catch (error) {
     console.error('Profile save error:', error);
-    showToast('Error saving profile: ' + error.message);
+    showToast('Error saving profile: ' + cleanErrorMessage(error.message));
   }
 }
 
@@ -459,7 +459,7 @@ async function deleteAccount() {
     if (error.code === 'auth/requires-recent-login') {
       showToast('Please log out and log back in before deleting your account (security requirement).');
     } else {
-      showToast('Error deleting account: ' + error.message);
+      showToast('Error deleting account: ' + cleanErrorMessage(error.message));
     }
   }
 }
@@ -503,7 +503,7 @@ async function changePassword() {
     } else if (error.code === 'auth/weak-password') {
       showToast('New password is too weak. Use at least 6 characters.');
     } else {
-      showToast('Error changing password: ' + error.message);
+      showToast('Error changing password: ' + cleanErrorMessage(error.message));
     }
   }
 }
