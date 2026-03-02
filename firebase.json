@@ -12,6 +12,7 @@
       { "source": "/project", "destination": "/vibe.html" },
       { "source": "/my-vibes", "destination": "/my-vibes.html" },
       { "source": "/admin", "destination": "/admin.html" },
+      { "source": "/reset-password", "destination": "/reset-password.html" },
       { "source": "/:username", "destination": "/profile.html" }
     ]
   },

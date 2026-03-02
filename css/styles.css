@@ -255,6 +255,88 @@ nav {
   margin-bottom: 12px;
 }
 
+/* Reset password page */
+.reset-password-section {
+  min-height: calc(100vh - 200px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px 20px;
+}
+.reset-password-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 48px 40px;
+  width: 100%; max-width: 440px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.reset-password-card h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.4rem; font-weight: 700; margin: 0 0 8px;
+}
+.reset-subtitle {
+  color: var(--text-muted); font-size: 0.9rem;
+  margin: 0 0 28px; line-height: 1.5;
+}
+.reset-subtitle strong {
+  color: var(--text); font-weight: 600;
+}
+.reset-icon-wrap {
+  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.reset-icon-success svg { filter: drop-shadow(0 2px 8px rgba(5, 150, 105, 0.2)); }
+.reset-icon-error svg { filter: drop-shadow(0 2px 8px rgba(220, 38, 38, 0.2)); }
+.reset-error {
+  background: rgba(239,68,68,0.08); color: #dc2626;
+  padding: 10px 14px; border-radius: 10px;
+  font-size: 0.85rem; margin-bottom: 16px;
+  text-align: left;
+}
+.reset-password-card .form-group {
+  text-align: left;
+}
+.password-input-wrap {
+  position: relative; display: flex; align-items: center;
+}
+.password-input-wrap input {
+  width: 100%; padding-right: 44px;
+}
+.password-toggle {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); padding: 4px; display: flex;
+  align-items: center; justify-content: center;
+  transition: color 0.2s;
+}
+.password-toggle:hover { color: var(--text); }
+.password-strength {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 6px;
+}
+.strength-bar {
+  flex: 1; height: 4px; background: var(--border-light);
+  border-radius: 2px; overflow: hidden;
+}
+.strength-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.3s, background 0.3s;
+  width: 0%;
+}
+.strength-label {
+  font-size: 0.78rem; font-weight: 600;
+  min-width: 48px; text-align: right;
+}
+.reset-password-card .submit-btn {
+  margin-top: 8px;
+}
+@media (max-width: 480px) {
+  .reset-password-card {
+    padding: 32px 24px;
+  }
+  .reset-password-section {
+    padding: 40px 16px;
+  }
+}
+
 /* Change password section (profile edit) */
 .change-password-section {
   border-top: 1px solid var(--border-light);
