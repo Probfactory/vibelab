@@ -1,6 +1,2 @@
 /feed /explore.html 200
 /project /vibe.html 200
-
-# Vanity profile URLs — serves profile.html for any single-segment path
-# that doesn't match a static file (Cloudflare serves static files first)
-/:username /profile.html 200
