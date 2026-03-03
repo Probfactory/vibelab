@@ -1,7 +1,7 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "firestore.rules", ".firebase", ".git", ".claude", "node_modules"],
+    "ignore": ["firebase.json", "firestore.rules", "storage.rules", ".firebase", ".git", ".claude", "node_modules"],
     "cleanUrls": true,
     "rewrites": [
       { "source": "/explore", "destination": "/explore.html" },
@@ -14,6 +14,7 @@
       { "source": "/admin", "destination": "/admin.html" },
       { "source": "/reset-password", "destination": "/reset-password.html" },
       { "source": "/invite/**", "destination": "/invite.html" },
+      { "source": "/events", "destination": "/events.html" },
       { "source": "/:username", "destination": "/profile.html" }
     ]
   },
