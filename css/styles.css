@@ -126,7 +126,7 @@ nav {
 /* ============ AUTH ============ */
 /* Auth nav buttons */
 .nav-auth { display: flex; align-items: center; gap: 8px; }
-.nav-auth-logged-out { display: flex; align-items: center; gap: 8px; }
+.nav-auth-logged-out { display: none; align-items: center; gap: 8px; }
 .nav-auth-logged-in { display: none; align-items: center; gap: 8px; }
 
 /* User avatar in nav */

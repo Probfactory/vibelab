@@ -92,9 +92,12 @@ function updateNav() {
   const loggedInEl = document.getElementById('nav-auth-logged-in');
   if (!loggedOutEl || !loggedInEl) return;
 
+  const shareVibeBtn = document.getElementById('nav-share-vibe');
+
   if (currentUser) {
     loggedOutEl.style.display = 'none';
     loggedInEl.style.display = 'flex';
+    if (shareVibeBtn) shareVibeBtn.style.display = '';
 
     const avatarText = document.getElementById('avatar-text');
     const avatarImg = document.getElementById('avatar-img');
@@ -116,6 +119,7 @@ function updateNav() {
   } else {
     loggedOutEl.style.display = 'flex';
     loggedInEl.style.display = 'none';
+    if (shareVibeBtn) shareVibeBtn.style.display = 'none';
     closeDropdown();
   }
 }

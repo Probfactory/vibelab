@@ -21,6 +21,7 @@ function getNavHTML(activePage) {
       VibeLab
     </a>
     <div class="nav-links">
+      <a href="#" class="btn btn-primary btn-sm hide-mobile" id="nav-share-vibe" onclick="openSubmitModal(); return false;" style="display: none;">+ Share Your Vibe</a>
       <a href="explore.html" class="hide-mobile ${activePage === 'explore' ? 'active' : ''}">Explore</a>
       <a href="community.html" class="hide-mobile ${activePage === 'community' ? 'active' : ''}">Community</a>
       <a href="events.html" class="hide-mobile ${activePage === 'events' ? 'active' : ''}">Events</a>
@@ -29,7 +30,6 @@ function getNavHTML(activePage) {
           <a href="#" class="btn btn-primary btn-sm" onclick="openAuthModal('login'); return false;">Log In</a>
         </div>
         <div class="nav-auth-logged-in" id="nav-auth-logged-in">
-          <a href="#" class="btn btn-primary btn-sm" onclick="openSubmitModal(); return false;">+ Share Your Vibe</a>
           <div style="position: relative;">
             <div class="nav-avatar" id="nav-avatar" onclick="toggleDropdown()" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true" aria-label="User menu">
               <span id="avatar-text">V</span>
