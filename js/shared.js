@@ -23,6 +23,7 @@ function getNavHTML(activePage) {
     <div class="nav-links">
       <a href="explore.html" class="hide-mobile ${activePage === 'explore' ? 'active' : ''}">Explore</a>
       <a href="community.html" class="hide-mobile ${activePage === 'community' ? 'active' : ''}">Community</a>
+      <a href="events.html" class="hide-mobile ${activePage === 'events' ? 'active' : ''}">Events</a>
       <div class="nav-auth" id="nav-auth">
         <div class="nav-auth-logged-out" id="nav-auth-logged-out">
           <a href="#" class="btn btn-primary btn-sm" onclick="openAuthModal('login'); return false;">Log In</a>
@@ -361,6 +362,7 @@ function getFooterHTML() {
         <h4>Community</h4>
         <a href="explore.html">Explore</a>
         <a href="community.html">About</a>
+        <a href="events.html">Events</a>
         <span>Discord</span>
         <span>Twitter / X</span>
       </div>

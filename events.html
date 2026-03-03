@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="VIBE SHIFT BLR — VibeLab's first IRL meetup for vibe coders and creative developers. March 14, 2026 at Uniphore, Bangalore.">
+<title>VIBE SHIFT BLR — VibeLab Events</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M74.96,1.39c-.91-.24-1.85-.37-2.78-.37-4.85,0-9.12,3.27-10.39,7.95l-5.59,20.07-5.36-19.59c-1.28-4.67-5.55-7.93-10.4-7.93-.94,0-1.87.12-2.78.37-2.78.74-5.1,2.53-6.54,5.02-1.44,2.49-1.82,5.39-1.08,8.17l4.41,16.47s-.02,0-.03,0c-3.36.87-6.01,3.3-7.27,6.39-.75.03-1.5.15-2.24.34-2.78.72-5.11,2.48-6.57,4.96-1.46,2.48-1.86,5.37-1.14,8.15l2.09,8.04s0,.03.01.05v8.26c0,17.39,14.15,31.54,31.54,31.54,2.82,0,5.62-.38,8.34-1.12.63-.15,2.54-.67,5.06-1.86.09-.04.18-.08.27-.13l.09-.05h0s0,0,0,0l.04-.02c.05-.03.1-.05.15-.08.82-.41,1.61-.84,2.34-1.28.11-.07.22-.14.32-.21.65-.41,1.29-.83,1.9-1.27,4.23-3.07,7.64-7.19,9.88-11.94.17-.25.31-.51.43-.78,1.8-4.04,2.71-8.35,2.71-12.8v-10.24c0-5.91-2.98-11.31-7.8-14.48l7.96-28.41v-.02s.01-.02.01-.02c1.53-5.73-1.88-11.64-7.61-13.17ZM50.85,92.2c-13.48,0-24.45-10.97-24.45-24.45v-4.61c1.03.54,2.16.81,3.3.81.61,0,1.22-.08,1.83-.23h0c1.87-.48,3.43-1.67,4.41-3.33.09-.15.16-.29.24-.44.14.09.28.19.42.27,1.12.66,2.37,1,3.64,1,.61,0,1.22-.08,1.82-.23,1.6-.41,2.98-1.35,3.95-2.65,1.44.77,3.08,1.21,4.83,1.21h4.56c-3.39,2.82-5.55,7.06-5.55,11.8v1.73c0,.98.79,1.77,1.77,1.77s1.77-.79,1.77-1.77v-1.73c0-6.51,5.29-11.8,11.8-11.8.98,0,1.77-.79,1.77-1.77s-.79-1.77-1.77-1.77h-14.35c-3.69,0-6.69-3-6.69-6.69,0-1.14.93-2.07,2.07-2.07h18.81c5.66,0,10.26,4.6,10.26,10.26v10.24c0,1.03-.06,2.05-.19,3.06-.01.05-.02.1-.03.15-1.14,7.03-4.42,12.57-9.75,16.49-1.51,1.11-2.98,1.92-4.23,2.51-3.2,1.47-6.69,2.25-10.25,2.25ZM26.71,45.14c.31-.08.62-.12.93-.12.65,0,1.28.17,1.86.51.85.5,1.45,1.29,1.69,2.24l2.09,8.04c.25.95.11,1.94-.39,2.78h0c-.5.85-1.29,1.45-2.24,1.69h0c-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-2.09-8.04c-.51-1.96.67-3.97,2.63-4.48ZM44.01,11.32l8.85,32.38h-6.63c-.39,0-.78.04-1.15.12l-8.19-30.57c-.25-.95-.12-1.94.37-2.8.49-.85,1.29-1.46,2.24-1.72,1.95-.52,3.98.64,4.51,2.59ZM43.23,56.14c-.5.69-1.22,1.19-2.06,1.41-.95.25-1.94.11-2.78-.39-.85-.5-1.45-1.29-1.69-2.24l-3.12-12.02c-.51-1.96.67-3.97,2.63-4.48.95-.25,1.94-.11,2.78.39.74.44,1.3,1.1,1.59,1.9l1.33,5.04c-.8.97-1.29,2.22-1.29,3.58,0,2.62.99,5.01,2.62,6.82ZM73.12,8.23c1.96.52,3.12,2.54,2.6,4.5l-8.72,31.11c-.64-.09-1.29-.14-1.96-.14h-5.61l9.19-32.87c.52-1.96,2.54-3.12,4.5-2.6Z'/></svg>">
+<link rel="stylesheet" href="css/styles.css">
+
+<style>
+/* ============ NEO-BRUTALISM EVENT STYLES ============ */
+/* Scoped to events page — intentional design departure */
+
+:root {
+  --ev-yellow: #c8ff00;
+  --ev-pink: #ff2d7b;
+  --ev-blue: #4d9fff;
+  --ev-purple: #7c3aed;
+  --ev-orange: #ff6b35;
+  --ev-lime: #a3f635;
+  --ev-bg: #fffbe6;
+  --ev-border: 3px solid #000;
+  --ev-shadow: 6px 6px 0 #000;
+  --ev-shadow-sm: 4px 4px 0 #000;
+}
+
+body {
+  background: var(--ev-bg);
+  overflow-x: hidden;
+}
+
+/* ---- HERO ---- */
+.ev-hero {
+  padding: 100px 0 60px;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+}
+
+.ev-hero::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 300px;
+  height: 300px;
+  background: var(--ev-pink);
+  border: var(--ev-border);
+  border-radius: 0;
+  transform: rotate(15deg);
+  z-index: 0;
+  opacity: 0.15;
+}
+
+.ev-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  background: var(--ev-blue);
+  border: var(--ev-border);
+  transform: rotate(-10deg);
+  z-index: 0;
+  opacity: 0.12;
+}
+
+.ev-hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.ev-badge {
+  display: inline-block;
+  background: var(--ev-yellow);
+  border: var(--ev-border);
+  box-shadow: var(--ev-shadow-sm);
+  padding: 8px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 32px;
+}
+
+.ev-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  color: #000;
+  margin-bottom: 20px;
+}
+
+.ev-title-accent {
+  color: var(--ev-pink);
+  -webkit-text-stroke: 2px #000;
+  text-stroke: 2px #000;
+  paint-order: stroke fill;
+}
+
+.ev-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 40px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ev-info-bar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  justify-content: center;
+  margin-bottom: 40px;
+  border: var(--ev-border);
+  box-shadow: var(--ev-shadow);
+  background: #fff;
+}
+
+.ev-info-item {
+  padding: 16px 28px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ev-info-item:not(:last-child) {
+  border-right: var(--ev-border);
+}
+
+.ev-info-icon {
+  font-size: 1.2rem;
+}
+
+.ev-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 40px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: #000;
+  background: var(--ev-yellow);
+  border: var(--ev-border);
+  box-shadow: var(--ev-shadow);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.ev-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.ev-btn:active {
+  transform: translate(5px, 5px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+.ev-btn-pink {
+  background: var(--ev-pink);
+  color: #fff;
+}
+
+/* ---- COUNTDOWN ---- */
+.ev-countdown {
+  padding: 60px 0;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+}
+
+.ev-countdown-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 24px;
+  color: #000;
+}
+
+.ev-countdown-grid {
+  display: inline-grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.ev-countdown-block {
+  background: #fff;
+  border: var(--ev-border);
+  box-shadow: var(--ev-shadow);
+  padding: 24px 32px;
+  min-width: 110px;
+  text-align: center;
+}
+
+.ev-countdown-number {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  line-height: 1;
+  color: #000;
+}
+
+.ev-countdown-unit {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #666;
+  margin-top: 6px;
+}
+
+.ev-countdown-block:nth-child(1) { border-bottom: 6px solid var(--ev-pink); }
+.ev-countdown-block:nth-child(2) { border-bottom: 6px solid var(--ev-yellow); }
+.ev-countdown-block:nth-child(3) { border-bottom: 6px solid var(--ev-blue); }
+.ev-countdown-block:nth-child(4) { border-bottom: 6px solid var(--ev-purple); }
+
+/* ---- WHAT TO EXPECT ---- */
+.ev-details {
+  padding: 80px 0;
+  position: relative;
+  overflow: visible;
+}
+
+.ev-section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: #000;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.ev-section-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 6px;
+  background: #000;
+  margin: 16px auto 0;
+}
+
+.ev-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.ev-card {
+  background: #fff;
+  border: var(--ev-border);
+  box-shadow: var(--ev-shadow);
+  padding: 32px;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.ev-card:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.ev-card:nth-child(1) { border-top: 6px solid var(--ev-pink); }
+.ev-card:nth-child(2) { border-top: 6px solid var(--ev-yellow); }
+.ev-card:nth-child(3) { border-top: 6px solid var(--ev-blue); }
+.ev-card:nth-child(4) { border-top: 6px solid var(--ev-purple); }
+
+.ev-card-emoji {
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+
+.ev-card h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  color: #000;
+}
+
+.ev-card p {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+/* ---- COLLABORATION ---- */
+.ev-collab {
+  padding: 80px 0;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+}
+
+.ev-collab-box {
+  display: inline-block;
+  background: #fff;
+  border: var(--ev-border);
+  box-shadow: var(--ev-shadow);
+  padding: 48px 64px;
+}
+
+.ev-collab-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.ev-collab-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: #000;
+  margin-bottom: 12px;
+}
+
+.ev-collab-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: #555;
+}
+
+/* ---- WHO SHOULD ATTEND ---- */
+.ev-audience {
+  padding: 80px 0;
+  position: relative;
+  overflow: visible;
+}
+
+.ev-audience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.ev-audience-item {
+  background: #fff;
+  border: var(--ev-border);
+  box-shadow: var(--ev-shadow-sm);
+  padding: 20px 24px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ev-audience-check {
+  width: 28px;
+  height: 28px;
+  background: var(--ev-yellow);
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* ---- BOTTOM CTA ---- */
+.ev-cta-banner {
+  padding: 80px 0;
+  text-align: center;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.ev-cta-banner::before {
+  content: 'VIBE SHIFT';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(4rem, 15vw, 12rem);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.ev-cta-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  color: #fff;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.ev-cta-banner .ev-btn {
+  position: relative;
+}
+
+/* ---- DECORATIVE STICKERS ---- */
+.ev-sticker {
+  position: absolute;
+  font-size: 2rem;
+  background: var(--ev-yellow);
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Hero stickers */
+.ev-sticker-1 { top: 120px; left: 8%; transform: rotate(-12deg); }
+.ev-sticker-2 { top: 200px; right: 6%; transform: rotate(8deg); background: var(--ev-pink); }
+.ev-sticker-3 { bottom: 40px; left: 15%; transform: rotate(5deg); background: var(--ev-blue); }
+/* Countdown stickers */
+.ev-sticker-4 { top: 10px; right: 5%; transform: rotate(12deg); background: var(--ev-purple); }
+.ev-sticker-5 { bottom: -10px; left: 4%; transform: rotate(-8deg); background: var(--ev-orange); }
+/* Details stickers */
+.ev-sticker-6 { top: 30px; right: 3%; transform: rotate(-6deg); background: var(--ev-lime); }
+.ev-sticker-7 { bottom: 20px; left: 5%; transform: rotate(10deg); background: var(--ev-pink); }
+/* Collab sticker */
+.ev-sticker-8 { top: 20px; right: 5%; transform: rotate(-14deg); }
+/* Audience stickers */
+.ev-sticker-9 { top: 10px; right: 4%; transform: rotate(7deg); background: var(--ev-blue); }
+.ev-sticker-10 { bottom: 10px; left: 3%; transform: rotate(-5deg); background: var(--ev-purple); }
+/* CTA stickers */
+.ev-sticker-11 { top: 15px; left: 8%; transform: rotate(9deg); background: var(--ev-yellow); }
+.ev-sticker-12 { bottom: 15px; right: 5%; transform: rotate(-11deg); background: var(--ev-lime); }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .ev-hero { padding: 80px 0 40px; }
+  .ev-hero::before { width: 150px; height: 150px; top: -30px; right: -30px; }
+  .ev-hero::after { width: 100px; height: 100px; bottom: -20px; left: -20px; }
+
+  .ev-title { font-size: clamp(2.8rem, 14vw, 4.5rem); }
+
+  .ev-badge { font-size: 0.75rem; padding: 6px 14px; }
+
+  .ev-info-bar {
+    flex-direction: column;
+    display: inline-flex;
+  }
+  .ev-info-item:not(:last-child) {
+    border-right: none;
+    border-bottom: var(--ev-border);
+  }
+
+  .ev-countdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ev-countdown-block { min-width: 0; }
+
+  .ev-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ev-audience-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ev-collab-box {
+    padding: 32px 24px;
+    margin: 0 16px;
+  }
+
+  .ev-sticker { display: none; }
+
+  .ev-details, .ev-collab, .ev-audience { padding: 50px 0; }
+}
+
+@media (max-width: 480px) {
+  .ev-hero { padding: 70px 0 32px; }
+  .ev-hero::before, .ev-hero::after { display: none; }
+  .ev-title { font-size: clamp(2.2rem, 16vw, 3.5rem); }
+  .ev-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 16px 24px;
+  }
+  .ev-countdown-block { padding: 16px 12px; }
+  .ev-collab-box { padding: 24px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<main id="main-content">
+
+  <!-- HERO -->
+  <section class="ev-hero">
+    <div class="ev-sticker ev-sticker-1" aria-hidden="true">&#x26A1;</div>
+    <div class="ev-sticker ev-sticker-2" aria-hidden="true">&#x1F525;</div>
+    <div class="ev-sticker ev-sticker-3" aria-hidden="true">&#x1F680;</div>
+
+    <div class="container">
+      <div class="ev-badge">VibeLab's First IRL Event &#x26A1;</div>
+      <h1 class="ev-title">VIBE<br>SHIFT<br><span class="ev-title-accent">BLR</span></h1>
+      <p class="ev-tagline">Where vibe coders meet in the real world.</p>
+
+      <div class="ev-info-bar">
+        <div class="ev-info-item">
+          <span class="ev-info-icon" aria-hidden="true">&#x1F4C5;</span>
+          March 14, 2026
+        </div>
+        <div class="ev-info-item">
+          <span class="ev-info-icon" aria-hidden="true">&#x1F552;</span>
+          4:00 PM IST
+        </div>
+        <div class="ev-info-item">
+          <span class="ev-info-icon" aria-hidden="true">&#x1F4CD;</span>
+          Uniphore, Bangalore
+        </div>
+      </div>
+
+      <div>
+        <a href="https://forms.gle/PLACEHOLDER" target="_blank" rel="noopener noreferrer" class="ev-btn">
+          Register Now &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- COUNTDOWN -->
+  <section class="ev-countdown" aria-label="Countdown to VIBE SHIFT BLR">
+    <div class="ev-sticker ev-sticker-4" aria-hidden="true">&#x1F3AF;</div>
+    <div class="ev-sticker ev-sticker-5" aria-hidden="true">&#x1F4BB;</div>
+    <div class="container">
+      <div class="ev-countdown-label">The shift happens in</div>
+      <div class="ev-countdown-grid">
+        <div class="ev-countdown-block">
+          <div class="ev-countdown-number" id="ev-days">--</div>
+          <div class="ev-countdown-unit">Days</div>
+        </div>
+        <div class="ev-countdown-block">
+          <div class="ev-countdown-number" id="ev-hours">--</div>
+          <div class="ev-countdown-unit">Hours</div>
+        </div>
+        <div class="ev-countdown-block">
+          <div class="ev-countdown-number" id="ev-mins">--</div>
+          <div class="ev-countdown-unit">Minutes</div>
+        </div>
+        <div class="ev-countdown-block">
+          <div class="ev-countdown-number" id="ev-secs">--</div>
+          <div class="ev-countdown-unit">Seconds</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT TO EXPECT -->
+  <section class="ev-details">
+    <div class="ev-sticker ev-sticker-6" aria-hidden="true">&#x2728;</div>
+    <div class="ev-sticker ev-sticker-7" aria-hidden="true">&#x1F3A8;</div>
+    <div class="container">
+      <h2 class="ev-section-title">What to Expect</h2>
+      <div class="ev-card-grid">
+        <div class="ev-card">
+          <div class="ev-card-emoji" aria-hidden="true">&#x26A1;</div>
+          <h3>Lightning Talks</h3>
+          <p>Quick-fire demos from vibe coders. See what people are building and how they're doing it.</p>
+        </div>
+        <div class="ev-card">
+          <div class="ev-card-emoji" aria-hidden="true">&#x1F6E0;&#xFE0F;</div>
+          <h3>Live Build Session</h3>
+          <p>Build something wild, together. Bring your laptop and your weirdest ideas.</p>
+        </div>
+        <div class="ev-card">
+          <div class="ev-card-emoji" aria-hidden="true">&#x1F91D;</div>
+          <h3>Meet the Community</h3>
+          <p>Real faces behind the screen names. Connect with builders who think like you.</p>
+        </div>
+        <div class="ev-card">
+          <div class="ev-card-emoji" aria-hidden="true">&#x1F355;</div>
+          <h3>Vibes & Snacks</h3>
+          <p>Good food, good energy. We'll keep you fueled while you create.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IN COLLABORATION WITH -->
+  <section class="ev-collab">
+    <div class="ev-sticker ev-sticker-8" aria-hidden="true">&#x1F389;</div>
+    <div class="container">
+      <div class="ev-collab-box">
+        <div class="ev-collab-label">In collaboration with</div>
+        <div class="ev-collab-name">Uniphore</div>
+        <div class="ev-collab-sub">Hosting us at their Bangalore office</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO SHOULD ATTEND -->
+  <section class="ev-audience">
+    <div class="ev-sticker ev-sticker-9" aria-hidden="true">&#x1F9E9;</div>
+    <div class="ev-sticker ev-sticker-10" aria-hidden="true">&#x1F3B5;</div>
+    <div class="container">
+      <h2 class="ev-section-title">Who's This For?</h2>
+      <div class="ev-audience-grid">
+        <div class="ev-audience-item">
+          <span class="ev-audience-check" aria-hidden="true">&#x2713;</span>
+          Developers who vibe-code with AI tools
+        </div>
+        <div class="ev-audience-item">
+          <span class="ev-audience-check" aria-hidden="true">&#x2713;</span>
+          Designers who blur code and art
+        </div>
+        <div class="ev-audience-item">
+          <span class="ev-audience-check" aria-hidden="true">&#x2713;</span>
+          Indie hackers building with feeling
+        </div>
+        <div class="ev-audience-item">
+          <span class="ev-audience-check" aria-hidden="true">&#x2713;</span>
+          Anyone curious about creative coding
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM CTA -->
+  <section class="ev-cta-banner">
+    <div class="ev-sticker ev-sticker-11" aria-hidden="true">&#x1F308;</div>
+    <div class="ev-sticker ev-sticker-12" aria-hidden="true">&#x1F525;</div>
+    <div class="container">
+      <div class="ev-cta-text">Don't miss the shift.</div>
+      <a href="https://forms.gle/PLACEHOLDER" target="_blank" rel="noopener noreferrer" class="ev-btn ev-btn-pink">
+        Register Now &rarr;
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<div id="footer-container"></div>
+<div id="modals-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/image-utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/shared.js"></script>
+<script>
+  initPage('events');
+
+  // Countdown timer — March 14, 2026 at 4:00 PM IST (UTC+5:30)
+  (function() {
+    const target = new Date('2026-03-14T16:00:00+05:30').getTime();
+
+    function update() {
+      const now = Date.now();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        document.getElementById('ev-days').textContent = '0';
+        document.getElementById('ev-hours').textContent = '0';
+        document.getElementById('ev-mins').textContent = '0';
+        document.getElementById('ev-secs').textContent = '0';
+        return;
+      }
+
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+
+      document.getElementById('ev-days').textContent = d;
+      document.getElementById('ev-hours').textContent = h;
+      document.getElementById('ev-mins').textContent = m;
+      document.getElementById('ev-secs').textContent = s;
+    }
+
+    update();
+    setInterval(update, 1000);
+  })();
+
+</script>
+</body>
+</html>
