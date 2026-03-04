@@ -1,3 +1,4 @@
 /feed /explore.html 200
 /project /vibe.html 200
+/invite /invite.html 200
 /invite/* /invite.html 200

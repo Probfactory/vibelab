@@ -50,12 +50,8 @@ service cloud.firestore {
 
       // Users can update their own profile but NOT protected fields
       // Superadmin can update any user including protected fields
-      // Special case: users can decrement their own invitesRemaining by 1 (invite generation)
       allow update: if isSuperAdmin()
-        || (isOwner(userId) && notChangingProtectedFields())
-        || (isOwner(userId)
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['invitesRemaining'])
-            && request.resource.data.invitesRemaining == resource.data.invitesRemaining - 1);
+        || (isOwner(userId) && notChangingProtectedFields());
 
       // Only superadmin can delete users
       allow delete: if isSuperAdmin() || isOwner(userId);
@@ -148,26 +144,29 @@ service cloud.firestore {
     }
 
     // ── Invite codes collection ──
-    // NOTE: This collection is publicly readable because the invite landing page
-    // validates codes via .where('code', '==', ...) for unauthenticated users.
-    // To fully lock this down, move invite validation to a Cloud Function.
+    // Code is used as the document ID so validation uses get() (public),
+    // while listing is restricted to the creator's own codes.
 
     match /inviteCodes/{codeId} {
-      allow read: if true;
+      // Anyone can validate a specific code by document ID (get)
+      allow get: if true;
+      // Only the code creator can list/query their own codes; superadmin can list all
+      allow list: if isSuperAdmin()
+        || (isSignedIn() && resource.data.createdBy == request.auth.uid);
 
-      // Superadmin can create any code
-      // Regular users can create codes (user-generated invites)
-      allow create: if isSuperAdmin()
-        || (isSignedIn() && request.resource.data.createdBy == request.auth.uid
-            && request.resource.data.type == 'user');
+      // Only superadmin can create invite codes
+      allow create: if isSuperAdmin();
 
       // Superadmin can update any code
       // Anyone authenticated can mark a code as used during signup (redeem)
+      // Restrict redeemer to only changing status, usedBy, usedByName, usedByEmail, usedAt
       allow update: if isSuperAdmin()
         || (isSignedIn()
             && resource.data.status == 'active'
             && request.resource.data.status == 'used'
-            && request.resource.data.usedBy == request.auth.uid);
+            && request.resource.data.usedBy == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['status', 'usedBy', 'usedByName', 'usedByEmail', 'usedAt']));
 
       // Only superadmin can delete codes
       allow delete: if isSuperAdmin();

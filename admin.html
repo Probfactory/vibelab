@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/image-utils.js"></script>
   <script src="js/auth.js"></script>
@@ -84,6 +84,16 @@
             <div class="admin-stat-icon">🎟️</div>
             <div class="admin-stat-number" id="stat-active-codes">—</div>
             <div class="admin-stat-label">Active Invite Codes</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px; padding: 16px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <strong style="font-size: 0.9rem;">Reset All Invites</strong>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 0;">Deletes all existing invite codes. Use Grant Invites to create new ones.</p>
+            </div>
+            <button class="btn btn-dark btn-sm" id="reset-invites-btn" onclick="resetAllInvites()" style="white-space: nowrap;">🔄 Reset All Invites</button>
           </div>
         </div>
 
@@ -310,7 +320,6 @@
       // Update user doc with superadmin role
       await db.collection('users').doc(currentUser.uid).update({
         role: 'superadmin',
-        invitesRemaining: 999,
         status: 'active'
       });
 
@@ -321,7 +330,7 @@
         setupAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      currentUserProfile = { ...currentUserProfile, role: 'superadmin', invitesRemaining: 999, status: 'active' };
+      currentUserProfile = { ...currentUserProfile, role: 'superadmin', status: 'active' };
       updateNav();
 
       // Switch to dashboard
@@ -440,18 +449,30 @@
   async function loadAllUsers() {
     try {
       const snap = await db.collection('users').orderBy('createdAt', 'desc').get();
-      // Get project counts
-      const projSnap = await db.collection('projects').get();
+      // Get project counts and invite code counts in parallel
+      const [projSnap, codesSnap] = await Promise.all([
+        db.collection('projects').get(),
+        db.collection('inviteCodes').get()
+      ]);
       const projectCounts = {};
       projSnap.docs.forEach(d => {
         const uid = d.data().authorUid;
         if (uid) projectCounts[uid] = (projectCounts[uid] || 0) + 1;
       });
+      // Count active (unused) invite codes per user
+      const inviteCodeCounts = {};
+      codesSnap.docs.forEach(d => {
+        const data = d.data();
+        if (data.status === 'active' && data.createdBy) {
+          inviteCodeCounts[data.createdBy] = (inviteCodeCounts[data.createdBy] || 0) + 1;
+        }
+      });
 
       allUsers = snap.docs.map(d => ({
         uid: d.id,
         ...d.data(),
-        projectCount: projectCounts[d.id] || 0
+        projectCount: projectCounts[d.id] || 0,
+        activeInvites: inviteCodeCounts[d.id] || 0
       }));
       renderUsersWithHeader(allUsers);
     } catch (e) {
@@ -496,7 +517,7 @@
             <span>${u.projectCount}</span>
           </div>
           <div class="admin-user-detail hide-mobile">
-            <span>${u.invitesRemaining ?? '—'}</span>
+            <span>${u.activeInvites}</span>
           </div>
           <div class="admin-user-detail">
             <span class="admin-badge ${statusClass}">${statusLabel}</span>
@@ -659,6 +680,54 @@
     }
   }
 
+  // ── RESET ALL INVITES ──
+  async function resetAllInvites() {
+    if (!confirm('This will DELETE all invite codes and reset every user\u2019s invite count. Continue?')) return;
+
+    const btn = document.getElementById('reset-invites-btn');
+    btn.disabled = true;
+    btn.textContent = 'Resetting...';
+
+    try {
+      // 1. Delete all invite codes (batch delete in chunks of 500)
+      const codesSnap = await db.collection('inviteCodes').get();
+      const totalCodes = codesSnap.size;
+      const codeDocs = codesSnap.docs;
+
+      for (let i = 0; i < codeDocs.length; i += 500) {
+        const batch = db.batch();
+        const chunk = codeDocs.slice(i, i + 500);
+        chunk.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+
+      // 2. Reset all users' invitesRemaining to 0 (batch update in chunks of 500)
+      const usersSnap = await db.collection('users').get();
+      const userDocs = usersSnap.docs;
+      let usersUpdated = 0;
+
+      for (let i = 0; i < userDocs.length; i += 500) {
+        const batch = db.batch();
+        const chunk = userDocs.slice(i, i + 500);
+        chunk.forEach(doc => {
+          batch.update(doc.ref, { invitesRemaining: 0 });
+          usersUpdated++;
+        });
+        await batch.commit();
+      }
+
+      showToast(`Reset complete! Deleted ${totalCodes} codes for ${usersUpdated} users.`);
+      loadOverviewStats();
+      loadAllUsers();
+    } catch (e) {
+      console.error('Reset invites error:', e);
+      showToast('Error: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔄 Reset All Invites';
+    }
+  }
+
   let lastGrantedCodes = [];
 
   function copyCode(code) {
@@ -722,7 +791,7 @@
       const targetUids = grantTargetUid === '__bulk__' ? [...selectedUserUids] : [grantTargetUid];
       const allCodes = [];
 
-      // For each target user, generate codes and bump their invitesRemaining
+      // For each target user, generate invite codes
       for (const uid of targetUids) {
         const codePromises = [];
         for (let i = 0; i < count; i++) {
@@ -731,11 +800,6 @@
         const codes = await Promise.all(codePromises);
         const validCodes = codes.filter(Boolean);
         allCodes.push(...validCodes);
-
-        // Also increment their invitesRemaining
-        await db.collection('users').doc(uid).update({
-          invitesRemaining: firebase.firestore.FieldValue.increment(count)
-        });
       }
 
       lastGrantedCodes = allCodes;
@@ -1107,12 +1171,13 @@
         challengeData.documentName = existingDocName;
       }
 
-      // Upload banner if new file selected
+      // Compress & upload banner if new file selected
       if (challengeBannerFile) {
-        const ext = challengeBannerFile.name.split('.').pop();
+        const compressed = await compressBanner(challengeBannerFile);
+        const ext = compressed.type === 'image/webp' ? 'webp' : 'jpg';
         const bannerPath = `challenge-assets/${docId}/banner.${ext}`;
         const bannerRef = storage.ref(bannerPath);
-        await bannerRef.put(challengeBannerFile);
+        await bannerRef.put(compressed);
         const bannerURL = await bannerRef.getDownloadURL();
         challengeData.bannerImage = bannerURL;
       } else if (existingBannerURL) {

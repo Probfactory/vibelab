@@ -16,21 +16,10 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
         updateNav();
         window.dispatchEvent(new CustomEvent('authStateReady', { detail: { user, profile: currentUserProfile } }));
 
-        // Fire-and-forget: backfill invite fields or update lastActive
-        if (!currentUserProfile.hasOwnProperty('invitesRemaining')) {
-          db.collection('users').doc(user.uid).update({
-            invitesRemaining: 3,
-            status: 'active',
-            lastActive: firebase.firestore.FieldValue.serverTimestamp()
-          }).then(() => {
-            currentUserProfile.invitesRemaining = 3;
-            currentUserProfile.status = 'active';
-          }).catch(err => console.warn('Could not backfill invite fields:', err));
-        } else {
-          db.collection('users').doc(user.uid).update({
-            lastActive: firebase.firestore.FieldValue.serverTimestamp()
-          }).catch(err => console.warn('Could not update lastActive:', err));
-        }
+        // Fire-and-forget: update lastActive
+        db.collection('users').doc(user.uid).update({
+          lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => console.warn('Could not update lastActive:', err));
         return; // Already dispatched authStateReady above
       } else {
         // New user — check if this is from email signup (has _pendingUsername) or Google OAuth
@@ -45,7 +34,7 @@ if (typeof auth !== 'undefined' && auth) auth.onAuthStateChanged(async (user) =>
             skills: [],
             photoURL: user.photoURL || '',
             socials: { twitter: '', github: '', website: '' },
-            invitesRemaining: 3,
+            invitesRemaining: 0,
             invitedBy: window._pendingInviteCreator || null,
             inviteCode: window._pendingInviteCode || '',
             status: 'active',
@@ -384,7 +373,10 @@ async function signUpWithEmail() {
 
     // Redeem invite code if one was used
     if (inviteCode) {
-      await redeemInviteCode(inviteCode, result.user.uid, displayName, email);
+      const redeemed = await redeemInviteCode(inviteCode, result.user.uid, displayName, email);
+      if (!redeemed) {
+        console.warn('Invite code redemption failed for code:', inviteCode);
+      }
     }
 
     // Reset verified state
@@ -540,7 +532,10 @@ async function completeGoogleSignup() {
 
     // Redeem invite code
     if (inviteCode && inviteResult?.valid) {
-      await redeemInviteCode(inviteCode, currentUser.uid, currentUser.displayName || '', currentUser.email || '');
+      const redeemed = await redeemInviteCode(inviteCode, currentUser.uid, currentUser.displayName || '', currentUser.email || '');
+      if (!redeemed) {
+        console.warn('Invite code redemption failed for code:', inviteCode);
+      }
     }
 
     // Create user profile
@@ -553,7 +548,7 @@ async function completeGoogleSignup() {
       skills: [],
       photoURL: currentUser.photoURL || '',
       socials: { twitter: '', github: '', website: '' },
-      invitesRemaining: 3,
+      invitesRemaining: 0,
       invitedBy: inviteCreator,
       inviteCode: inviteCode || '',
       status: 'active',
