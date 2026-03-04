@@ -57,33 +57,39 @@
 <script>
 initPage('invite');
 
-// Extract invite code from URL path: /invite/VIBE-XXXX
-function getInviteCodeFromPath() {
+// Extract invite code from URL
+// Supports: /invite/VIBE-XXXX, /invite/VIBE-XXXX/, ?code=VIBE-XXXX
+function getInviteCodeFromURL() {
+  // 1. Try path-based: /invite/VIBE-XXXX (with optional trailing slash)
   const path = window.location.pathname;
-  const match = path.match(/^\/invite\/([A-Za-z0-9-]+)$/);
-  return match ? match[1].toUpperCase() : null;
+  const pathMatch = path.match(/\/invite\/([A-Za-z0-9-]+)\/?$/);
+  if (pathMatch) return pathMatch[1].toUpperCase();
+
+  // 2. Fallback: query parameter ?code=VIBE-XXXX
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (code) return code.toUpperCase().trim();
+
+  return null;
 }
 
 async function loadInviteLanding() {
-  const code = getInviteCodeFromPath();
+  const code = getInviteCodeFromURL();
   if (!code) {
     showInviteError('No invite code found in the URL.');
     return;
   }
 
   try {
-    // Look up the invite code
-    const snapshot = await db.collection('inviteCodes')
-      .where('code', '==', code)
-      .limit(1)
-      .get();
+    // Look up the invite code by document ID (direct get, not a list query)
+    const doc = await db.collection('inviteCodes').doc(code).get();
 
-    if (snapshot.empty) {
+    if (!doc.exists) {
       showInviteError('This invite code is not valid.');
       return;
     }
 
-    const codeData = snapshot.docs[0].data();
+    const codeData = doc.data();
 
     if (codeData.status === 'used') {
       showInviteError('This invite has already been claimed.');

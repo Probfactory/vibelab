@@ -205,18 +205,19 @@ async function validateInviteCode(code) {
   if (!db || !code) return { valid: false, error: 'Invite code is required' };
   const upperCode = code.toUpperCase().trim();
   try {
-    const snapshot = await db.collection('inviteCodes')
-      .where('code', '==', upperCode)
-      .where('status', '==', 'active')
-      .limit(1)
-      .get();
+    // Use direct doc get (not a list query) so Firestore rules can allow
+    // public get while restricting list to own codes only
+    const doc = await db.collection('inviteCodes').doc(upperCode).get();
 
-    if (snapshot.empty) {
+    if (!doc.exists) {
       return { valid: false, error: 'Invalid or expired invite code' };
     }
 
-    const doc = snapshot.docs[0];
     const data = doc.data();
+
+    if (data.status !== 'active') {
+      return { valid: false, error: 'Invalid or expired invite code' };
+    }
 
     // Check expiry
     if (data.expiresAt && data.expiresAt.toDate() < new Date()) {
@@ -230,7 +231,7 @@ async function validateInviteCode(code) {
   }
 }
 
-// Create a new invite code in Firestore
+// Create a new invite code in Firestore (admin-only)
 async function createInviteCode(createdByUid, createdByName, type, expiresAt) {
   if (!db) return null;
   const code = generateInviteCode();
@@ -244,19 +245,13 @@ async function createInviteCode(createdByUid, createdByName, type, expiresAt) {
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     expiresAt: expiresAt || null,
     status: 'active',
-    type: type || 'user'
+    type: type || 'admin'
   };
 
   try {
-    await db.collection('inviteCodes').add(docData);
-
-    // Decrement inviter's remaining invites at generation time (not redemption)
-    if (type === 'user' && createdByUid) {
-      await db.collection('users').doc(createdByUid).update({
-        invitesRemaining: firebase.firestore.FieldValue.increment(-1)
-      });
-    }
-
+    // Use the code as the document ID so validation can use direct get()
+    // instead of a list query (enables tighter Firestore rules)
+    await db.collection('inviteCodes').doc(code).set(docData);
     return code;
   } catch (e) {
     console.error('Error creating invite code:', e);
@@ -269,26 +264,18 @@ async function redeemInviteCode(code, usedByUid, usedByName, usedByEmail) {
   if (!db || !code) return false;
   const upperCode = code.toUpperCase().trim();
   try {
-    const snapshot = await db.collection('inviteCodes')
-      .where('code', '==', upperCode)
-      .where('status', '==', 'active')
-      .limit(1)
-      .get();
+    const docRef = db.collection('inviteCodes').doc(upperCode);
+    const doc = await docRef.get();
 
-    if (snapshot.empty) return false;
+    if (!doc.exists || doc.data().status !== 'active') return false;
 
-    const doc = snapshot.docs[0];
-
-    await doc.ref.update({
+    await docRef.update({
       usedBy: usedByUid,
       usedByName: usedByName || '',
       usedByEmail: usedByEmail || '',
       usedAt: firebase.firestore.FieldValue.serverTimestamp(),
       status: 'used'
     });
-
-    // Note: invitesRemaining is now decremented at code GENERATION time
-    // (in createInviteCode), not at redemption time
 
     return true;
   } catch (e) {
@@ -301,13 +288,14 @@ async function redeemInviteCode(code, usedByUid, usedByName, usedByEmail) {
 async function checkSuperAdminExists() {
   if (!db) return false;
   try {
-    const snapshot = await db.collection('users')
-      .where('role', '==', 'superadmin')
-      .limit(1)
-      .get();
-    return !snapshot.empty;
+    // Use adminConfig/settings (publicly readable) instead of querying users collection
+    // which requires auth and would fail for unauthenticated signup visitors
+    const doc = await db.collection('adminConfig').doc('settings').get();
+    return doc.exists && doc.data()?.setupComplete === true;
   } catch (e) {
     console.error('Error checking superadmin:', e);
-    return false;
+    // IMPORTANT: default to true (admin exists) so we DON'T skip invite validation
+    // Previously defaulted to false which allowed bypassing invite checks
+    return true;
   }
 }
