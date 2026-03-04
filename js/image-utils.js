@@ -1,23 +1,55 @@
 // ══════════════════════════════════════════════
-//  VibeLab Image Validation & Resize Utilities
+//  VibeLab Image Validation & Compression Utils
 // ══════════════════════════════════════════════
 
-const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif'];
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
-/**
- * Validate an image file for type and size.
- * @param {File} file
- * @param {Object} opts
- * @param {number} opts.maxSizeMB - Maximum file size in MB
- * @param {string[]} [opts.allowedTypes] - Allowed MIME types
- * @returns {{ valid: boolean, error?: string }}
- */
+// ── Dynamic CDN loader for browser-image-compression ──
+
+let _compressionLib = null;
+
+async function _loadCompressionLib() {
+  if (_compressionLib) return _compressionLib;
+  if (window.imageCompression) {
+    _compressionLib = window.imageCompression;
+    return _compressionLib;
+  }
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js';
+    script.onload = () => {
+      _compressionLib = window.imageCompression;
+      resolve(_compressionLib);
+    };
+    script.onerror = () => reject(new Error('Failed to load image compression library'));
+    document.head.appendChild(script);
+  });
+}
+
+// ── WebP support detection ──
+
+let _webpSupported = null;
+
+function _supportsWebP() {
+  if (_webpSupported !== null) return _webpSupported;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 1;
+  _webpSupported = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+  return _webpSupported;
+}
+
+function _outputType() {
+  return _supportsWebP() ? 'image/webp' : 'image/jpeg';
+}
+
+// ── Validation ──
+
 function validateImage(file, { maxSizeMB, allowedTypes }) {
   if (!file) return { valid: false, error: 'No file selected.' };
 
   const types = allowedTypes || ALLOWED_IMAGE_TYPES;
   if (!types.includes(file.type)) {
-    return { valid: false, error: 'Only PNG, JPG, and GIF images are allowed.' };
+    return { valid: false, error: 'Only PNG, JPG, GIF, and WebP images are allowed.' };
   }
 
   const maxBytes = maxSizeMB * 1024 * 1024;
@@ -28,11 +60,21 @@ function validateImage(file, { maxSizeMB, allowedTypes }) {
   return { valid: true };
 }
 
-/**
- * Load a File/Blob as an HTMLImageElement.
- * @param {File|Blob} file
- * @returns {Promise<HTMLImageElement>}
- */
+// ── Core compression ──
+
+async function compressImage(file, { maxSizeMB, maxWidthOrHeight, quality }) {
+  const compress = await _loadCompressionLib();
+  return compress(file, {
+    maxSizeMB: maxSizeMB || 1,
+    maxWidthOrHeight: maxWidthOrHeight || 2048,
+    useWebWorker: true,
+    fileType: _outputType(),
+    initialQuality: quality || 0.8,
+  });
+}
+
+// ── Helpers ──
+
 function _loadImage(file) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -42,55 +84,18 @@ function _loadImage(file) {
   });
 }
 
-/**
- * Resize an image to fit within maxWidth x maxHeight, preserving aspect ratio.
- * Returns the original file if already within bounds.
- * @param {File} file
- * @param {Object} opts
- * @param {number} opts.maxWidth
- * @param {number} opts.maxHeight
- * @param {number} [opts.quality=0.85] - JPEG quality (0-1)
- * @returns {Promise<Blob>}
- */
+// ── Public resize functions (same signatures as before) ──
+
 async function resizeImage(file, { maxWidth, maxHeight, quality }) {
-  const q = quality || 0.85;
-  const img = await _loadImage(file);
-  const { naturalWidth: w, naturalHeight: h } = img;
-
-  // Already within bounds — return original
-  if (w <= maxWidth && h <= maxHeight) {
-    URL.revokeObjectURL(img.src);
-    return file;
-  }
-
-  // Calculate scaled dimensions
-  const ratio = Math.min(maxWidth / w, maxHeight / h);
-  const newW = Math.round(w * ratio);
-  const newH = Math.round(h * ratio);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = newW;
-  canvas.height = newH;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0, newW, newH);
-  URL.revokeObjectURL(img.src);
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', q);
+  return compressImage(file, {
+    maxSizeMB: IMAGE_RULES.thumbnail.targetMB,
+    maxWidthOrHeight: Math.max(maxWidth, maxHeight),
+    quality: quality || 0.8,
   });
 }
 
-/**
- * Resize an image to a square by center-cropping, then scaling down.
- * Used for profile avatars.
- * @param {File} file
- * @param {Object} opts
- * @param {number} opts.size - Target square dimension (e.g. 400)
- * @param {number} [opts.quality=0.85] - JPEG quality (0-1)
- * @returns {Promise<Blob>}
- */
 async function resizeAvatar(file, { size, quality }) {
-  const q = quality || 0.85;
+  const q = quality || 0.8;
   const img = await _loadImage(file);
   const { naturalWidth: w, naturalHeight: h } = img;
 
@@ -99,7 +104,6 @@ async function resizeAvatar(file, { size, quality }) {
   const sx = Math.round((w - cropSize) / 2);
   const sy = Math.round((h - cropSize) / 2);
 
-  // Output size: use target or original if smaller
   const outSize = Math.min(size, cropSize);
 
   const canvas = document.createElement('canvas');
@@ -109,14 +113,30 @@ async function resizeAvatar(file, { size, quality }) {
   ctx.drawImage(img, sx, sy, cropSize, cropSize, 0, 0, outSize, outSize);
   URL.revokeObjectURL(img.src);
 
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', q);
+  // Convert canvas to blob, then compress with library
+  const cropped = await new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), 'image/png');
+  });
+
+  return compressImage(cropped, {
+    maxSizeMB: IMAGE_RULES.avatar.targetMB,
+    maxWidthOrHeight: outSize,
+    quality: q,
+  });
+}
+
+async function compressBanner(file) {
+  return compressImage(file, {
+    maxSizeMB: IMAGE_RULES.banner.targetMB,
+    maxWidthOrHeight: IMAGE_RULES.banner.maxWidth,
+    quality: IMAGE_RULES.banner.quality,
   });
 }
 
 // ── Preset configs ──
 
 const IMAGE_RULES = {
-  avatar: { maxSizeMB: 6, maxDim: 400, quality: 0.85 },
-  thumbnail: { maxSizeMB: 10, maxWidth: 2800, maxHeight: 2100, quality: 0.9 }
+  avatar:    { maxSizeMB: 6, maxDim: 400, quality: 0.8, targetMB: 0.5 },
+  thumbnail: { maxSizeMB: 10, maxWidth: 2800, maxHeight: 2100, quality: 0.8, targetMB: 1 },
+  banner:    { maxSizeMB: 10, maxWidth: 1600, maxHeight: 900, quality: 0.8, targetMB: 1 },
 };
